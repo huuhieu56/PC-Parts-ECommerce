@@ -1,0 +1,82 @@
+spring:
+  application:
+    name: computer-shop-backend
+
+  # Database Configuration
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/pc_shop_database}
+    username: ${SPRING_DATASOURCE_USERNAME:your_username}
+    password: ${SPRING_DATASOURCE_PASSWORD:your_password}
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      pool-name: ComputerShopHikariPool
+      maximum-pool-size: ${SPRING_DATASOURCE_MAX_POOL_SIZE:20}
+      minimum-idle: ${SPRING_DATASOURCE_MIN_IDLE:5}
+      idle-timeout: ${SPRING_DATASOURCE_IDLE_TIMEOUT:300000}
+      connection-timeout: ${SPRING_DATASOURCE_CONNECTION_TIMEOUT:20000}
+      # Kiểm tra kết nối trước khi trả về:
+      validation-timeout: 5000
+      connection-test-query: SELECT 1
+
+  # JPA / Hibernate Configuration
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
+    show-sql: ${SPRING_JPA_SHOW_SQL:false}
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: ${APP_TIMEZONE:Asia/Ho_Chi_Minh}
+
+  servlet:
+    multipart:
+      max-file-size: ${APP_FILE_MAX_SIZE:10MB}
+      max-request-size: ${APP_FILE_MAX_REQUEST_SIZE:10MB}
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: always
+
+# App Custom Configurations
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:*}
+    allowed-methods: ${APP_CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,PATCH,OPTIONS}
+    allowed-headers: ${APP_CORS_ALLOWED_HEADERS:*}
+    allow-credentials: ${APP_CORS_ALLOW_CREDENTIALS:true}
+
+  jwt:
+    secret: ${APP_JWT_SECRET:your_jwt_secret_key_here_change_in_production}
+    expiration: ${APP_JWT_EXPIRATION:2592000000}
+    refresh-token:
+      expiration: ${APP_JWT_REFRESH_EXPIRATION:7776000000}
+
+  file-storage:
+    location: ${APP_FILE_STORAGE_LOCATION:images}
+
+  inventory:
+    default-low-stock-threshold: ${APP_DEFAULT_LOW_STOCK_THRESHOLD:10}
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.computershop: ${LOGGING_LEVEL_COMPUTERSHOP:DEBUG}
+    org.hibernate.SQL: ${LOGGING_LEVEL_HIBERNATE_SQL:DEBUG}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${LOGGING_LEVEL_BINDER:TRACE}
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss} - %-5level [%thread] %logger{36} : %msg%n'

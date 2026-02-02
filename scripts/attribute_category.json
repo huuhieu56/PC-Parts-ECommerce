@@ -1,0 +1,2171 @@
+{
+  "CPU": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "AMD",
+        "Intel"
+      ]
+    },
+    "series": {
+      "display_name": "Dòng sản phẩm",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "Core i3",
+        "Core i5",
+        "Core i7",
+        "Core i9",
+        "Core Ultra 5",
+        "Core Ultra 7",
+        "Core Ultra 9",
+        "Ryzen 3",
+        "Ryzen 5",
+        "Ryzen 7",
+        "Ryzen 9",
+        "Ryzen AI 300"
+      ]
+    },
+    "generation": {
+      "display_name": "Thế hệ CPU",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        "Intel 13th Gen",
+        "Intel 14th Gen",
+        "Intel 15th Gen (Arrow Lake)",
+        "AMD Zen 5",
+        "AMD Zen 6"
+      ]
+    },
+    "socket": {
+      "display_name": "Socket",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "AM5",
+        "LGA 1700",
+        "LGA 1851",
+        "LGA 1954"
+      ]
+    }
+  },
+  "Video Card": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "NVIDIA",
+        "AMD",
+        "Intel",
+        "ASUS",
+        "MSI",
+        "Gigabyte",
+        "Zotac",
+        "EVGA",
+        "Sapphire"
+      ]
+    },
+    "memory_type": {
+      "display_name": "Loại bộ nhớ",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "GDDR5",
+        "GDDR6",
+        "GDDR6X",
+        "GDDR7"
+      ]
+    },
+    "memory_size": {
+      "display_name": "Dung lượng bộ nhớ",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "GB",
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        2,
+        4,
+        6,
+        8,
+        12,
+        16,
+        24
+      ]
+    },
+    "memory_bus": {
+      "display_name": "Giao diện bộ nhớ",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": "-bit",
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "64-bit",
+        "96-bit",
+        "128-bit",
+        "192-bit",
+        "256-bit",
+        "320-bit",
+        "384-bit"
+      ]
+    }
+  },
+  "Memory": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Corsair",
+        "Kingston",
+        "G.Skill",
+        "Crucial",
+        "Samsung",
+        "TeamGroup",
+        "ADATA",
+        "Patriot"
+      ]
+    },
+    "type": {
+      "display_name": "Loại RAM",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "DDR3",
+        "DDR4",
+        "DDR5"
+      ]
+    },
+    "capacity": {
+      "display_name": "Dung lượng",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "GB",
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        4,
+        8,
+        16,
+        32,
+        64,
+        128
+      ]
+    },
+    "bus_speed": {
+      "display_name": "Bus RAM",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": "MHz",
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "DDR3 1600MHz",
+        "DDR4 2666MHz",
+        "DDR4 3200MHz",
+        "DDR4 3600MHz",
+        "DDR5 4800MHz",
+        "DDR5 5200MHz",
+        "DDR5 5600MHz",
+        "DDR5 6000MHz",
+        "DDR5 6400MHz",
+        "DDR5 7200MHz"
+      ]
+    },
+    "ecc": {
+      "display_name": "Tự sửa lỗi",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        "RAM ECC",
+        "RAM Non-ECC"
+      ]
+    }
+  },
+  "Motherboard": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "ASUS",
+        "MSI",
+        "Gigabyte",
+        "ASRock",
+        "EVGA",
+        "Biostar"
+      ]
+    },
+    "socket": {
+      "display_name": "Socket",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "LGA 1851",
+        "LGA 1200",
+        "LGA 1700",
+        "AM5",
+        "LGA 1954"
+      ]
+    },
+    "form_factor": {
+      "display_name": "Kích cỡ (Form Factor)",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        "Mini ITX",
+        "M-ATX",
+        "ATX",
+        "E-ATX"
+      ]
+    },
+    "chipset": {
+      "display_name": "Chipset",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "Intel H610",
+        "Intel H510",
+        "Intel Z590",
+        "AMD B840",
+        "AMD X870",
+        "AMD B850",
+        "AMD X670",
+        "Intel Z890",
+        "Intel B860",
+        "Intel H810"
+      ]
+    },
+    "ram_slots": {
+      "display_name": "Số khe cắm Ram",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "khe",
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        2,
+        4,
+        8
+      ]
+    }
+  },
+  "Power Supply": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Corsair",
+        "EVGA",
+        "Seasonic",
+        "be quiet!",
+        "Cooler Master",
+        "MSI",
+        "Fractal",
+        "FSP",
+        "XPG"
+      ]
+    },
+    "wattage": {
+      "display_name": "Công suất",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        400,
+        500,
+        550,
+        650,
+        750,
+        850,
+        1000
+      ]
+    },
+    "efficiency": {
+      "display_name": "Chuẩn nguồn",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        "Không",
+        "80 Plus",
+        "80 Plus Bronze",
+        "80 Plus Silver",
+        "80 Plus Gold",
+        "80 Plus Platinum",
+        "80 Plus Titanium"
+      ]
+    },
+    "modular": {
+      "display_name": "Kiểu dây nguồn",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "Non Modular",
+        "Semi Modular",
+        "Full Modular"
+      ]
+    },
+    "form_factor": {
+      "display_name": "Kích cỡ nguồn",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        "FLEX ATX",
+        "SFX",
+        "ATX"
+      ]
+    }
+  },
+  "Case": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Corsair",
+        "NZXT",
+        "Lian Li",
+        "Fractal Design",
+        "Cooler Master",
+        "Phanteks",
+        "Thermaltake",
+        "Silverstone"
+      ]
+    },
+    "type": {
+      "display_name": "Loại",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "Open Air",
+        "Full Tower",
+        "Mid Tower",
+        "Mini Tower",
+        "Mini ITX"
+      ]
+    },
+    "motherboard_support": {
+      "display_name": "Kích cỡ mainboard",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        "Mini-ITX",
+        "M-ATX",
+        "ATX",
+        "E-ATX",
+        "CEB",
+        "EEB"
+      ]
+    },
+    "color": {
+      "display_name": "Màu sắc",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "Pink",
+        "Gray",
+        "Green",
+        "Silver",
+        "White",
+        "Red",
+        "Black",
+        "Blue"
+      ]
+    }
+  },
+  "Monitor": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "ASUS",
+        "MSI",
+        "Dell",
+        "LG",
+        "Samsung",
+        "Acer",
+        "BenQ",
+        "Alienware"
+      ]
+    },
+    "size": {
+      "display_name": "Kích thước",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "inch",
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        15,
+        19.5,
+        21.5,
+        23.8,
+        24,
+        27,
+        32,
+        34
+      ]
+    },
+    "resolution": {
+      "display_name": "Độ phân giải",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        "HD",
+        "HD+",
+        "Full HD",
+        "WUXGA",
+        "UWHD",
+        "2K QHD",
+        "4K UHD",
+        "5K"
+      ]
+    },
+    "refresh_rate": {
+      "display_name": "Tần số quét",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "Hz",
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        60,
+        75,
+        100,
+        120,
+        144,
+        165,
+        240,
+        360
+      ]
+    },
+    "response_time": {
+      "display_name": "Thời gian đáp ứng",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "ms",
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        0.1,
+        0.3,
+        0.5,
+        1,
+        4,
+        5,
+        8
+      ]
+    },
+    "brightness": {
+      "display_name": "Độ sáng",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "cd/m²",
+      "sort_order": 6,
+      "collect_options": false,
+      "options": [
+        200,
+        220,
+        240,
+        250,
+        270,
+        300,
+        320,
+        350,
+        400
+      ]
+    },
+    "connectivity": {
+      "display_name": "Kết nối",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 7,
+      "collect_options": false,
+      "options": [
+        "Display Port",
+        "HDMI",
+        "VGA",
+        "USB-C"
+      ]
+    }
+  },
+  "Keyboard": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Razer",
+        "Corsair",
+        "Logitech",
+        "Keychron",
+        "Dygma",
+        "Kinesis"
+      ]
+    },
+    "layout": {
+      "display_name": "Bố cục",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "Full-size",
+        "TKL",
+        "60%",
+        "65%",
+        "75%",
+        "80%",
+        "Compact"
+      ]
+    },
+    "switch_type": {
+      "display_name": "Loại switch",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        "Mechanical",
+        "Membrane",
+        "Optical",
+        "Magnetic",
+        "Cherry MX Red",
+        "Cherry MX Blue",
+        "Cherry MX Brown",
+        "Gateron",
+        "Kailh"
+      ]
+    },
+    "connection": {
+      "display_name": "Kết nối",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "Wired",
+        "Wireless",
+        "Bluetooth"
+      ]
+    },
+    "backlit": {
+      "display_name": "Đèn nền",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        "RGB",
+        "Single Color",
+        "None"
+      ]
+    },
+    "hot_swap": {
+      "display_name": "Hỗ trợ hot-swap",
+      "data_type": "boolean",
+      "input_type": "checkbox",
+      "unit": null,
+      "sort_order": 6,
+      "collect_options": false
+    },
+    "media_keys": {
+      "display_name": "Phím media",
+      "data_type": "boolean",
+      "input_type": "checkbox",
+      "unit": null,
+      "sort_order": 7,
+      "collect_options": false
+    },
+    "color": {
+      "display_name": "Màu sắc",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 8,
+      "collect_options": false,
+      "options": [
+        "Black",
+        "White",
+        "Pink",
+        "Gray"
+      ]
+    },
+    "tenkeyless": {
+      "display_name": "Bố cục Tenkeyless",
+      "data_type": "boolean",
+      "input_type": "checkbox",
+      "unit": null,
+      "sort_order": 9,
+      "collect_options": false
+    }
+  },
+  "Mouse": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Logitech",
+        "Razer",
+        "Corsair",
+        "SteelSeries",
+        "Zowie"
+      ]
+    },
+    "sensor_type": {
+      "display_name": "Loại cảm biến",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "Optical",
+        "Laser"
+      ]
+    },
+    "max_dpi": {
+      "display_name": "Độ nhạy DPI",
+      "data_type": "number",
+      "input_type": "range",
+      "unit": null,
+      "sort_order": 3,
+      "collect_options": false
+    },
+    "buttons": {
+      "display_name": "Số nút",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        2,
+        3,
+        5,
+        6,
+        8
+      ]
+    },
+    "connection": {
+      "display_name": "Kết nối",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        "Wired",
+        "Wireless",
+        "Bluetooth"
+      ]
+    },
+    "hand_orientation": {
+      "display_name": "Kiểu cầm",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 6,
+      "collect_options": false,
+      "options": [
+        "Right",
+        "Left",
+        "Ambidextrous"
+      ]
+    },
+    "free_scroll": {
+      "display_name": "Cuộn tự do",
+      "data_type": "boolean",
+      "input_type": "checkbox",
+      "unit": null,
+      "sort_order": 7,
+      "collect_options": false
+    },
+    "color": {
+      "display_name": "Màu sắc",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 8,
+      "collect_options": false,
+      "options": [
+        "Black",
+        "White",
+        "Red",
+        "Blue"
+      ]
+    }
+  },
+  "Headphones": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Sony",
+        "Bose",
+        "Sennheiser",
+        "Audio-Technica",
+        "Beats"
+      ]
+    },
+    "type": {
+      "display_name": "Loại",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "Over-ear",
+        "On-ear",
+        "In-ear",
+        "Earbuds"
+      ]
+    },
+    "connection": {
+      "display_name": "Kết nối",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        "Wired",
+        "Wireless",
+        "Bluetooth"
+      ]
+    },
+    "microphone": {
+      "display_name": "Micro",
+      "data_type": "boolean",
+      "input_type": "checkbox",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false
+    },
+    "noise_cancelling": {
+      "display_name": "Khử ồn",
+      "data_type": "boolean",
+      "input_type": "checkbox",
+      "unit": null,
+      "sort_order": 5,
+      "collect_options": false
+    },
+    "frequency_response": {
+      "display_name": "Dải tần",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 6,
+      "collect_options": false,
+      "options": [
+        "20-20kHz",
+        "10-40kHz"
+      ]
+    },
+    "enclosure_type": {
+      "display_name": "Kiểu buồng âm",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 7,
+      "collect_options": false,
+      "options": [
+        "Open-back",
+        "Closed-back"
+      ]
+    },
+    "color": {
+      "display_name": "Màu sắc",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 8,
+      "collect_options": false,
+      "options": [
+        "Black",
+        "White",
+        "Silver",
+        "Red"
+      ]
+    }
+  },
+  "Operating System": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Microsoft Windows",
+        "Ubuntu",
+        "Fedora",
+        "Linux Mint",
+        "Arch Linux",
+        "Debian"
+      ]
+    },
+    "version": {
+      "display_name": "Phiên bản",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "Windows 10",
+        "Windows 11",
+        "Ubuntu 22.04",
+        "Fedora 40",
+        "Ubuntu 24.04",
+        "Fedora 41"
+      ]
+    },
+    "architecture": {
+      "display_name": "Kiến trúc",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        "32-bit",
+        "64-bit"
+      ]
+    },
+    "license_type": {
+      "display_name": "Loại giấy phép",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "Home",
+        "Pro",
+        "Enterprise",
+        "OEM",
+        "Retail"
+      ]
+    },
+    "product_type": {
+      "display_name": "Loại sản phẩm",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        "USB",
+        "CD/DVD",
+        "Key Code",
+        "Digital Download"
+      ]
+    },
+    "max_memory": {
+      "display_name": "Hỗ trợ RAM tối đa",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": "GB",
+      "sort_order": 6,
+      "collect_options": false,
+      "options": [
+        "4GB",
+        "128GB",
+        "2TB"
+      ]
+    }
+  },
+  "Sound Card": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Creative",
+        "ASUS",
+        "EVGA",
+        "Realtek"
+      ]
+    },
+    "channels": {
+      "display_name": "Số kênh",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "2.0",
+        "5.1",
+        "7.1",
+        "8.0"
+      ]
+    },
+    "interface": {
+      "display_name": "Giao tiếp",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        "PCIe",
+        "USB",
+        "External"
+      ]
+    },
+    "sample_rate": {
+      "display_name": "Tần số lấy mẫu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": "kHz",
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "44.1kHz",
+        "48kHz",
+        "96kHz",
+        "192kHz"
+      ]
+    },
+    "bit_depth": {
+      "display_name": "Độ sâu bit",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "bit",
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        16,
+        24,
+        32
+      ]
+    },
+    "snr": {
+      "display_name": "Tỷ lệ SNR",
+      "data_type": "number",
+      "input_type": "range",
+      "unit": "dB",
+      "sort_order": 6,
+      "collect_options": false
+    },
+    "chipset": {
+      "display_name": "Chipset",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 7,
+      "collect_options": false,
+      "options": [
+        "Realtek",
+        "Creative",
+        "ASUS"
+      ]
+    },
+    "ports": {
+      "display_name": "Số cổng",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "cổng",
+      "sort_order": 8,
+      "collect_options": false,
+      "options": [
+        3,
+        5,
+        7
+      ]
+    }
+  },
+  "Speakers": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Bose",
+        "JBL",
+        "Sony",
+        "Logitech",
+        "Harman Kardon"
+      ]
+    },
+    "configuration": {
+      "display_name": "Cấu hình",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "2.0",
+        "2.1",
+        "5.1",
+        "7.1"
+      ]
+    },
+    "power": {
+      "display_name": "Công suất",
+      "data_type": "number",
+      "input_type": "range",
+      "unit": "W",
+      "sort_order": 3,
+      "collect_options": false
+    },
+    "connection": {
+      "display_name": "Kết nối",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "Wired",
+        "Wireless",
+        "Bluetooth",
+        "USB"
+      ]
+    },
+    "frequency_response": {
+      "display_name": "Dải tần",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        "50-20kHz",
+        "40-20kHz"
+      ]
+    },
+    "color": {
+      "display_name": "Màu sắc",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 6,
+      "collect_options": false,
+      "options": [
+        "Black",
+        "White",
+        "Silver"
+      ]
+    }
+  },
+  "UPS": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "APC",
+        "CyberPower",
+        "Eaton",
+        "Tripp Lite",
+        "Vertiv"
+      ]
+    },
+    "capacity_va": {
+      "display_name": "Dung lượng",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "VA",
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        500,
+        600,
+        800,
+        1000,
+        1500
+      ]
+    },
+    "capacity_w": {
+      "display_name": "Công suất (W)",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "W",
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        300,
+        360,
+        480,
+        600,
+        900
+      ]
+    },
+    "battery_runtime": {
+      "display_name": "Thời lượng pin",
+      "data_type": "number",
+      "input_type": "range",
+      "unit": "phút",
+      "sort_order": 4,
+      "collect_options": false
+    },
+    "outlets": {
+      "display_name": "Số ổ cắm",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "cổng",
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        4,
+        6,
+        8,
+        10
+      ]
+    },
+    "type": {
+      "display_name": "Loại",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 6,
+      "collect_options": false,
+      "options": [
+        "Standby",
+        "Line-interactive",
+        "Online Double-conversion"
+      ]
+    },
+    "surge_protection": {
+      "display_name": "Chống sét",
+      "data_type": "boolean",
+      "input_type": "checkbox",
+      "unit": null,
+      "sort_order": 7,
+      "collect_options": false
+    }
+  },
+  "Webcam": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Logitech",
+        "Razer",
+        "Elgato",
+        "OBSBOT",
+        "Insta360"
+      ]
+    },
+    "resolution": {
+      "display_name": "Độ phân giải",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "720p",
+        "1080p",
+        "2K",
+        "4K"
+      ]
+    },
+    "frame_rate": {
+      "display_name": "Tốc độ khung hình",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "fps",
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        30,
+        60,
+        120
+      ]
+    },
+    "connection": {
+      "display_name": "Kết nối",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "USB 2.0",
+        "USB 3.0",
+        "USB-C"
+      ]
+    },
+    "fov": {
+      "display_name": "Góc nhìn (FOV)",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "°",
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        60,
+        78,
+        90,
+        120
+      ]
+    },
+    "focus_type": {
+      "display_name": "Kiểu lấy nét",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 6,
+      "collect_options": false,
+      "options": [
+        "Auto",
+        "Manual",
+        "Fixed"
+      ]
+    },
+    "os_support": {
+      "display_name": "Hệ điều hành hỗ trợ",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 7,
+      "collect_options": false,
+      "options": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ]
+    }
+  },
+  "Wired Network Card": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Intel",
+        "Realtek",
+        "TP-Link",
+        "Broadcom"
+      ]
+    },
+    "speed": {
+      "display_name": "Tốc độ",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "10/100Mbps",
+        "1Gbps",
+        "2.5Gbps",
+        "5Gbps",
+        "10Gbps"
+      ]
+    },
+    "interface": {
+      "display_name": "Giao tiếp",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        "PCIe x1",
+        "PCIe x4",
+        "USB 3.0",
+        "USB-C"
+      ]
+    },
+    "chipset": {
+      "display_name": "Chipset",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "Realtek",
+        "Intel",
+        "Aquantia"
+      ]
+    },
+    "color": {
+      "display_name": "Màu sắc",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        "Black",
+        "Silver"
+      ]
+    }
+  },
+  "Wireless Network Card": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Intel",
+        "MSI",
+        "Gigabyte",
+        "Cudy",
+        "OKN"
+      ]
+    },
+    "standard": {
+      "display_name": "Tiêu chuẩn",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "Wi-Fi 4",
+        "Wi-Fi 5",
+        "Wi-Fi 6",
+        "Wi-Fi 6E",
+        "Wi-Fi 7"
+      ]
+    },
+    "speed": {
+      "display_name": "Tốc độ",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": "Mbps",
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        "300Mbps",
+        "600Mbps",
+        "1200Mbps",
+        "2400Mbps",
+        "5400Mbps"
+      ]
+    },
+    "interface": {
+      "display_name": "Giao tiếp",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "PCIe",
+        "M.2",
+        "USB"
+      ]
+    },
+    "bluetooth": {
+      "display_name": "Kết nối Bluetooth",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        "Yes (4.0)",
+        "Yes (5.0)",
+        "Yes (5.2)",
+        "Yes (5.3)",
+        "Yes (5.4)",
+        "No"
+      ]
+    },
+    "color": {
+      "display_name": "Màu sắc",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 6,
+      "collect_options": false,
+      "options": [
+        "Black",
+        "White"
+      ]
+    }
+  },
+  "Case Accessory": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Lian Li",
+        "Corsair",
+        "Phanteks",
+        "NZXT"
+      ]
+    },
+    "type": {
+      "display_name": "Loại",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "Fan Controller",
+        "RGB Hub",
+        "Cable Management Kit",
+        "Vertical GPU Mount",
+        "Dust Filter",
+        "Riser Cable"
+      ]
+    },
+    "form_factor": {
+      "display_name": "Kích cỡ (Form Factor)",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        "Internal",
+        "5.25\" Bay",
+        "PCIe Slot"
+      ]
+    },
+    "compatibility": {
+      "display_name": "Tương thích",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "Specific Cases",
+        "Motherboards"
+      ]
+    }
+  },
+  "Case Fan": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Noctua",
+        "Corsair",
+        "Arctic",
+        "Be Quiet!",
+        "Thermalright"
+      ]
+    },
+    "size": {
+      "display_name": "Kích thước",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "mm",
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        80,
+        92,
+        120,
+        140,
+        200
+      ]
+    },
+    "rpm": {
+      "display_name": "Tốc độ quay (RPM)",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": "RPM",
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        "800RPM",
+        "1200RPM",
+        "1500RPM",
+        "2000RPM"
+      ]
+    },
+    "airflow": {
+      "display_name": "Lưu lượng gió",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": "CFM",
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "30CFM",
+        "50CFM",
+        "70CFM"
+      ]
+    },
+    "noise_level": {
+      "display_name": "Độ ồn",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": "dBA",
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        "15dBA",
+        "20dBA",
+        "25dBA"
+      ]
+    },
+    "pwm": {
+      "display_name": "PWM",
+      "data_type": "boolean",
+      "input_type": "checkbox",
+      "unit": null,
+      "sort_order": 6,
+      "collect_options": false
+    },
+    "bearing_type": {
+      "display_name": "Loại vòng bi",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 7,
+      "collect_options": false,
+      "options": [
+        "Sleeve",
+        "Ball",
+        "Fluid Dynamic"
+      ]
+    },
+    "rgb": {
+      "display_name": "RGB/LED",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 8,
+      "collect_options": false,
+      "options": [
+        "Yes (ARGB)",
+        "Yes (Single Color)",
+        "No"
+      ]
+    }
+  },
+  "CPU Cooler": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Noctua",
+        "Thermalright",
+        "ID-Cooling",
+        "Arctic",
+        "Corsair"
+      ]
+    },
+    "type": {
+      "display_name": "Loại",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "Air Cooler",
+        "AIO Liquid",
+        "Passive"
+      ]
+    },
+    "socket_compatibility": {
+      "display_name": "Tương thích socket",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        "AM4",
+        "AM5",
+        "LGA1700",
+        "LGA1200",
+        "LGA1851"
+      ]
+    },
+    "radiator_size": {
+      "display_name": "Kích thước radiator",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "mm",
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        120,
+        240,
+        280,
+        360
+      ]
+    },
+    "fan_size": {
+      "display_name": "Kích thước quạt",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "mm",
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        92,
+        120,
+        140
+      ]
+    },
+    "height": {
+      "display_name": "Chiều cao",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "mm",
+      "sort_order": 6,
+      "collect_options": false,
+      "options": [
+        120,
+        150,
+        160
+      ]
+    },
+    "tdp_rating": {
+      "display_name": "Chỉ số TDP",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "W",
+      "sort_order": 7,
+      "collect_options": false,
+      "options": [
+        150,
+        200,
+        250
+      ]
+    },
+    "noise_level": {
+      "display_name": "Độ ồn",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": "dBA",
+      "sort_order": 8,
+      "collect_options": false,
+      "options": [
+        "20dBA",
+        "25dBA",
+        "30dBA",
+        "35dBA"
+      ]
+    }
+  },
+  "External Hard Drive": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "WD",
+        "Seagate",
+        "Samsung",
+        "LaCie"
+      ]
+    },
+    "capacity": {
+      "display_name": "Dung lượng",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "500GB",
+        "1TB",
+        "2TB",
+        "4TB",
+        "8TB"
+      ]
+    },
+    "type": {
+      "display_name": "Loại",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        "HDD",
+        "SSD"
+      ]
+    },
+    "interface": {
+      "display_name": "Giao tiếp",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "USB 2.0",
+        "USB 3.0",
+        "USB 3.1",
+        "USB-C",
+        "Thunderbolt"
+      ]
+    },
+    "portable": {
+      "display_name": "Tính di động",
+      "data_type": "boolean",
+      "input_type": "checkbox",
+      "unit": null,
+      "sort_order": 5,
+      "collect_options": false
+    },
+    "price_per_gb": {
+      "display_name": "Giá mỗi GB",
+      "data_type": "number",
+      "input_type": "range",
+      "unit": "USD/GB",
+      "sort_order": 6,
+      "collect_options": false
+    },
+    "color": {
+      "display_name": "Màu sắc",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 7,
+      "collect_options": false,
+      "options": [
+        "Black",
+        "Silver",
+        "Red"
+      ]
+    }
+  },
+  "Internal Hard Drive": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Seagate",
+        "WD",
+        "Toshiba",
+        "Samsung"
+      ]
+    },
+    "capacity": {
+      "display_name": "Dung lượng",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "500GB",
+        "1TB",
+        "2TB",
+        "4TB",
+        "8TB",
+        "16TB"
+      ]
+    },
+    "type": {
+      "display_name": "Loại",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        "HDD (5400RPM)",
+        "HDD (7200RPM)",
+        "SSD"
+      ]
+    },
+    "form_factor": {
+      "display_name": "Kích cỡ (Form Factor)",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "2.5\"",
+        "3.5\"",
+        "M.2 2280"
+      ]
+    },
+    "interface": {
+      "display_name": "Giao tiếp",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        "SATA 6Gb/s",
+        "NVMe PCIe 3.0",
+        "PCIe 4.0"
+      ]
+    },
+    "cache": {
+      "display_name": "Bộ nhớ đệm",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "MB",
+      "sort_order": 6,
+      "collect_options": false,
+      "options": [
+        64,
+        128,
+        256
+      ]
+    },
+    "price_per_gb": {
+      "display_name": "Giá mỗi GB",
+      "data_type": "number",
+      "input_type": "range",
+      "unit": "USD/GB",
+      "sort_order": 7,
+      "collect_options": false
+    }
+  },
+  "Optical Drive": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Pioneer",
+        "ASUS",
+        "LG"
+      ]
+    },
+    "type": {
+      "display_name": "Loại",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        "DVD-ROM",
+        "DVD-RW",
+        "Blu-ray Reader",
+        "Blu-ray Writer"
+      ]
+    },
+    "read_speeds": {
+      "display_name": "Tốc độ đọc",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        "CD x48",
+        "DVD x16",
+        "BD x12"
+      ]
+    },
+    "write_speeds": {
+      "display_name": "Tốc độ ghi",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "CD x24",
+        "DVD x8",
+        "BD x6"
+      ]
+    },
+    "interface": {
+      "display_name": "Giao tiếp",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        "SATA",
+        "USB",
+        "External"
+      ]
+    }
+  },
+  "Fan Controller": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Corsair",
+        "NZXT",
+        "Cooler Master",
+        "Noctua",
+        "DEEPCOOL"
+      ]
+    },
+    "channels": {
+      "display_name": "Số kênh",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        4,
+        6,
+        8
+      ]
+    },
+    "channel_wattage": {
+      "display_name": "Công suất mỗi kênh",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "W",
+      "sort_order": 3,
+      "collect_options": false,
+      "options": [
+        10,
+        15,
+        20
+      ]
+    },
+    "pwm_support": {
+      "display_name": "Hỗ trợ PWM",
+      "data_type": "boolean",
+      "input_type": "checkbox",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false
+    },
+    "form_factor": {
+      "display_name": "Kích cỡ (Form Factor)",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        "5.25\" Bay",
+        "Internal",
+        "PCIe Card"
+      ]
+    },
+    "display": {
+      "display_name": "Màn hình hiển thị",
+      "data_type": "boolean",
+      "input_type": "checkbox",
+      "unit": null,
+      "sort_order": 6,
+      "collect_options": false
+    },
+    "color": {
+      "display_name": "Màu sắc",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 7,
+      "collect_options": false,
+      "options": [
+        "Black",
+        "Silver"
+      ]
+    }
+  },
+  "Thermal Paste": {
+    "manufacturer": {
+      "display_name": "Thương hiệu",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 1,
+      "collect_options": false,
+      "options": [
+        "Thermal Grizzly",
+        "Arctic",
+        "Noctua",
+        "Corsair"
+      ]
+    },
+    "amount": {
+      "display_name": "Khối lượng",
+      "data_type": "number",
+      "input_type": "select",
+      "unit": "g",
+      "sort_order": 2,
+      "collect_options": false,
+      "options": [
+        1,
+        2,
+        4,
+        8
+      ]
+    },
+    "conductivity": {
+      "display_name": "Độ dẫn nhiệt",
+      "data_type": "number",
+      "input_type": "range",
+      "unit": "W/mK",
+      "sort_order": 3,
+      "collect_options": false
+    },
+    "type": {
+      "display_name": "Loại",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 4,
+      "collect_options": false,
+      "options": [
+        "Non-conductive",
+        "Conductive",
+        "Liquid Metal"
+      ]
+    },
+    "application_method": {
+      "display_name": "Phương pháp bôi",
+      "data_type": "string",
+      "input_type": "select",
+      "unit": null,
+      "sort_order": 5,
+      "collect_options": false,
+      "options": [
+        "Syringe",
+        "Pad"
+      ]
+    }
+  }
+}

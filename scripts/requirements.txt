@@ -1,0 +1,5 @@
+psycopg2-binary>=2.9.9
+python-dotenv>=1.0.1
+requests
+duckduckgo-search>=6.2.11
+ddgs>=9.9.1
