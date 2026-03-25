@@ -42,3 +42,12 @@
 | 21:18 | Light theme batch 5 — Warranty, Notifications, Error, Not Found | 100% |
 | 21:20 | Light theme batch 6 — Admin layout + 6 admin pages | 100% |
 | 21:22 | Frontend rebuild — Docker build succeeded | 100% |
+| 21:40 | PERF-01 — Dashboard aggregate query (OrderRepository.sumTotalRevenue) | 100% |
+| 21:42 | SEC-07 — Redis login rate limiter (LoginRateLimiter.java) | 100% |
+| 21:43 | SEC-07 — Integrated into AuthService.login() | 100% |
+| 21:44 | Backend Dockerfile — Multi-stage with test target | 100% |
+| 21:45 | docker-compose.yml — backend-test service (test profile) | 100% |
+| 21:50 | LoginRateLimiterTest — 10 unit tests | 100% |
+| 21:55 | Test fixes — 9 test files updated (Auth, Order, Cart, Review, Warranty, Wishlist, BuildPC, Dashboard) | 100% |
+| 21:57 | Backend test run — **146/146 PASS** ✅ BUILD SUCCESS | 100% |
+| 21:58 | Commit 5400736 — feat: SEC-07 + PERF-01 + all tests pass | 100% |

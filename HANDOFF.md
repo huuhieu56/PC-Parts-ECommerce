@@ -38,6 +38,17 @@
 - **SEO**: Vietnamese metadata, Inter font, OpenGraph, lang="vi"
 - **Test suite**: Vitest 22/22 tests PASS (pre-redesign run)
 
+### Performance & Security (QA/QC fixes)
+- **PERF-01**: Dashboard revenue — `OrderRepository.sumTotalRevenue()` aggregate query
+- **SEC-07**: Redis login rate limiter — `LoginRateLimiter` (5 attempts / 15 min)
+
+### Backend Testing ✅ 146/146 PASS
+- Backend Dockerfile multi-stage build with test target
+- `docker-compose.yml` — `backend-test` service (test profile)
+- `LoginRateLimiterTest` — 10 unit tests
+- 9 test files fixed to align with service API changes
+- **Usage**: `docker compose --profile test run --build backend-test`
+
 ### Infrastructure
 - Docker Compose: PostgreSQL, Redis, MinIO, Backend, Frontend, Nginx
 - Monitoring: Prometheus + Grafana docker-compose.monitoring.yml
@@ -49,24 +60,19 @@
 - `8137935` — fix: critical security fixes (IDOR, CORS, JWT, auth crash, secrets, rotation)
 - `74c36b1` — feat: redesign frontend to light theme (An Phát PC style)
 - `01c545b` — feat: redesign all remaining pages to light theme
+- `5400736` — feat: SEC-07 login rate limiter + PERF-01 + all 146 tests pass
 
 ## Còn pending
 
-1. **SEC-07 Login rate limiting**: Needs Redis-backed counter (bucket4j or custom)
-2. **PERF-01 Dashboard @Query**: Replace reflection with SUM aggregate query
-3. **Backend test execution**: Production container has no Maven; needs multi-stage Dockerfile with test stage or local Maven
-4. **Frontend tests re-run**: Tests need updating after light theme redesign
-5. **Payment integration**: VNPay/MoMo SDK real credentials
-6. **AI compatibility check**: LLM provider integration for Build PC
-7. **Email notification**: SMTP credentials needed
-8. **E2E tests**: Playwright/Cypress test suite
-9. **CI/CD workflow files**: Need to be restored (deleted in earlier commit)
+1. **Frontend tests re-run**: Tests cần update sau light theme redesign
+2. **Payment integration**: VNPay/MoMo SDK real credentials
+3. **AI compatibility check**: LLM provider integration for Build PC
+4. **Email notification**: SMTP credentials needed
+5. **E2E tests**: Playwright/Cypress test suite
 
 ## Bước tiếp theo đề xuất
 
-1. Add test stage to backend Dockerfile → run `mvn test` in CI
-2. Update frontend tests for new light theme components
-3. Implement login rate limiting with Redis + bucket4j
-4. Restore GitHub Actions CI/CD workflow files
-5. Configure production env vars (SMTP, payment SDKs)
-6. Write E2E tests with Playwright
+1. Update frontend tests for new light theme components
+2. Configure production env vars (SMTP, payment SDKs)
+3. Write E2E tests with Playwright for critical flows
+4. Integrate LLM provider for Build PC compatibility check
