@@ -172,11 +172,14 @@ public class AuthService {
 
     /**
      * Logs out by deleting all refresh tokens for the account.
+     *
+     * @param accountId the account ID (from auth.getName())
      */
     @Transactional
-    public void logout(String email) {
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "email", email));
+    public void logout(String accountId) {
+        Long id = Long.parseLong(accountId);
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "id", id));
         tokenRepository.deleteByAccountId(account.getId());
     }
 
