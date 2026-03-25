@@ -10,7 +10,7 @@ import {
   ShoppingCart,
   Warehouse,
   Tag,
-  BarChart3,
+  Shield,
   ArrowLeft,
 } from "lucide-react";
 
@@ -20,6 +20,7 @@ const adminNav = [
   { href: "/admin/orders", label: "Đơn hàng", icon: ShoppingCart },
   { href: "/admin/inventory", label: "Kho hàng", icon: Warehouse },
   { href: "/admin/coupons", label: "Mã giảm giá", icon: Tag },
+  { href: "/admin/warranty", label: "Bảo hành", icon: Shield },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
