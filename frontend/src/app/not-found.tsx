@@ -23,9 +23,12 @@ export default function NotFound() {
             Trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.
           </p>
         </div>
-        <Button asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500">
-          <Link href="/">Về trang chủ</Link>
-        </Button>
+        <Link
+          href="/"
+          className="inline-flex items-center justify-center h-9 px-4 rounded-lg text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white transition-all"
+        >
+          Về trang chủ
+        </Link>
       </div>
     </div>
   );
