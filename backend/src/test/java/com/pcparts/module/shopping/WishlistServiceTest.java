@@ -63,7 +63,7 @@ class WishlistServiceTest {
     @Test
     @DisplayName("Add to wishlist — success")
     void addToWishlist_success() {
-        when(wishlistRepository.existsByUserIdAndProductId(1L, 10L)).thenReturn(false);
+        when(wishlistRepository.findByUserIdAndProductId(1L, 10L)).thenReturn(Optional.empty());
         when(userProfileRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(productRepository.findById(10L)).thenReturn(Optional.of(testProduct));
 
@@ -73,13 +73,14 @@ class WishlistServiceTest {
     }
 
     @Test
-    @DisplayName("Add to wishlist — duplicate throws conflict")
+    @DisplayName("Add to wishlist — duplicate toggles removal")
     void addToWishlist_duplicate() {
-        when(wishlistRepository.existsByUserIdAndProductId(1L, 10L)).thenReturn(true);
+        Wishlist existing = Wishlist.builder().id(99L).user(testUser).product(testProduct).build();
+        when(wishlistRepository.findByUserIdAndProductId(1L, 10L)).thenReturn(Optional.of(existing));
 
-        assertThatThrownBy(() -> wishlistService.addToWishlist(1L, 10L))
-                .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("đã có trong danh sách yêu thích");
+        wishlistService.addToWishlist(1L, 10L);
+
+        verify(wishlistRepository).delete(existing);
     }
 
     @Test

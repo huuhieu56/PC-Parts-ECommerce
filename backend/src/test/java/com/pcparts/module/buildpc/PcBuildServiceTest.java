@@ -248,22 +248,25 @@ class PcBuildServiceTest {
     @Test
     @DisplayName("Add build to cart — success")
     void addBuildToCart_success() {
-        PcBuildComponent comp = PcBuildComponent.builder().id(1L).build(testBuild).slotType("CPU")
+        Product mbProduct = Product.builder().id(102L).name("ASUS Z790").sellingPrice(new BigDecimal("8990000")).build();
+        PcBuildComponent cpuComp = PcBuildComponent.builder().id(1L).build(testBuild).slotType("CPU")
                 .product(cpuProduct).quantity(1).unitPrice(cpuProduct.getSellingPrice()).build();
+        PcBuildComponent mbComp = PcBuildComponent.builder().id(2L).build(testBuild).slotType("MAINBOARD")
+                .product(mbProduct).quantity(1).unitPrice(mbProduct.getSellingPrice()).build();
         Cart cart = Cart.builder().id(50L).user(testUser).build();
 
         when(buildRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(testBuild));
-        when(componentRepository.findByBuildId(10L)).thenReturn(List.of(comp));
+        when(componentRepository.findByBuildId(10L)).thenReturn(List.of(cpuComp, mbComp));
         when(userProfileRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.of(cart));
-        when(cartItemRepository.findByCartIdAndProductId(50L, 100L)).thenReturn(Optional.empty());
+        when(cartItemRepository.findByCartIdAndProductId(anyLong(), anyLong())).thenReturn(Optional.empty());
         when(cartItemRepository.save(any(CartItem.class))).thenReturn(null);
         when(buildRepository.save(any(PcBuild.class))).thenReturn(testBuild);
 
         pcBuildService.addBuildToCart(10L, 1L);
 
         assertThat(testBuild.getStatus()).isEqualTo("ORDERED");
-        verify(cartItemRepository).save(any(CartItem.class));
+        verify(cartItemRepository, times(2)).save(any(CartItem.class));
     }
 
     @Test

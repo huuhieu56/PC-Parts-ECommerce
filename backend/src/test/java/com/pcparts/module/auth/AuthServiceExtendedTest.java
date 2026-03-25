@@ -46,6 +46,7 @@ class AuthServiceExtendedTest {
     @Mock private AuthenticationManager authenticationManager;
     @Mock private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     @Mock private com.pcparts.module.auth.repository.RoleRepository roleRepository;
+    @Mock private com.pcparts.security.LoginRateLimiter loginRateLimiter;
 
     @InjectMocks
     private AuthService authService;
@@ -68,11 +69,12 @@ class AuthServiceExtendedTest {
     @DisplayName("Login — success with valid credentials")
     void login_success() {
         LoginRequest req = new LoginRequest("test@test.com", "Password123", null);
+        when(loginRateLimiter.isBlocked("test@test.com")).thenReturn(false);
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(null);
         when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
-        when(jwtTokenProvider.generateAccessToken("test@test.com")).thenReturn("access_token");
-        when(jwtTokenProvider.generateRefreshToken("test@test.com")).thenReturn("refresh_token");
+        when(jwtTokenProvider.generateAccessToken("1")).thenReturn("access_token");
+        when(jwtTokenProvider.generateRefreshToken("1")).thenReturn("refresh_token");
         when(accountRepository.save(any(Account.class))).thenReturn(testAccount);
         when(tokenRepository.save(any(Token.class))).thenReturn(null);
 
@@ -82,17 +84,20 @@ class AuthServiceExtendedTest {
         assertThat(response.getRefreshToken()).isEqualTo("refresh_token");
         assertThat(response.getUser().getEmail()).isEqualTo("test@test.com");
         verify(tokenRepository).deleteByAccountIdAndTokenType(1L, "REFRESH");
+        verify(loginRateLimiter).resetAttempts("test@test.com");
     }
 
     @Test
     @DisplayName("Login — bad credentials throws")
     void login_badCredentials() {
         LoginRequest req = new LoginRequest("test@test.com", "WrongPassword", null);
+        when(loginRateLimiter.isBlocked("test@test.com")).thenReturn(false);
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new BadCredentialsException("Bad credentials"));
 
         assertThatThrownBy(() -> authService.login(req))
                 .isInstanceOf(BadCredentialsException.class);
+        verify(loginRateLimiter).recordFailedAttempt("test@test.com");
     }
 
     @Test
@@ -100,6 +105,7 @@ class AuthServiceExtendedTest {
     void login_inactiveAccount() {
         testAccount.setIsActive(false);
         LoginRequest req = new LoginRequest("test@test.com", "Password123", null);
+        when(loginRateLimiter.isBlocked("test@test.com")).thenReturn(false);
         when(authenticationManager.authenticate(any())).thenReturn(null);
         when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
 
@@ -112,6 +118,7 @@ class AuthServiceExtendedTest {
     @DisplayName("Login — account not found throws")
     void login_accountNotFound() {
         LoginRequest req = new LoginRequest("notfound@test.com", "Password123", null);
+        when(loginRateLimiter.isBlocked("notfound@test.com")).thenReturn(false);
         when(authenticationManager.authenticate(any())).thenReturn(null);
         when(accountRepository.findByEmail("notfound@test.com")).thenReturn(Optional.empty());
 
@@ -128,13 +135,16 @@ class AuthServiceExtendedTest {
         when(jwtTokenProvider.validateToken("valid_refresh")).thenReturn(true);
         when(tokenRepository.findByTokenValueAndTokenType("valid_refresh", "REFRESH"))
                 .thenReturn(Optional.of(storedToken));
-        when(jwtTokenProvider.generateAccessToken("test@test.com")).thenReturn("new_access");
+        when(jwtTokenProvider.generateAccessToken("1")).thenReturn("new_access");
+        when(jwtTokenProvider.generateRefreshToken("1")).thenReturn("new_refresh");
+        when(tokenRepository.save(any(Token.class))).thenReturn(null);
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
 
         AuthResponse response = authService.refreshToken("valid_refresh");
 
         assertThat(response.getAccessToken()).isEqualTo("new_access");
-        assertThat(response.getRefreshToken()).isEqualTo("valid_refresh");
+        assertThat(response.getRefreshToken()).isEqualTo("new_refresh");
+        verify(tokenRepository).deleteByAccountIdAndTokenType(1L, "REFRESH");
     }
 
     @Test
@@ -175,9 +185,9 @@ class AuthServiceExtendedTest {
     @Test
     @DisplayName("Logout — success deletes all tokens")
     void logout_success() {
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
 
-        authService.logout("test@test.com");
+        authService.logout("1");
 
         verify(tokenRepository).deleteByAccountId(1L);
     }
@@ -185,9 +195,9 @@ class AuthServiceExtendedTest {
     @Test
     @DisplayName("Logout — account not found throws")
     void logout_accountNotFound() {
-        when(accountRepository.findByEmail("ghost@test.com")).thenReturn(Optional.empty());
+        when(accountRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> authService.logout("ghost@test.com"))
+        assertThatThrownBy(() -> authService.logout("999"))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 }

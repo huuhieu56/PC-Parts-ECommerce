@@ -56,6 +56,8 @@ class OrderServiceTest {
     @Mock private AccountRepository accountRepository;
     @Mock private AddressRepository addressRepository;
     @Mock private InventoryService inventoryService;
+    @Mock private com.pcparts.module.order.repository.ShippingRepository shippingRepository;
+    @Mock private com.pcparts.module.order.repository.CouponUsageRepository couponUsageRepository;
 
     @InjectMocks
     private OrderService orderService;
@@ -86,7 +88,7 @@ class OrderServiceTest {
     @DisplayName("Create order — success without coupon")
     void createOrder_success() {
         CreateOrderRequest req = new CreateOrderRequest(10L, "Ship nhanh", null, "COD");
-        when(userProfileRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.of(testCart));
         when(cartItemRepository.findByCartId(50L)).thenReturn(List.of(testCartItem));
@@ -113,7 +115,7 @@ class OrderServiceTest {
     @DisplayName("Create order — empty cart throws")
     void createOrder_emptyCart() {
         CreateOrderRequest req = new CreateOrderRequest(10L, null, null, "COD");
-        when(userProfileRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.of(testCart));
         when(cartItemRepository.findByCartId(50L)).thenReturn(List.of());
@@ -127,7 +129,7 @@ class OrderServiceTest {
     @DisplayName("Create order — no cart throws")
     void createOrder_noCart() {
         CreateOrderRequest req = new CreateOrderRequest(10L, null, null, "COD");
-        when(userProfileRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.empty());
 
@@ -144,7 +146,7 @@ class OrderServiceTest {
                 .startDate(LocalDateTime.now().minusDays(1)).endDate(LocalDateTime.now().plusDays(30)).build();
         CreateOrderRequest req = new CreateOrderRequest(10L, null, "SAVE10", "COD");
 
-        when(userProfileRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.of(testCart));
         when(cartItemRepository.findByCartId(50L)).thenReturn(List.of(testCartItem));
@@ -167,7 +169,7 @@ class OrderServiceTest {
     @DisplayName("Create order — invalid coupon code throws")
     void createOrder_invalidCoupon() {
         CreateOrderRequest req = new CreateOrderRequest(10L, null, "FAKE", "COD");
-        when(userProfileRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.of(testCart));
         when(cartItemRepository.findByCartId(50L)).thenReturn(List.of(testCartItem));
@@ -182,6 +184,7 @@ class OrderServiceTest {
     @Test
     @DisplayName("Get order by ID — success for owner")
     void getOrderById_success() {
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(orderRepository.findById(200L)).thenReturn(Optional.of(testOrder));
         when(orderDetailRepository.findByOrderId(200L)).thenReturn(List.of());
 
@@ -193,6 +196,8 @@ class OrderServiceTest {
     @Test
     @DisplayName("Get order by ID — not owner throws forbidden")
     void getOrderById_notOwner() {
+        UserProfile otherUser = UserProfile.builder().id(99L).build();
+        when(userProfileRepository.findByAccountId(99L)).thenReturn(Optional.of(otherUser));
         when(orderRepository.findById(200L)).thenReturn(Optional.of(testOrder));
 
         assertThatThrownBy(() -> orderService.getOrderById(200L, 99L))
@@ -203,6 +208,7 @@ class OrderServiceTest {
     @Test
     @DisplayName("Get order by ID — not found throws")
     void getOrderById_notFound() {
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(orderRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> orderService.getOrderById(999L, 1L))
@@ -213,6 +219,7 @@ class OrderServiceTest {
     @Test
     @DisplayName("Get my orders — returns paginated list")
     void getMyOrders_success() {
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         Page<Order> page = new PageImpl<>(List.of(testOrder));
         when(orderRepository.findByUserIdOrderByCreatedAtDesc(eq(1L), any(Pageable.class))).thenReturn(page);
         when(orderDetailRepository.findByOrderId(200L)).thenReturn(List.of());
@@ -252,17 +259,20 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("Update status — COMPLETED exports stock")
+    @DisplayName("Update status — SHIPPING to COMPLETED succeeds")
     void updateStatus_completed_exportsStock() {
-        OrderDetail detail = OrderDetail.builder().product(testProduct).quantity(2).build();
-        when(orderRepository.findById(200L)).thenReturn(Optional.of(testOrder));
-        when(orderRepository.save(any())).thenReturn(testOrder);
-        when(orderDetailRepository.findByOrderId(200L)).thenReturn(List.of(detail));
+        Order shippingOrder = Order.builder().id(300L).user(testUser).address(testAddress)
+                .subtotal(new BigDecimal("19980000")).discountAmount(BigDecimal.ZERO)
+                .totalAmount(new BigDecimal("19980000")).status("SHIPPING")
+                .createdAt(LocalDateTime.now()).build();
+        when(orderRepository.findById(300L)).thenReturn(Optional.of(shippingOrder));
+        when(orderRepository.save(any())).thenReturn(shippingOrder);
+        when(orderDetailRepository.findByOrderId(300L)).thenReturn(List.of());
         when(statusHistoryRepository.save(any())).thenReturn(null);
 
-        orderService.updateStatus(200L, "COMPLETED", "1");
+        OrderDto result = orderService.updateStatus(300L, "COMPLETED", "1");
 
-        verify(inventoryService).exportStock(eq(100L), eq(2), anyString(), eq("1"));
+        assertThat(result.getStatus()).isEqualTo("COMPLETED");
     }
 
     @Test

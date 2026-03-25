@@ -13,6 +13,10 @@ RUN ./mvnw dependency:resolve -B
 COPY src ./src
 RUN ./mvnw package -DskipTests -B
 
+# ---- Test Stage (used with: docker compose run backend-test) ----
+FROM build AS test
+CMD ["./mvnw", "test", "-B"]
+
 # ---- Run Stage ----
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app

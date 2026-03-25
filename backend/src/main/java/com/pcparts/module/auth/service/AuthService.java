@@ -12,6 +12,7 @@ import com.pcparts.module.auth.repository.RoleRepository;
 import com.pcparts.module.auth.repository.TokenRepository;
 import com.pcparts.module.auth.repository.UserProfileRepository;
 import com.pcparts.security.JwtTokenProvider;
+import com.pcparts.security.LoginRateLimiter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,6 +29,8 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+
+    private final LoginRateLimiter loginRateLimiter;
 
     private final AccountRepository accountRepository;
     private final UserProfileRepository userProfileRepository;
@@ -95,10 +98,23 @@ public class AuthService {
      */
     @Transactional
     public AuthResponse login(LoginRequest request) {
+        // SEC-07: Check rate limit before authentication
+        if (loginRateLimiter.isBlocked(request.getEmail())) {
+            long remaining = loginRateLimiter.getRemainingLockSeconds(request.getEmail());
+            throw new BusinessException(
+                    "Quá nhiều lần đăng nhập thất bại. Vui lòng thử lại sau " + remaining + " giây.",
+                    HttpStatus.TOO_MANY_REQUESTS);
+        }
+
         // Authenticate via Spring Security
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+        } catch (Exception e) {
+            loginRateLimiter.recordFailedAttempt(request.getEmail());
+            throw e;
+        }
 
         // Fetch account
         Account account = accountRepository.findByEmail(request.getEmail())
@@ -107,6 +123,9 @@ public class AuthService {
         if (!account.getIsActive()) {
             throw new BusinessException("Tài khoản đã bị khóa", HttpStatus.FORBIDDEN);
         }
+
+        // SEC-07: Reset rate limit on successful login
+        loginRateLimiter.resetAttempts(request.getEmail());
 
         // Update last login
         account.setLastLoginAt(LocalDateTime.now());

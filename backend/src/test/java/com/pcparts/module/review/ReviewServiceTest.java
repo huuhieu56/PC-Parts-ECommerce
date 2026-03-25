@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +37,7 @@ class ReviewServiceTest {
     @Mock private ProductRepository productRepository;
     @Mock private UserProfileRepository userProfileRepository;
     @Mock private OrderRepository orderRepository;
+    @Mock private com.pcparts.module.order.repository.OrderDetailRepository orderDetailRepository;
 
     @InjectMocks
     private ReviewService reviewService;
@@ -48,7 +50,7 @@ class ReviewServiceTest {
     void setUp() {
         testUser = UserProfile.builder().id(1L).fullName("Test").phone("0901111111").build();
         testProduct = Product.builder().id(10L).name("GPU RTX 4090").sellingPrice(new BigDecimal("45000000")).build();
-        testOrder = Order.builder().id(100L).build();
+        testOrder = Order.builder().id(100L).user(testUser).status("COMPLETED").build();
     }
 
     @Test
@@ -57,9 +59,12 @@ class ReviewServiceTest {
         ReviewRequest req = new ReviewRequest(10L, 100L, 5, "Excellent product!");
 
         when(reviewRepository.existsByUserIdAndProductId(1L, 10L)).thenReturn(false);
-        when(userProfileRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(productRepository.findById(10L)).thenReturn(Optional.of(testProduct));
         when(orderRepository.findById(100L)).thenReturn(Optional.of(testOrder));
+        when(orderDetailRepository.findByOrderId(100L)).thenReturn(List.of(
+                com.pcparts.module.order.entity.OrderDetail.builder().product(testProduct).build()
+        ));
         when(reviewRepository.save(any(Review.class))).thenAnswer(inv -> {
             Review r = inv.getArgument(0);
             r.setId(1L);
@@ -79,6 +84,7 @@ class ReviewServiceTest {
     @DisplayName("Create review — duplicate throws conflict")
     void createReview_duplicate() {
         ReviewRequest req = new ReviewRequest(10L, 100L, 5, "Duplicate");
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(reviewRepository.existsByUserIdAndProductId(1L, 10L)).thenReturn(true);
 
         assertThatThrownBy(() -> reviewService.createReview(1L, req))
@@ -91,7 +97,7 @@ class ReviewServiceTest {
     void createReview_productNotFound() {
         ReviewRequest req = new ReviewRequest(999L, 100L, 5, "Test");
         when(reviewRepository.existsByUserIdAndProductId(1L, 999L)).thenReturn(false);
-        when(userProfileRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(productRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> reviewService.createReview(1L, req))

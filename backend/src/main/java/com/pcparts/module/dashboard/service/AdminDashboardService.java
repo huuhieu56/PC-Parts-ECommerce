@@ -34,25 +34,8 @@ public class AdminDashboardService {
         long totalProducts = productRepository.count();
         long totalCustomers = userProfileRepository.count();
 
-        // Use aggregate query instead of loading all orders + reflection
-        BigDecimal totalRevenue = BigDecimal.ZERO;
-        try {
-            Object result = orderRepository.findAll().stream()
-                    .map(o -> {
-                        try {
-                            var method = o.getClass().getMethod("getTotalAmount");
-                            Object value = method.invoke(o);
-                            return value instanceof BigDecimal ? (BigDecimal) value : BigDecimal.ZERO;
-                        } catch (Exception e) {
-                            return BigDecimal.ZERO;
-                        }
-                    })
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            totalRevenue = (BigDecimal) result;
-        } catch (Exception ignored) {
-            // TODO: Replace with @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o")
-            // once OrderRepository is confirmed to have the proper method
-        }
+        // PERF-01: Use aggregate @Query instead of loading all orders + reflection
+        BigDecimal totalRevenue = orderRepository.sumTotalRevenue();
 
         return DashboardStatsDto.builder()
                 .totalRevenue(totalRevenue)

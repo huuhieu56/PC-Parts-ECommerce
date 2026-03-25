@@ -3,6 +3,8 @@ package com.pcparts.module.shopping;
 import com.pcparts.common.exception.ResourceNotFoundException;
 import com.pcparts.module.auth.entity.UserProfile;
 import com.pcparts.module.auth.repository.UserProfileRepository;
+import com.pcparts.module.inventory.entity.Inventory;
+import com.pcparts.module.inventory.repository.InventoryRepository;
 import com.pcparts.module.product.entity.Product;
 import com.pcparts.module.product.entity.ProductImage;
 import com.pcparts.module.product.repository.ProductImageRepository;
@@ -41,6 +43,7 @@ class CartServiceTest {
     @Mock private ProductRepository productRepository;
     @Mock private ProductImageRepository productImageRepository;
     @Mock private UserProfileRepository userProfileRepository;
+    @Mock private InventoryRepository inventoryRepository;
 
     @InjectMocks
     private CartService cartService;
@@ -48,12 +51,14 @@ class CartServiceTest {
     private UserProfile testUser;
     private Product testProduct;
     private Cart testCart;
+    private Inventory testInventory;
 
     @BeforeEach
     void setUp() {
         testUser = UserProfile.builder().id(1L).fullName("Test User").phone("0901234567").build();
         testProduct = Product.builder().id(10L).name("Intel i7").sellingPrice(new BigDecimal("9990000")).status("ACTIVE").build();
         testCart = Cart.builder().id(100L).user(testUser).build();
+        testInventory = Inventory.builder().id(1L).quantity(100).build();
     }
 
     @Test
@@ -92,6 +97,7 @@ class CartServiceTest {
         CartItemRequest request = new CartItemRequest(10L, 2);
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.of(testCart));
         when(productRepository.findById(10L)).thenReturn(Optional.of(testProduct));
+        when(inventoryRepository.findByProductId(10L)).thenReturn(Optional.of(testInventory));
         when(cartItemRepository.findByCartIdAndProductId(100L, 10L)).thenReturn(Optional.empty());
         when(cartItemRepository.save(any(CartItem.class))).thenReturn(CartItem.builder().id(1L).cart(testCart).product(testProduct).quantity(2).build());
         when(cartItemRepository.findByCartId(100L)).thenReturn(List.of(
@@ -114,6 +120,7 @@ class CartServiceTest {
 
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.of(testCart));
         when(productRepository.findById(10L)).thenReturn(Optional.of(testProduct));
+        when(inventoryRepository.findByProductId(10L)).thenReturn(Optional.of(testInventory));
         when(cartItemRepository.findByCartIdAndProductId(100L, 10L)).thenReturn(Optional.of(existing));
         when(cartItemRepository.save(existing)).thenReturn(existing);
         when(cartItemRepository.findByCartId(100L)).thenReturn(List.of(existing));
@@ -168,6 +175,7 @@ class CartServiceTest {
         when(cartRepository.findBySessionId("sess-123")).thenReturn(Optional.of(guestCart));
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.of(testCart));
         when(cartItemRepository.findByCartId(200L)).thenReturn(List.of(guestItem));
+        when(inventoryRepository.findByProductId(10L)).thenReturn(Optional.of(testInventory));
         when(cartItemRepository.findByCartIdAndProductId(100L, 10L)).thenReturn(Optional.empty());
         when(cartItemRepository.save(any(CartItem.class))).thenAnswer(inv -> inv.getArgument(0));
         when(cartItemRepository.findByCartId(100L)).thenReturn(List.of(

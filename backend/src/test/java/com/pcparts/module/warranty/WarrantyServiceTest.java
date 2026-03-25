@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,6 +36,7 @@ class WarrantyServiceTest {
     @Mock private UserProfileRepository userProfileRepository;
     @Mock private OrderRepository orderRepository;
     @Mock private ProductRepository productRepository;
+    @Mock private com.pcparts.module.order.repository.OrderDetailRepository orderDetailRepository;
 
     @InjectMocks
     private WarrantyService warrantyService;
@@ -47,7 +49,7 @@ class WarrantyServiceTest {
     void setUp() {
         testUser = UserProfile.builder().id(1L).fullName("Test User").phone("0901111111").build();
         testProduct = Product.builder().id(10L).name("RAM 32GB").sellingPrice(new BigDecimal("3000000")).build();
-        testOrder = Order.builder().id(100L).build();
+        testOrder = Order.builder().id(100L).user(testUser).status("COMPLETED").createdAt(LocalDateTime.now().minusDays(30)).build();
     }
 
     @Test
@@ -55,8 +57,11 @@ class WarrantyServiceTest {
     void createRequest_success() {
         WarrantyRequestDto req = new WarrantyRequestDto(100L, 10L, "RAM bị lỗi sau 2 tháng");
 
-        when(userProfileRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(orderRepository.findById(100L)).thenReturn(Optional.of(testOrder));
+        when(orderDetailRepository.findByOrderId(100L)).thenReturn(List.of(
+                com.pcparts.module.order.entity.OrderDetail.builder().product(testProduct).build()
+        ));
         when(productRepository.findById(10L)).thenReturn(Optional.of(testProduct));
         when(warrantyRepo.save(any(WarrantyRequest.class))).thenAnswer(inv -> {
             WarrantyRequest wr = inv.getArgument(0);
@@ -78,7 +83,7 @@ class WarrantyServiceTest {
     @DisplayName("Create warranty request — order not found throws")
     void createRequest_orderNotFound() {
         WarrantyRequestDto req = new WarrantyRequestDto(999L, 10L, "Error");
-        when(userProfileRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(orderRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> warrantyService.createRequest(1L, req))
