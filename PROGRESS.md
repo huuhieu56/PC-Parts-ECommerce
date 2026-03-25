@@ -16,3 +16,9 @@
 | 09:35 | M11 Dashboard — 2 unit tests | 100% |
 | 09:36 | CI/CD — GitHub Actions pipeline | 100% |
 | 09:37 | Security config update — Review endpoint public | 100% |
+| 16:55 | Root layout SEO — Vietnamese metadata, Inter font, Toaster | 100% |
+| 16:57 | Vitest setup — install, config, setup file | 100% |
+| 17:00 | Frontend tests — auth-store (8), api (4), types (10) | 100% |
+| 17:05 | Monitoring — Prometheus + Grafana Docker Compose | 100% |
+| 17:10 | Frontend test run — 22/22 PASS ✅ | 100% |
+| 17:15 | Backend test run — BLOCKED (no Maven in environment) | Blocked |

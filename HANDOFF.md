@@ -18,34 +18,42 @@
 ### Frontend (All pages)
 - **Customer**: Home, Products (listing/detail+review), Cart, Checkout, Orders, Build PC, Wishlist, Warranty, Notifications
 - **Admin**: Dashboard (real data), Products, Orders, Inventory, Coupons, Warranty
+- **SEO**: Vietnamese metadata, Inter font, OpenGraph, lang="vi"
+- **Test suite**: Vitest + testing-library, 22/22 tests PASS
 
 ### Infrastructure
 - Flyway V1-V10: 35+ database tables
 - GitHub Actions CI pipeline (backend build+test, frontend build)
 - Docker Compose: PostgreSQL, Redis, MinIO, Backend, Frontend, Nginx
+- Monitoring: Prometheus + Grafana docker-compose.monitoring.yml
 
 ### Tests
-- 125+ backend unit tests (M01-M09)
-- 8 NotificationService tests
-- 2 AdminDashboardService tests
+- 135+ backend unit tests (M01-M11) — coded, need environment to run
+- 22 frontend unit tests — ALL PASS ✅
+
+### Commits
+- `113410c` — feat: complete M08-M11 with tests and CI/CD (19 files)
+- (pending) — feat: add frontend tests, SEO, monitoring config
 
 ## Còn pending
 
-1. **Payment integration**: VNPay/MoMo SDK real credentials (currently mocked)
-2. **AI compatibility check**: LLM provider integration for Build PC
-3. **Email notification**: SMTP credentials needed
-4. **Prometheus + Grafana**: Docker compose monitoring config
+1. **Backend test execution**: Cần cài Maven hoặc tạo Docker test container
+2. **Payment integration**: VNPay/MoMo SDK real credentials
+3. **AI compatibility check**: LLM provider integration
+4. **Email notification**: SMTP credentials needed
 5. **Frontend E2E tests**: Playwright/Cypress test suite
 
 ## Blockers gặp phải
 
-- Docs encoding (non-ASCII Vietnamese) prevented grep-based search → used code analysis instead
-- PowerShell `[slug]` path escaping issues → used write_to_file tool instead
+- Docker backend container chỉ có production JAR, không có Maven wrapper
+- Máy local không có `mvn` command
+- WSL bash không khả dụng → không thể chạy `./mvnw`
+- **Giải pháp đề xuất**: Tạo `Dockerfile.test` với Maven base image, hoặc cài Maven local
 
 ## Bước tiếp theo đề xuất
 
-1. Configure production environment variables (VNPay, MoMo, SMTP, LLM API keys)
-2. Add Prometheus + Grafana monitoring containers
+1. **Cài Maven local** hoặc tạo Docker test container → chạy backend tests
+2. Configure production env vars (VNPay, MoMo, SMTP, LLM API keys)
 3. Write E2E tests with Playwright
 4. SEO optimization (sitemap, structured data)
 5. Performance optimization (image lazy loading, code splitting)
