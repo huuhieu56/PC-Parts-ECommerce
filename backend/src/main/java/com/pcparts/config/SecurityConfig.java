@@ -16,10 +16,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 /**
  * Spring Security configuration.
- * Stateless JWT-based authentication with RBAC.
+ * Stateless JWT-based authentication with RBAC and CORS.
  */
 @Configuration
 @EnableWebSecurity
@@ -30,17 +35,21 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
-     * Configures the security filter chain.
+     * Configures the security filter chain with CORS, CSRF disabled,
+     * stateless sessions, and endpoint authorization rules.
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // Actuator — health only for public, rest requires ADMIN
+                .requestMatchers("/actuator/health").permitAll()
+                .requestMatchers("/actuator/**").hasRole("ADMIN")
                 // Public endpoints
-                .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
@@ -48,8 +57,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/build-pc/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/build-pc/export-quote").permitAll()
-                // Cart endpoints (guest + customer)
-                .requestMatchers("/api/v1/cart/**").permitAll()
+                // Cart — GET and POST for guests, write operations need session validation
+                .requestMatchers(HttpMethod.GET, "/api/v1/cart/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/cart/items").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/v1/cart/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/cart/**").permitAll()
                 // Admin endpoints
                 .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN", "SALES", "WAREHOUSE")
                 // All other requests require authentication
@@ -58,6 +70,30 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    /**
+     * CORS configuration allowing frontend origins.
+     *
+     * @return configured CORS source
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "http://localhost",
+                "https://pcparts.vn"
+        ));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization", "X-Session-Id"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     /**

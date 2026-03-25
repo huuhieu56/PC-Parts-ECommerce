@@ -11,6 +11,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+
 /**
  * REST controller for order operations.
  */
@@ -27,7 +31,7 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<ApiResponse<OrderDto>> createOrder(
             Authentication auth,
-            @RequestBody CreateOrderRequest request) {
+            @RequestBody @Valid CreateOrderRequest request) {
         Long accountId = Long.parseLong(auth.getName());
         OrderDto order = orderService.createOrder(accountId, request);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -51,8 +55,8 @@ public class OrderController {
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<OrderDto>>> getMyOrders(
             Authentication auth,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {
         Long accountId = Long.parseLong(auth.getName());
         PageResponse<OrderDto> result = orderService.getMyOrders(accountId, page, size);
         return ResponseEntity.ok(ApiResponse.success("Danh sách đơn hàng", result));
@@ -78,8 +82,8 @@ public class OrderController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SALES')")
     public ResponseEntity<ApiResponse<PageResponse<OrderDto>>> getAllOrders(
             @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         PageResponse<OrderDto> result = orderService.getAllOrders(status, page, size);
         return ResponseEntity.ok(ApiResponse.success("Tất cả đơn hàng", result));
     }

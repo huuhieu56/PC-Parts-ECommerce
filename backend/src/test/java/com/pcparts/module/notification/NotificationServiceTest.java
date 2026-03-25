@@ -106,14 +106,14 @@ class NotificationServiceTest {
     }
 
     @Test
-    @DisplayName("markAsRead - should mark notification as read")
+    @DisplayName("markAsRead - should mark notification as read when user owns it")
     void markAsRead_success() {
         Notification notification = Notification.builder().id(1L).user(testUser).title("N1").message("M1")
                 .type("SYSTEM").isRead(false).createdAt(LocalDateTime.now()).build();
         when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification));
         when(notificationRepository.save(any(Notification.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        NotificationDto result = notificationService.markAsRead(1L);
+        NotificationDto result = notificationService.markAsRead(1L, 1L);
 
         assertThat(result.getIsRead()).isTrue();
     }
@@ -123,8 +123,20 @@ class NotificationServiceTest {
     void markAsRead_notFound() {
         when(notificationRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> notificationService.markAsRead(999L))
+        assertThatThrownBy(() -> notificationService.markAsRead(999L, 1L))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("markAsRead - should throw when user does not own notification (IDOR prevention)")
+    void markAsRead_idor() {
+        UserProfile otherUser = UserProfile.builder().id(2L).fullName("Other User").build();
+        Notification notification = Notification.builder().id(1L).user(otherUser).title("N1").message("M1")
+                .type("SYSTEM").isRead(false).createdAt(LocalDateTime.now()).build();
+        when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification));
+
+        assertThatThrownBy(() -> notificationService.markAsRead(1L, 1L))
+                .isInstanceOf(com.pcparts.common.exception.BusinessException.class);
     }
 
     @Test

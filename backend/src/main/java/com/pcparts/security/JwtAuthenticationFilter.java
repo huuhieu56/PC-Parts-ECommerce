@@ -9,7 +9,6 @@ import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -20,14 +19,19 @@ import java.io.IOException;
 /**
  * JWT authentication filter that intercepts requests
  * and validates Bearer tokens.
+ * After validation, loads user by account ID (not email).
  */
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserDetailsService userDetailsService;
+    private final CustomUserDetailsService customUserDetailsService;
 
+    /**
+     * Filters each request to extract and validate JWT token.
+     * Sets SecurityContext with authenticated principal if valid.
+     */
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
@@ -37,8 +41,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = getTokenFromRequest(request);
 
         if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
-            String email = jwtTokenProvider.getEmailFromToken(token);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            String accountId = jwtTokenProvider.getAccountIdFromToken(token);
+            UserDetails userDetails = customUserDetailsService.loadUserById(accountId);
 
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(
@@ -56,6 +60,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     /**
      * Extracts Bearer token from Authorization header.
+     *
+     * @param request the HTTP request
+     * @return token string or null
      */
     private String getTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");

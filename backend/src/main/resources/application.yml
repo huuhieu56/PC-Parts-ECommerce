@@ -9,7 +9,7 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/pcparts}
     username: ${SPRING_DATASOURCE_USERNAME:pcparts}
-    password: ${SPRING_DATASOURCE_PASSWORD:pcparts_secret_2026}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -38,7 +38,7 @@ spring:
     redis:
       host: ${SPRING_DATA_REDIS_HOST:localhost}
       port: ${SPRING_DATA_REDIS_PORT:6379}
-      password: ${SPRING_DATA_REDIS_PASSWORD:redis_secret_2026}
+      password: ${SPRING_DATA_REDIS_PASSWORD}
       timeout: 5000
 
   # --- Email ---
@@ -81,7 +81,7 @@ management:
 
 # --- JWT ---
 jwt:
-  secret: ${JWT_SECRET:Y2hhbmdlLW1lLWluLXByb2R1Y3Rpb24tYXQtbGVhc3QtMjU2LWJpdHMtbG9uZy1zZWNyZXQta2V5LWhlcmU=}
+  secret: ${JWT_SECRET}
   access-expiration: ${JWT_ACCESS_EXPIRATION:900000}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:2592000000}
 
@@ -89,7 +89,7 @@ jwt:
 minio:
   endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
   access-key: ${MINIO_ACCESS_KEY:minioadmin}
-  secret-key: ${MINIO_SECRET_KEY:minio_secret_2026}
+  secret-key: ${MINIO_SECRET_KEY}
   bucket: ${MINIO_BUCKET:pcparts}
 
 # --- Logging ---

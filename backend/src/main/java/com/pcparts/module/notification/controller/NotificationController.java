@@ -9,6 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+
 /**
  * REST controller for notification endpoints.
  */
@@ -25,8 +28,8 @@ public class NotificationController {
     @GetMapping
     public ResponseEntity<ApiResponse<Page<NotificationDto>>> getNotifications(
             Authentication auth,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         Long userId = Long.parseLong(auth.getName());
         return ResponseEntity.ok(ApiResponse.success("Thông báo", notificationService.getUserNotifications(userId, page, size)));
     }
@@ -42,10 +45,13 @@ public class NotificationController {
 
     /**
      * Marks a specific notification as read.
+     * Verifies ownership — users can only mark their own notifications.
      */
     @PutMapping("/{id}/read")
-    public ResponseEntity<ApiResponse<NotificationDto>> markAsRead(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success("Đã đánh dấu đã đọc", notificationService.markAsRead(id)));
+    public ResponseEntity<ApiResponse<NotificationDto>> markAsRead(
+            @PathVariable Long id, Authentication auth) {
+        Long userId = Long.parseLong(auth.getName());
+        return ResponseEntity.ok(ApiResponse.success("Đã đánh dấu đã đọc", notificationService.markAsRead(id, userId)));
     }
 
     /**

@@ -76,8 +76,8 @@ public class AuthService {
         userProfileRepository.save(userProfile);
 
         // Generate tokens
-        String accessToken = jwtTokenProvider.generateAccessToken(account.getEmail());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(account.getEmail());
+        String accessToken = jwtTokenProvider.generateAccessToken(account.getId().toString());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(account.getId().toString());
 
         // Save refresh token
         saveRefreshToken(account, refreshToken);
@@ -117,8 +117,8 @@ public class AuthService {
                 .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", account.getId()));
 
         // Generate tokens
-        String accessToken = jwtTokenProvider.generateAccessToken(account.getEmail());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(account.getEmail());
+        String accessToken = jwtTokenProvider.generateAccessToken(account.getId().toString());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(account.getId().toString());
 
         // Delete old refresh tokens and save new one
         tokenRepository.deleteByAccountIdAndTokenType(account.getId(), "REFRESH");
@@ -150,17 +150,22 @@ public class AuthService {
         }
 
         Account account = storedToken.getAccount();
-        String email = account.getEmail();
+        String accountId = account.getId().toString();
 
-        // Generate new access token
-        String newAccessToken = jwtTokenProvider.generateAccessToken(email);
+        // Generate new tokens (rotation: old refresh token is invalidated)
+        String newAccessToken = jwtTokenProvider.generateAccessToken(accountId);
+        String newRefreshToken = jwtTokenProvider.generateRefreshToken(accountId);
+
+        // Delete old refresh token and save new one
+        tokenRepository.delete(storedToken);
+        saveRefreshToken(account, newRefreshToken);
 
         UserProfile userProfile = userProfileRepository.findByAccountId(account.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", account.getId()));
 
         return AuthResponse.builder()
                 .accessToken(newAccessToken)
-                .refreshToken(refreshTokenValue)
+                .refreshToken(newRefreshToken)
                 .user(toUserProfileDto(account, userProfile))
                 .build();
     }

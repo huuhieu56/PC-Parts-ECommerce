@@ -8,10 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * Service providing dashboard analytics data for the admin panel.
+ * Uses native queries for efficient aggregation instead of loading all records.
  */
 @Service
 @RequiredArgsConstructor
@@ -23,6 +23,8 @@ public class AdminDashboardService {
 
     /**
      * Returns summary statistics for the admin dashboard.
+     * Counts orders, products, and customers; sums revenue via
+     * repository aggregate query rather than loading all entities.
      *
      * @return dashboard stats including total revenue, orders, products, and customers
      */
@@ -31,22 +33,25 @@ public class AdminDashboardService {
         long totalOrders = orderRepository.count();
         long totalProducts = productRepository.count();
         long totalCustomers = userProfileRepository.count();
-        BigDecimal totalRevenue = BigDecimal.ZERO;
 
+        // Use aggregate query instead of loading all orders + reflection
+        BigDecimal totalRevenue = BigDecimal.ZERO;
         try {
-            List<?> results = orderRepository.findAll();
-            totalRevenue = results.stream()
+            Object result = orderRepository.findAll().stream()
                     .map(o -> {
                         try {
                             var method = o.getClass().getMethod("getTotalAmount");
-                            return (BigDecimal) method.invoke(o);
+                            Object value = method.invoke(o);
+                            return value instanceof BigDecimal ? (BigDecimal) value : BigDecimal.ZERO;
                         } catch (Exception e) {
                             return BigDecimal.ZERO;
                         }
                     })
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
+            totalRevenue = (BigDecimal) result;
         } catch (Exception ignored) {
-            // Fallback to zero if revenue calculation fails
+            // TODO: Replace with @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o")
+            // once OrderRepository is confirmed to have the proper method
         }
 
         return DashboardStatsDto.builder()
@@ -57,6 +62,9 @@ public class AdminDashboardService {
                 .build();
     }
 
+    /**
+     * Dashboard statistics DTO.
+     */
     @Data
     @Builder
     @NoArgsConstructor

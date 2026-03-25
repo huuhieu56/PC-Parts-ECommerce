@@ -74,14 +74,27 @@ public class NotificationService {
 
     /**
      * Marks a single notification as read.
+     * Verifies the notification belongs to the requesting user (IDOR prevention).
      *
      * @param notificationId the notification ID
+     * @param userId the requesting user's ID — must own the notification
      * @return the updated notification DTO
+     * @throws ResourceNotFoundException if notification does not exist
+     * @throws com.pcparts.common.exception.BusinessException if user doesn't own the notification
      */
     @Transactional
-    public NotificationDto markAsRead(Long notificationId) {
+    public NotificationDto markAsRead(Long notificationId, Long userId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification", "id", notificationId));
+
+        // IDOR check: verify ownership
+        if (!notification.getUser().getId().equals(userId)) {
+            throw new com.pcparts.common.exception.BusinessException(
+                    "Không có quyền truy cập thông báo này",
+                    org.springframework.http.HttpStatus.FORBIDDEN
+            );
+        }
+
         notification.setIsRead(true);
         notification = notificationRepository.save(notification);
         return toDto(notification);
