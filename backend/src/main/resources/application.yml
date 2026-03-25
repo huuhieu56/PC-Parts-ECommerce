@@ -1,82 +1,102 @@
+# ========================
+# PC Parts E-Commerce API
+# ========================
 spring:
   application:
-    name: computer-shop-backend
+    name: pc-parts-ecommerce
 
-  # Database Configuration
+  # --- Database ---
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/pc_shop_database}
-    username: ${SPRING_DATASOURCE_USERNAME:your_username}
-    password: ${SPRING_DATASOURCE_PASSWORD:your_password}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/pcparts}
+    username: ${SPRING_DATASOURCE_USERNAME:pcparts}
+    password: ${SPRING_DATASOURCE_PASSWORD:pcparts_secret_2026}
     driver-class-name: org.postgresql.Driver
-
     hikari:
-      pool-name: ComputerShopHikariPool
-      maximum-pool-size: ${SPRING_DATASOURCE_MAX_POOL_SIZE:20}
-      minimum-idle: ${SPRING_DATASOURCE_MIN_IDLE:5}
-      idle-timeout: ${SPRING_DATASOURCE_IDLE_TIMEOUT:300000}
-      connection-timeout: ${SPRING_DATASOURCE_CONNECTION_TIMEOUT:20000}
-      # Kiểm tra kết nối trước khi trả về:
-      validation-timeout: 5000
-      connection-test-query: SELECT 1
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
 
-  # JPA / Hibernate Configuration
+  # --- JPA / Hibernate ---
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
-    show-sql: ${SPRING_JPA_SHOW_SQL:false}
-    open-in-view: false
+      ddl-auto: validate
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
-        use_sql_comments: true
-        jdbc:
-          lob:
-            non_contextual_creation: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
 
-  jackson:
-    property-naming-strategy: SNAKE_CASE
-    serialization:
-      write-dates-as-timestamps: false
-    time-zone: ${APP_TIMEZONE:Asia/Ho_Chi_Minh}
+  # --- Flyway ---
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
 
+  # --- Redis ---
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:redis_secret_2026}
+      timeout: 5000
+
+  # --- Email ---
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  # --- File Upload ---
   servlet:
     multipart:
-      max-file-size: ${APP_FILE_MAX_SIZE:10MB}
-      max-request-size: ${APP_FILE_MAX_REQUEST_SIZE:10MB}
+      max-file-size: 5MB
+      max-request-size: 10MB
 
-# Server Configuration
+# --- Server ---
 server:
-  port: ${SERVER_PORT:8080}
-  error:
-    include-message: always
+  port: 8080
+  servlet:
+    context-path: /
 
-# App Custom Configurations
-app:
-  cors:
-    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:*}
-    allowed-methods: ${APP_CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,PATCH,OPTIONS}
-    allowed-headers: ${APP_CORS_ALLOWED_HEADERS:*}
-    allow-credentials: ${APP_CORS_ALLOW_CREDENTIALS:true}
+# --- Actuator ---
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  health:
+    mail:
+      enabled: false
 
-  jwt:
-    secret: ${APP_JWT_SECRET:your_jwt_secret_key_here_change_in_production}
-    expiration: ${APP_JWT_EXPIRATION:2592000000}
-    refresh-token:
-      expiration: ${APP_JWT_REFRESH_EXPIRATION:7776000000}
+# --- JWT ---
+jwt:
+  secret: ${JWT_SECRET:Y2hhbmdlLW1lLWluLXByb2R1Y3Rpb24tYXQtbGVhc3QtMjU2LWJpdHMtbG9uZy1zZWNyZXQta2V5LWhlcmU=}
+  access-expiration: ${JWT_ACCESS_EXPIRATION:900000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:2592000000}
 
-  file-storage:
-    location: ${APP_FILE_STORAGE_LOCATION:images}
+# --- MinIO ---
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minio_secret_2026}
+  bucket: ${MINIO_BUCKET:pcparts}
 
-  inventory:
-    default-low-stock-threshold: ${APP_DEFAULT_LOW_STOCK_THRESHOLD:10}
-
-# Logging Configuration
+# --- Logging ---
 logging:
   level:
     root: INFO
-    com.computershop: ${LOGGING_LEVEL_COMPUTERSHOP:DEBUG}
-    org.hibernate.SQL: ${LOGGING_LEVEL_HIBERNATE_SQL:DEBUG}
-    org.hibernate.type.descriptor.sql.BasicBinder: ${LOGGING_LEVEL_BINDER:TRACE}
+    com.pcparts: DEBUG
+    org.springframework.security: INFO
   pattern:
-    console: '%d{yyyy-MM-dd HH:mm:ss} - %-5level [%thread] %logger{36} : %msg%n'
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

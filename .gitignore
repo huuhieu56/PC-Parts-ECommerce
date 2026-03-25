@@ -1,71 +1,54 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
 
-# -------- Java / Spring Boot --------
-backend/target/
-backend/.mvn/
-backend/.classpath
-backend/.project
-backend/.settings/
-backend/.idea/
-backend/.vscode/
-backend/.env
-backend/application-*.yml
-backend/application-*.properties
-backend/logs/
-backend/*.log
-backend/out/
-backend/hs_err_pid*
-backend/*.iml
-backend/images/
+# Testing
+coverage/
 
-# -------- IntelliJ IDEA --------
-.idea/
-*.iml
-*.iws
+# Next.js
+.next/
 out/
+build/
+
+# Misc
 .DS_Store
+*.pem
 
-# -------- VS Code --------
-.vscode/
-.history/
-*.code-workspace
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# -------- OS Files --------
-Thumbs.db
-.DS_Store
-ehthumbs.db
-Icon?
-desktop.ini
-
-# -------- Logs --------
-*.log
-logs/
-*.pid
-*.seed
-*.pid.lock
-
-# -------- Environment --------
+# Local env files
 .env
 .env.local
-.env.development
-.env.production
-.env.test
-!.env.example
+.env.development.local
+.env.test.local
+.env.production.local
 
-# -------- Build / Deployment --------
-/build/
-/dist/
-/tmp/
-/cache/
-/coverage/
+# Vercel
+.vercel
 
-# -------- Misc --------
-*.bak
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Java / Maven
+backend/target/
+*.class
+*.jar
+*.war
+*.log
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
 *.swp
-*.tmp
-*.old
+*.swo
 
-# -------- Python --------
-__pycache__/
-scripts/__pycache__/
-
-.todo_temp/
+# OS
+Thumbs.db
+.DS_Store

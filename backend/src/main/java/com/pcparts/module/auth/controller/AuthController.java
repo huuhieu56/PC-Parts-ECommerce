@@ -1,0 +1,69 @@
+package com.pcparts.module.auth.controller;
+
+import com.pcparts.common.dto.ApiResponse;
+import com.pcparts.module.auth.dto.AuthResponse;
+import com.pcparts.module.auth.dto.LoginRequest;
+import com.pcparts.module.auth.dto.RegisterRequest;
+import com.pcparts.module.auth.service.AuthService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+/**
+ * REST Controller for authentication endpoints.
+ * Base path: /api/v1/auth
+ */
+@RestController
+@RequestMapping("/api/v1/auth")
+@RequiredArgsConstructor
+public class AuthController {
+
+    private final AuthService authService;
+
+    /**
+     * POST /api/v1/auth/register — Register a new customer account.
+     */
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<AuthResponse>> register(
+            @Valid @RequestBody RegisterRequest request) {
+        AuthResponse response = authService.register(request);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.created(response));
+    }
+
+    /**
+     * POST /api/v1/auth/login — Login with email and password.
+     */
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<AuthResponse>> login(
+            @Valid @RequestBody LoginRequest request) {
+        AuthResponse response = authService.login(request);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /**
+     * POST /api/v1/auth/refresh-token — Refresh access token.
+     */
+    @PostMapping("/refresh-token")
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(
+            @RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refreshToken");
+        AuthResponse response = authService.refreshToken(refreshToken);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /**
+     * POST /api/v1/auth/logout — Logout and invalidate refresh token.
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(Authentication authentication) {
+        authService.logout(authentication.getName());
+        return ResponseEntity.ok(ApiResponse.success("Đăng xuất thành công", null));
+    }
+}

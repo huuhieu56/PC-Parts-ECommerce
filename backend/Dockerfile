@@ -1,35 +1,27 @@
-# syntax=docker/dockerfile:1.6
-
-# ------------------------------
-# Builder stage: compile Spring Boot jar
-# ------------------------------
-FROM maven:3.9.9-eclipse-temurin-17 AS build
+# ---- Build Stage ----
+FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /app
 
-# Copy Maven descriptor first to leverage Docker layer caching
+# Copy Maven wrapper and pom.xml first (for layer caching)
 COPY pom.xml .
-RUN mvn -B dependency:go-offline
+COPY .mvn .mvn
+COPY mvnw .
+RUN chmod +x mvnw
+RUN ./mvnw dependency:resolve -B
 
-# Copy the remaining project files
+# Copy source code and build
 COPY src ./src
+RUN ./mvnw package -DskipTests -B
 
-# Build the executable jar (skip tests for faster CI image builds)
-RUN mvn -B clean package -DskipTests
-
-# ------------------------------
-# Runtime stage: lightweight JRE image
-# ------------------------------
-FROM eclipse-temurin:17-jre-alpine
+# ---- Run Stage ----
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# JVM performance tuning defaults can be overridden via JAVA_TOOL_OPTIONS
-ENV SPRING_PROFILES_ACTIVE=prod \
-    JAVA_OPTS="-XX:+UseContainerSupport"
+# Add curl for healthcheck
+RUN apk add --no-cache curl
 
-# Copy jar from the builder image
-COPY --from=build /app/target/*.jar /app/app.jar
+COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 
-# Allow passing extra JVM opts via JAVA_OPTS
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
