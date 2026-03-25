@@ -22,3 +22,14 @@
 | 17:05 | Monitoring — Prometheus + Grafana Docker Compose | 100% |
 | 17:10 | Frontend test run — 22/22 PASS ✅ | 100% |
 | 17:15 | Backend test run — BLOCKED (no Maven in environment) | Blocked |
+| 17:37 | QA/QC audit — Full deep scan, 47 findings | 100% |
+| 17:46 | ARCH-01 fix — auth.getName() crash (4 files) | 100% |
+| 17:50 | SEC-01 fix — Remove hardcoded secrets from application.yml | 100% |
+| 17:52 | SEC-02 fix — IDOR on NotificationService.markAsRead | 100% |
+| 17:54 | SEC-03 fix — CORS config added | 100% |
+| 17:55 | SEC-04 fix — Actuator restricted to ADMIN | 100% |
+| 17:56 | SEC-06 fix — JWT issuer/type claims | 100% |
+| 17:57 | SEC-08 fix — Refresh token rotation | 100% |
+| 17:58 | SEC-09/ARCH-03 — @Valid + pagination limits | 100% |
+| 18:00 | ARCH-05 — Frontend error.tsx + not-found.tsx | 100% |
+| 18:03 | Frontend test run 2 — 22/22 PASS ✅ | 100% |
