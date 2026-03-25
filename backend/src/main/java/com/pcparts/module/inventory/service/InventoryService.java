@@ -64,18 +64,33 @@ public class InventoryService {
         return toDto(inv);
     }
 
+    /**
+     * Reserves stock by deducting from inventory when an order is created.
+     * Logs the change as a SALE type entry.
+     */
     @Transactional
     public void reserveStock(Long productId, int quantity) {
         Inventory inv = inventoryRepository.findByProductId(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Inventory", "productId", productId));
         if (quantity > inv.getQuantity())
-            throw new BusinessException("Không đủ tồn kho để đặt hàng", HttpStatus.BAD_REQUEST);
-        // Just validate available; actual deduction on order completion
+            throw new BusinessException("Không đủ tồn kho cho sản phẩm " + inv.getProduct().getName()
+                    + " (còn " + inv.getQuantity() + ", yêu cầu " + quantity + ")", HttpStatus.BAD_REQUEST);
+        inv.setQuantity(inv.getQuantity() - quantity);
+        inventoryRepository.save(inv);
+        logChange(inv.getProduct(), "SALE", -quantity, "Đặt hàng - trừ kho", null);
     }
 
+    /**
+     * Releases reserved stock back to inventory when an order is cancelled.
+     * Logs the change as a RETURN type entry.
+     */
     @Transactional
     public void releaseStock(Long productId, int quantity) {
-        // No-op: stock not actually deducted until COMPLETED
+        Inventory inv = inventoryRepository.findByProductId(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Inventory", "productId", productId));
+        inv.setQuantity(inv.getQuantity() + quantity);
+        inventoryRepository.save(inv);
+        logChange(inv.getProduct(), "RETURN", quantity, "Hủy đơn - hoàn kho", null);
     }
 
     @Transactional(readOnly = true)

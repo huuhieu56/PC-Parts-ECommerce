@@ -136,6 +136,11 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "id", id));
 
+        // BUG-14 fix: check SKU uniqueness when updating (exclude self)
+        if (!product.getSku().equals(request.getSku()) && productRepository.existsBySku(request.getSku())) {
+            throw new BusinessException("SKU đã tồn tại", HttpStatus.CONFLICT);
+        }
+
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", request.getCategoryId()));
         Brand brand = brandRepository.findById(request.getBrandId())

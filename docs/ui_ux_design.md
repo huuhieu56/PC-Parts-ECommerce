@@ -1,9 +1,10 @@
 # TÀI LIỆU THIẾT KẾ UI/UX (UI/UX Design Specification)
 
 **Dự án:** Hệ thống Website Thương mại Điện tử Phân phối Linh kiện Máy tính  
-**Phiên bản:** 1.0  
+**Phiên bản:** 2.0  
 **Ngày tạo:** 2026-03-25  
-**Trạng thái:** Bản nháp (Draft)  
+**Cập nhật:** 2026-03-25  
+**Trạng thái:** Đã duyệt — Light Theme (An Phát PC Style)  
 **Công cụ thiết kế:** Figma (tạo Wireframe chi tiết sau khi duyệt spec này)  
 
 ---
@@ -13,6 +14,7 @@
 | Phiên bản | Ngày | Tác giả | Mô tả thay đổi |
 |:----------|:-----|:--------|:----------------|
 | 1.0 | 2026-03-25 | — | Tạo mới tài liệu |
+| 2.0 | 2026-03-25 | — | Chuyển sang Light Theme, loại bỏ Dark mode, thiết kế theo phong cách An Phát PC |
 
 ---
 
@@ -35,14 +37,17 @@
 
 ### 1.1. Triết lý thiết kế
 
+> **Phong cách tổng thể:** Lấy cảm hứng từ An Phát PC — NỀN SÁNG (trắng/xám nhạt), header xanh đậm, giá sale đỏ, typography đậm rõ ràng. **KHÔNG HỖ TRỢ DARK MODE.**
+
 | # | Nguyên tắc | Mô tả |
 |:--|:-----------|:------|
-| DP-01 | **Simple & Clean** | Giao diện tối giản, tập trung vào sản phẩm. Tránh rối mắt. |
+| DP-01 | **Sáng & Chuyên nghiệp** | Nền trắng sạch, header xanh đậm nổi bật, giá đỏ bắt mắt. Phong cách web bán linh kiện quen thuộc tại Việt Nam. |
 | DP-02 | **Consistency** | Đồng nhất style, spacing, typography, color trên toàn bộ ứng dụng. |
 | DP-03 | **Performance First** | Skeleton loading, lazy load images, pagination thay vì infinite scroll (dễ quản lý kho lớn). |
 | DP-04 | **Mobile Responsive** | Thiết kế mobile-first, breakpoints rõ ràng. |
 | DP-05 | **Accessibility** | WCAG 2.1 AA — contrast đủ, keyboard navigation, alt text. |
-| DP-06 | **Trust & Credibility** | UI truyền tải sự chuyên nghiệp cho khách hàng mua linh kiện (giá rõ ràng, BH rõ ràng, review có ảnh). |
+| DP-06 | **Trust & Credibility** | Giá rõ ràng (giá gốc gạch ngang, giá sale đỏ đậm), BH rõ ràng (số tháng), hotline nổi bật, badge "còn hàng" xanh lá. |
+| DP-07 | **Tươi sáng & Tràn đầy năng lượng** | Dùng màu sắc tươi (đỏ, xanh, cam, vàng) cho banner/CTA. Tránh giao diện nhạt nhẽo. Hero banner, sale banner luôn có hình ảnh sản phẩm thực tế. |
 
 ### 1.2. User Personas tham chiếu
 
@@ -61,22 +66,54 @@
 
 ### 2.1. Color Palette
 
-| Token | Hex | Mục đích sử dụng |
-|:------|:----|:-----------------|
-| `--primary` | `#2563EB` (Blue 600) | CTA chính, link, accent |
-| `--primary-hover` | `#1D4ED8` (Blue 700) | Hover state |
-| `--secondary` | `#64748B` (Slate 500) | Text phụ, icon |
-| `--background` | `#FFFFFF` | Nền chính (Light mode) |
-| `--background-dark` | `#0F172A` (Slate 900) | Nền chính (Dark mode) |
-| `--card` | `#F8FAFC` (Slate 50) | Nền card (Light) |
-| `--card-dark` | `#1E293B` (Slate 800) | Nền card (Dark) |
-| `--destructive` | `#EF4444` (Red 500) | Lỗi, xóa, hết hàng |
-| `--success` | `#22C55E` (Green 500) | Thành công, còn hàng |
-| `--warning` | `#F59E0B` (Amber 500) | Cảnh báo, sắp hết hàng |
-| `--border` | `#E2E8F0` (Slate 200) | Border, divider |
-| `--sale-badge` | `#EF4444` (Red 500) | Badge giảm giá |
+> **CHỈ HỖ TRỢ LIGHT MODE.** Không có Dark mode toggle.
 
-> **Dark mode:** Hỗ trợ Dark mode toggle. Dùng CSS variables + Tailwind `dark:` prefix. Lưu preference vào `localStorage`.
+#### Màu chủ đạo
+
+| Token | Hex | Tailwind | Mục đích sử dụng |
+|:------|:----|:---------|:-----------------|
+| `--header-bg` | `#1A4B9C` | `bg-[#1A4B9C]` | Header chính, nền navigation bar |
+| `--header-top` | `#0D2B5E` | `bg-[#0D2B5E]` | Thanh thông tin trên cùng (hotline, showroom) |
+| `--primary` | `#2563EB` (Blue 600) | `bg-blue-600` | CTA phụ, link, active state |
+| `--primary-hover` | `#1D4ED8` (Blue 700) | `bg-blue-700` | Hover state |
+
+#### Màu accent (Sale, CTA)
+
+| Token | Hex | Tailwind | Mục đích sử dụng |
+|:------|:----|:---------|:-----------------|
+| `--sale-price` | `#E31837` | `text-[#E31837]` | **Giá bán** (luôn dùng màu đỏ đậm cho giá) |
+| `--sale-badge` | `#EF4444` (Red 500) | `bg-red-500` | Badge giảm giá (-13%), flash sale |
+| `--cta-buy` | `#E31837` | `bg-[#E31837]` | Button "ĐẶT MUA NGAY", "Mua ngay" |
+| `--cta-cart` | `#2563EB` | `bg-blue-600` | Button "CHO VÀO GIỎ" |
+| `--highlight` | `#FBBF24` (Amber 400) | `bg-amber-400` | Banner highlight, flash sale accent |
+
+#### Màu nền & Text
+
+| Token | Hex | Tailwind | Mục đích sử dụng |
+|:------|:----|:---------|:-----------------|
+| `--background` | `#FFFFFF` | `bg-white` | Nền chính trang |
+| `--background-alt` | `#F3F4F6` (Gray 100) | `bg-gray-100` | Nền phụ (section, page background) |
+| `--card` | `#FFFFFF` | `bg-white` | Nền card sản phẩm |
+| `--text-primary` | `#111827` (Gray 900) | `text-gray-900` | Text chính |
+| `--text-secondary` | `#6B7280` (Gray 500) | `text-gray-500` | Text phụ, caption |
+| `--text-muted` | `#9CA3AF` (Gray 400) | `text-gray-400` | Text rất nhạt (giá gốc gạch ngang) |
+
+#### Màu trạng thái
+
+| Token | Hex | Tailwind | Mục đích sử dụng |
+|:------|:----|:---------|:-----------------|
+| `--success` | `#22C55E` (Green 500) | `bg-green-500` | Còn hàng, thành công |
+| `--warning` | `#F59E0B` (Amber 500) | `bg-amber-500` | Cảnh báo, sắp hết hàng |
+| `--destructive` | `#EF4444` (Red 500) | `bg-red-500` | Lỗi, xóa, hết hàng |
+| `--border` | `#E5E7EB` (Gray 200) | `border-gray-200` | Border, divider |
+| `--border-strong` | `#D1D5DB` (Gray 300) | `border-gray-300` | Border nổi bật hơn |
+
+#### Footer
+
+| Token | Hex | Tailwind | Mục đích sử dụng |
+|:------|:----|:---------|:-----------------|
+| `--footer-bg` | `#1E293B` (Slate 800) | `bg-slate-800` | Nền footer xanh đậm tối |
+| `--footer-text` | `#E2E8F0` (Slate 200) | `text-slate-200` | Text footer |
 
 ### 2.2. Typography
 
@@ -147,11 +184,13 @@ Sử dụng **Lucide Icons** — consistent, lightweight, MIT license.
 | `Star` | Đánh giá |
 | `Shield` | Bảo hành |
 | `RotateCcw` | Đổi trả |
-| `Sun` / `Moon` | Toggle Dark mode |
+| `Phone` | Hotline (header top bar) |
+| `MapPin` | Showroom (header top bar) |
 | `ChevronRight` | Breadcrumb, navigation |
 | `Filter` | Mở panel bộ lọc |
 | `Truck` | Vận chuyển |
 | `CreditCard` | Thanh toán |
+| `Cpu` | Logo / PC Parts brand icon |
 
 ---
 
@@ -161,37 +200,50 @@ Sử dụng **Lucide Icons** — consistent, lightweight, MIT license.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  HEADER (Sticky)                                             │
+│  TOP BAR (bg: #0D2B5E, text: trắng nhỏ)                     │
+│  📞 1900.XXXX  |  📍 Hệ thống Showroom  |  🎁 Khuyến mãi   │
+├─────────────────────────────────────────────────────────────┤
+│  HEADER CHÍNH (Sticky, bg: #1A4B9C, text: trắng)            │
 │  ┌───────┐  ┌──────────────────────────┐  ┌──┐ ┌──┐ ┌──┐  │
 │  │ LOGO  │  │  🔍 Tìm kiếm sản phẩm...│  │🖥│ │❤️│ │🛒│  │
-│  └───────┘  └──────────────────────────┘  │PC│ │  │ │3 │  │
-│                                            └──┘ └──┘ └──┘  │
+│  │PC PARTS│  │  (nền trắng, viền xám)  │  │PC│ │  │ │3 │  │
+│  └───────┘  └──────────────────────────┘  └──┘ └──┘ └──┘  │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │  NAV: Trang chủ | Sản phẩm ▼ | Build PC | Khuyến mãi│   │
+│  │  (text trắng trên nền xanh, hover: vàng #FBBF24)    │   │
 │  └──────────────────────────────────────────────────────┘   │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│                      PAGE CONTENT                           │
+│                 PAGE CONTENT (bg: #F3F4F6)                  │
 │                   (Từng trang khác nhau)                     │
 │                                                             │
 ├─────────────────────────────────────────────────────────────┤
-│  FOOTER                                                     │
+│  FOOTER (bg: #1E293B, text: trắng/xám nhạt)                 │
 │  ┌────────────┐  ┌────────────┐  ┌────────────┐            │
 │  │ Về chúng tôi│  │ Hỗ trợ KH  │  │ Chính sách │            │
 │  │ Liên hệ    │  │ FAQ        │  │ BH & Đổi trả│            │
 │  │ Tuyển dụng │  │ CSKH       │  │ Thanh toán  │            │
 │  └────────────┘  └────────────┘  └────────────┘            │
-│  © 2026 PC Parts Store. Hotline: 1900.xxxx                  │
+│  © 2026 PC Parts Store. Hotline: 1900.XXXX                  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Header components:**
-- **Logo:** Link về trang chủ.
-- **Search bar:** Autocomplete, debounce 300ms, hiển thị gợi ý khi gõ ≥ 2 ký tự.
+**Top Bar (thanh thông tin trên cùng):**
+- Nền xanh rất đậm (`#0D2B5E`), text trắng nhỏ (12px)
+- Hiển thị: Hotline, Hệ thống showroom, Link khuyến mãi
+
+**Header chính (Sticky):**
+- Nền xanh đậm (`#1A4B9C`), text trắng
+- **Logo:** Icon Cpu + "PC Parts" — text trắng bold, link về trang chủ
+- **Search bar:** Input nền trắng, viền xám, bo góc — giữa header. Autocomplete debounce 300ms, hiển thị gợi ý khi gõ ≥ 2 ký tự.
 - **Build PC:** Button nổi bật (icon `Monitor`), link tới `/build-pc`.
-- **Wishlist:** Icon `Heart` + badge số lượng (chỉ khi đã đăng nhập).
-- **Cart:** Icon `ShoppingCart` + badge số lượng. Click mở `Sheet` (sidebar) preview giỏ.
-- **User:** Avatar hoặc nút Đăng nhập/Đăng ký. Sau khi login: `DropdownMenu` (Profile, Đơn hàng, Bảo hành, Đăng xuất).
+- **Wishlist:** Icon `Heart` trắng + badge đỏ số lượng (chỉ khi đã đăng nhập).
+- **Cart:** Icon `ShoppingCart` trắng + badge đỏ số lượng.
+- **User:** Nút "Đăng nhập / Đăng ký" (nền trắng, text xanh). Sau khi login: `DropdownMenu` (nền trắng, text đen) — Profile, Đơn hàng, Bảo hành, Đăng xuất.
+
+**Navigation bar (nằm trong header hoặc ngay dưới):**
+- Links: "Trang chủ", "Sản phẩm ▼", "Build PC", "Khuyến mãi"
+- Text trắng trên nền xanh, hover: chuyển sang vàng (#FBBF24)
 
 ### 3.2. Admin Layout
 
@@ -261,52 +313,76 @@ graph TD
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  [HEADER]                                                    │
+│  [TOP BAR + HEADER xanh đậm]                                 │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │              HERO BANNER / CAROUSEL                  │    │
-│  │        "Linh kiện chính hãng — Giá tốt nhất"        │    │
-│  │              [Mua ngay]  [Build PC]                  │    │
-│  └─────────────────────────────────────────────────────┘    │
+│  ┌──────────────────────────┬──────────────────────────┐    │
+│  │  HERO BANNER / CAROUSEL  │  PROMO CARDS (2 nhỏ)     │    │
+│  │  (chiếm 2/3 chiều rộng) │  ┌──────────────────┐    │    │
+│  │  Hình sản phẩm thực tế  │  │ BUILD PC CAP      │    │    │
+│  │  + Text promo + CTA đỏ  │  │ Giảm lên đến 30tr │    │    │
+│  │  [MUA NGAY] (btn đỏ)    │  │ [img sản phẩm]    │    │    │
+│  │                          │  └──────────────────┘    │    │
+│  │                          │  ┌──────────────────┐    │    │
+│  │                          │  │ LAPTOP Giảm Thêm  │    │    │
+│  │                          │  │ 1 Triệu           │    │    │
+│  │                          │  └──────────────────┘    │    │
+│  └──────────────────────────┴──────────────────────────┘    │
 │                                                             │
-│  ── Danh mục nổi bật ──────────────────────────────────     │
+│  ── Danh mục nổi bật ──────────────────────── (bg: trắng)  │
 │  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐         │
 │  │ CPU  │  │ Main │  │ RAM  │  │ GPU  │  │ SSD  │         │
-│  │ 🔲   │  │ 🔲   │  │ 🔲   │  │ 🔲   │  │ 🔲   │         │                 
+│  │ 🔲   │  │ 🔲   │  │ 🔲   │  │ 🔲   │  │ 🔲   │         │
 │  └──────┘  └──────┘  └──────┘  └──────┘  └──────┘         │
 │                                                             │
-│  ── Sản phẩm bán chạy ─────────────────────── [Xem tất cả]│
-│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐          │
-│  │  [IMG]  │ │  [IMG]  │ │  [IMG]  │ │  [IMG]  │          │
-│  │ SP Name │ │ SP Name │ │ SP Name │ │ SP Name │          │
-│  │ ★★★★☆  │ │ ★★★★★  │ │ ★★★★☆  │ │ ★★★☆☆  │          │
-│  │ 6.990đ  │ │ 12.990đ │ │ 3.490đ  │ │ 8.990đ  │          │
-│  │ 7.990đ  │ │         │ │ 4.990đ  │ │         │          │
-│  │ [-13%]  │ │         │ │ [-30%]  │ │         │          │
-│  │ [🛒]    │ │ [🛒]    │ │ [🛒]    │ │ [🛒]    │          │
-│  └─────────┘ └─────────┘ └─────────┘ └─────────┘          │
+│  ── BRAND LOGOS BAR ── (nền trắng, logo grayscale)          │
+│  [intel] [AMD] [WesternDigital] [ASUS] [Lenovo] [LG]       │
+│  [GIGABYTE] [msi] [DELL] [CORSAIR] [logitech] [TP-LINK]    │
 │                                                             │
-│  ── Sản phẩm mới ──────────────────────────── [Xem tất cả]│
-│  (Tương tự grid 4 cột)                                      │
+│  ── PROMO BANNERS ────────── (3 cards ngang, nhiều màu)    │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
+│  │ TBVP Giảm   │ │ MÀN HÌNH    │ │ GEAR Giảm   │           │
+│  │    32%      │ │ Giảm 1 Triệu│ │    50%      │           │
+│  │ (bg cam/đỏ) │ │ (bg xanh)   │ │ (bg tím)    │           │
+│  └─────────────┘ └─────────────┘ └─────────────┘           │
 │                                                             │
-│  ── Khuyến mãi đang diễn ra ────────────────────────────── │
-│  ┌────────────────────────────────────────────────────┐     │
-│  │  BANNER KHUYẾN MÃI (Countdown timer nếu có)       │     │
-│  └────────────────────────────────────────────────────┘     │
+│  ── TOP SẢN PHẨM BÁN CHẠY ─────── (bg trắng, viền dưới)  │
+│  Tabs: [BÁN CHẠY] [PC GAMING] [LAPTOP] [MÀN HÌNH GAMING]  │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌────────┐│
+│  │  [IMG]  │ │  [IMG]  │ │  [IMG]  │ │  [IMG]  │ │ [IMG]  ││
+│  │ SP Name │ │ SP Name │ │ SP Name │ │ SP Name │ │SP Name ││
+│  │ ★★★★☆  │ │ ★★★★★  │ │ ★★★★☆  │ │ ★★★☆☆  │ │★★★★★  ││
+│  │ Mã SP:  │ │ Mã SP:  │ │ Mã SP:  │ │ Mã SP:  │ │Mã SP:  ││
+│  │7.990.000│ │         │ │4.990.000│ │         │ │        ││
+│  │6.990.000│ │12.990.0 │ │3.490.000│ │8.990.000│ │43.990. ││
+│  │ (đỏ đậm)│ │ (đỏ đậm)│ │ [-30%]  │ │(đỏ đậm) │ │(đỏ đậm)││
+│  │☑ So sánh│ │☑ So sánh│ │☑ So sánh│ │☑ So sánh│ │☑Sosánh ││
+│  │✓Còn hàng│ │✓Còn hàng│ │✓Còn hàng│ │✓Còn hàng│ │✓Còn hg ││
+│  │ [🛒]    │ │ [🛒]    │ │ [🛒]    │ │ [🛒]    │ │ [🛒]   ││
+│  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └────────┘│
+│                                                             │
+│  ── LAPTOP - TABLET - MOBILE ───── (section riêng biệt)    │
+│  Brand Tabs: [ASUS] [LENOVO] [HP] [MSI] [DELL] [ACER]      │
+│  (Grid 6 cột product cards, tương tự trên)    [XEM TẤT CẢ »]│
+│                                                             │
+│  ── MÁY TÍNH ĐỒNG BỘ ──────────── (section riêng biệt)    │
+│  (Grid product cards)                          [XEM TẤT CẢ »]│
 │                                                             │
 │  [FOOTER]                                                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Chi tiết Product Card:**
-- Ảnh chính (lazy load, aspect ratio 1:1)
-- Tên sản phẩm (max 2 dòng, ellipsis)
-- Rating (stars + số review)
-- Giá bán (bold, màu primary) + Giá gốc (line-through, nếu giảm)
-- Badge "Giảm X%" (nếu có)
-- Nút thêm giỏ hàng (icon cart)
-- Hover: hiển thị nút "Xem nhanh" + "Yêu thích ❤️"
+**Chi tiết Product Card (Light theme):**
+- Nền **trắng**, viền xám nhạt (`border-gray-200`), shadow nhẹ
+- Ảnh chính (lazy load, aspect ratio 1:1, nền trắng)
+- Badge `NEW` (xanh lá) hoặc `-X%` (đỏ) — góc trên phải
+- Tên sản phẩm (text đen, max 2 dòng, ellipsis)
+- Mã SP (caption, text xám)
+- Rating (stars vàng + số review, text xám)
+- **Giá gốc** (line-through, text xám nhạt) — nếu giảm giá
+- **Giá bán** (bold, **MÀU ĐỎ ĐẬM `#E31837`**, cỡ to)
+- Hover: shadow lớn hơn, nút "So sánh" + "Yêu thích ❤️" xuất hiện
+- Nút icon giỏ hàng nhỏ (góc dưới phải), badge "Còn hàng" xanh lá
 
 ### 4.2. Danh sách sản phẩm (`/products?category=cpu`)
 
@@ -353,92 +429,144 @@ graph TD
 ### 4.3. Chi tiết sản phẩm (`/products/[slug]`)
 
 ```
-┌────────────────────────────────────────────────────────────┐
-│  Breadcrumb: Trang chủ > CPU > Intel Core i5-13600K        │
-├────────────────────────┬───────────────────────────────────┤
-│                        │                                   │
-│   ┌────────────────┐   │  CPU Intel Core i5-13600K         │
-│   │                │   │  ★★★★☆ (23 đánh giá)             │
-│   │  PRODUCT IMAGE │   │                                   │
-│   │  (Gallery)     │   │  Giá bán: 6.990.000đ              │
-│   │                │   │  Giá gốc: 7.990.000đ  [-13%]     │
-│   └────────────────┘   │                                   │
-│   [thumb] [thumb] [thu]│  Tình trạng: ✅ Mới (NEW)         │
-│                        │  Kho: Còn 15 sản phẩm             │
-│                        │  Bảo hành: 36 tháng chính hãng    │
-│                        │                                   │
-│                        │  Số lượng: [- 1 +]                │
-│                        │                                   │
-│                        │  [🛒 Thêm vào giỏ]  [❤️ Yêu thích]│
-│                        │  [⚡ Mua ngay]                     │
-│                        │                                   │
-├────────────────────────┴───────────────────────────────────┤
-│  Tabs: [Mô tả] [Thông số kỹ thuật] [Đánh giá (23)]       │
-│                                                            │
-│  Tab Thông số:                                             │
-│  ┌──────────────────┬─────────────────┐                    │
-│  │ Socket           │ LGA 1700        │                    │
-│  │ Cores            │ 14 (6P + 8E)    │                    │
-│  │ Base Clock       │ 3.5 GHz         │                    │
-│  │ Boost Clock      │ 5.1 GHz         │                    │
-│  │ TDP              │ 125W            │                    │
-│  │ Cache            │ 24MB L3         │                    │
-│  └──────────────────┴─────────────────┘                    │
-│                                                            │
-│  Tab Đánh giá:                                             │
-│  ┌───────────────────────────────────────────┐             │
-│  │ ★★★★★  Nguyễn Văn A  — 2026-03-20        │             │
-│  │ Sản phẩm chất lượng, đóng gói cẩn thận.  │             │
-│  │ [ảnh1] [ảnh2]                              │             │
-│  └───────────────────────────────────────────┘             │
-│                                                            │
-│  ── Sản phẩm liên quan ────────────────────────            │
-│  (Grid 4 Product Cards)                                    │
-│  [FOOTER]                                                  │
-└────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│  [TOP BAR + HEADER xanh đậm]                                          │
+│  Breadcrumb: Trang chủ > CPU > Intel Core i5-13600K  (bg: trắng)      │
+├──────────────────────────┬──────────────────────┬──────────────────────┤
+│                          │                      │                      │
+│   ┌──────────────────┐   │  TÊN SẢN PHẨM (h1)  │  MUA HÀNG ONLINE     │
+│   │                  │   │  (text đen, bold)    │  TOÀN QUỐC            │
+│   │  PRODUCT IMAGE   │   │  Mã SP: CPU-I5...    │  (Hotline: 1900.xxx) │
+│   │  (bg trắng,      │   │  ★★★★☆ 23 đánh giá  │  ───────────────      │
+│   │   viền xám nhạt) │   │  Lượt xem: 2.188    │  HIỆN ĐANG CÓ        │
+│   │                  │   │                      │  TẠI SHOWROOM:        │
+│   └──────────────────┘   │  • Công suất: 750W   │  📍 49 Thái Hà, HN   │
+│   [thumb] [thumb] [thumb]│  • Form: ATX 12V...  │  📞 0918.557.006      │
+│                          │  • PFC: Active       │  📍 63 Trần Thái T.   │
+│   Tabs: [Hình SP] [TSKT]│                      │  📞 0862.136.488      │
+│                          │  Xem thêm >          │                      │
+│                          │                      │  ── TRỢ GIÚP ──       │
+│                          │  Giá niêm yết:       │  • Hướng dẫn mua     │
+│                          │  7.990.000 đ         │  • Chính sách BH     │
+│                          │  (text xám, gạch)    │  • Chính sách đổi trả│
+│                          │                      │                      │
+│                          │  Giá khuyến mãi:     │                      │
+│                          │  6.990.000 đ         │                      │
+│                          │  (ĐỎ ĐẬM, BOLD, TO) │                      │
+│                          │  (đã bao gồm VAT)   │                      │
+│                          │                      │                      │
+│                          │  Bảo hành: 36 tháng  │                      │
+│                          │                      │                      │
+│                          │  ┌────────────────┐  │                      │
+│                          │  │  ĐẶT MUA NGAY  │  │                      │
+│                          │  │  (btn ĐỎ, lớn) │  │                      │
+│                          │  └────────────────┘  │                      │
+│                          │  ┌───────┐┌────────┐ │                      │
+│                          │  │MUA TRẢ││CHO VÀO │ │                      │
+│                          │  │  GÓP  ││  GIỎ   │ │                      │
+│                          │  │(viền) ││(xanh)  │ │                      │
+│                          │  └───────┘└────────┘ │                      │
+├──────────────────────────┴──────────────────────┴──────────────────────┤
+│                                                                        │
+│  Tab Thông số:  (nền trắng, zebra stripes xám/trắng)                  │
+│  ┌──────────────────┬─────────────────┐                                │
+│  │ Socket           │ LGA 1700        │  (bg trắng)                    │
+│  │ Cores            │ 14 (6P + 8E)    │  (bg xám nhạt)                 │
+│  │ Base Clock       │ 3.5 GHz         │  (bg trắng)                    │
+│  │ Boost Clock      │ 5.1 GHz         │  (bg xám nhạt)                 │
+│  │ TDP              │ 125W            │  (bg trắng)                    │
+│  │ Cache            │ 24MB L3         │  (bg xám nhạt)                 │
+│  └──────────────────┴─────────────────┘                                │
+│                                                                        │
+│  Tab Đánh giá:  (nền trắng)                                           │
+│  ┌─────────────────────────────────────────────┐                       │
+│  │ ★★★★★  Nguyễn Văn A  — 2026-03-20          │                       │
+│  │ Sản phẩm chất lượng, đóng gói cẩn thận.    │                       │
+│  └─────────────────────────────────────────────┘                       │
+│                                                                        │
+│  ── Sản phẩm liên quan ────────────────────────                        │
+│  (Grid 4-5 Product Cards, nền trắng)                                   │
+│  [FOOTER]                                                              │
+└────────────────────────────────────────────────────────────────────────┘
 ```
+
+**Bố cục 3 cột (desktop):**
+- **Cột trái (40%):** Image gallery, thumbnail tabs
+- **Cột giữa (35%):** Thông tin SP, giá, buttons CTA
+- **Cột phải (25%):** Sidebar: hotline, showroom, trợ giúp
+
+**Nền trang:** `bg-gray-100` (xám rất nhạt)  
+**Card sản phẩm:** `bg-white` với shadow nhẹ  
+**Layout giá:**
+- Giá gốc: text xám, gạch ngang, cỡ nhỏ
+- Giá sale: **text đỏ đậm (#E31837)**, bold, cỡ lớn (24px+)
+- Button "ĐẶT MUA NGAY": full width, **nền đỏ (#E31837)**, text trắng, cỡ to
+- Button "MUA TRẢ GÓP": viền xám, half width
+- Button "CHO VÀO GIỎ": **nền xanh (blue-600)**, text trắng, half width
 
 ### 4.4. Build PC (`/build-pc`)
 
+> **Tham chiếu:** `anphatpc.com.vn/buildpc` — Danh sách slot đánh số, nút xanh "+ Chọn", thanh đỏ chi phí dự tính, 6 nút hành động.
+
 ```
 ┌────────────────────────────────────────────────────────────┐
-│  [HEADER]                                                   │
-│  Breadcrumb: Trang chủ > Build PC                           │
+│  [TOP BAR + HEADER xanh đậm]                                │
+│  Breadcrumb: Trang chủ > Build PC     (bg: trắng)           │
 ├────────────────────────────────────────────────────────────┤
 │                                                            │
-│  🖥️  XÂY DỰNG CẤU HÌNH PC                                  │
-│  Chọn linh kiện — Kiểm tra tương thích — Đặt hàng          │
+│  "Vui lòng chọn linh kiện bạn cần để xây dựng             │
+│   cấu hình máy tính riêng cho bạn"                         │
 │                                                            │
-│  ┌──────────┬────────────────────────────┬──────────┐      │
-│  │ Slot     │ Sản phẩm đã chọn          │ Giá      │      │
-│  ├──────────┼────────────────────────────┼──────────┤      │
-│  │ CPU      │ Intel Core i5-13600K      │ 6.990.000│      │
-│  │          │                    [Chọn ▼]│ [✕ Xóa]  │      │
-│  ├──────────┼────────────────────────────┼──────────┤      │
-│  │ Mainboard│ (Chưa chọn)               │    —     │      │
-│  │          │                    [Chọn ▼]│          │      │
-│  ├──────────┼────────────────────────────┼──────────┤      │
-│  │ RAM      │ (Chưa chọn)               │    —     │      │
-│  ├──────────┼────────────────────────────┼──────────┤      │
-│  │ GPU      │ (Chưa chọn)               │    —     │      │
-│  ├──────────┼────────────────────────────┼──────────┤      │
-│  │ SSD      │ (Chưa chọn)               │    —     │      │
-│  ├──────────┼────────────────────────────┼──────────┤      │
-│  │ PSU      │ (Chưa chọn)               │    —     │      │
-│  ├──────────┼────────────────────────────┼──────────┤      │
-│  │ Case     │ (Chưa chọn)               │    —     │      │
-│  ├──────────┼────────────────────────────┼──────────┤      │
-│  │ Tản nhiệt│ (Chưa chọn)               │    —     │      │
-│  ├──────────┴────────────────────────────┼──────────┤      │
-│  │                        TỔNG GIÁ       │6.990.000đ│      │
-│  └───────────────────────────────────────┴──────────┘      │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Chi phí dự tính                          0 VNĐ     │  │
+│  │  (nền ĐỎ, text trắng, full width, sticky khi cuộn)  │  │
+│  └──────────────────────────────────────────────────────┘  │
 │                                                            │
-│  ┌────────────────────────────────────────────────────┐    │
-│  │  [🤖 Kiểm tra tương thích AI]  [📄 Xuất báo giá]  │    │
-│  │  [🛒 Thêm tất cả vào giỏ]     [⚡ Mua ngay]       │    │
-│  └────────────────────────────────────────────────────┘    │
+│  ┌──────────────────────┬──────────────────────────────┐   │
+│  │ 1. BỘ VI XỬ LÝ      │ [+ Chọn Bộ vi xử lý]  (xanh)│   │
+│  ├──────────────────────┼──────────────────────────────┤   │
+│  │ 2. BO MẠCH CHỦ      │ [+ Chọn Bo mạch chủ]  (xanh)│   │
+│  ├──────────────────────┼──────────────────────────────┤   │
+│  │ 3. RAM               │ [+ Chọn RAM]          (xanh)│   │
+│  ├──────────────────────┼──────────────────────────────┤   │
+│  │ 4. SSD 1             │ [+ Chọn SSD 1]        (xanh)│   │
+│  ├──────────────────────┼──────────────────────────────┤   │
+│  │ 5. SSD 2             │ [+ Chọn SSD 2]        (xanh)│   │
+│  ├──────────────────────┼──────────────────────────────┤   │
+│  │ 6. HDD               │ [+ Chọn HDD]          (xanh)│   │
+│  ├──────────────────────┼──────────────────────────────┤   │
+│  │ 7. VGA               │ [+ Chọn VGA]          (xanh)│   │
+│  ├──────────────────────┼──────────────────────────────┤   │
+│  │ 8. NGUỒN             │ [+ Chọn Nguồn]        (xanh)│   │
+│  ├──────────────────────┼──────────────────────────────┤   │
+│  │ 9. VỎ CASE           │ [+ Chọn Vỏ Case]      (xanh)│   │
+│  ├──────────────────────┼──────────────────────────────┤   │
+│  │ 10. TẢN NHIỆT KHÍ   │ [+ Chọn Tản nhiệt khí](xanh)│   │
+│  ├──────────────────────┼──────────────────────────────┤   │
+│  │ 11. TẢN NHIỆT NƯỚC  │ [+ Chọn Tản nhiệt nước](xanh)│  │
+│  ├──────────────────────┼──────────────────────────────┤   │
+│  │ 12. QUẠT TẢN NHIỆT  │ [+ Chọn Quạt]         (xanh)│   │
+│  ├──────────────────────┼──────────────────────────────┤   │
+│  │ ... (thêm slots)     │                              │   │
+│  └──────────────────────┴──────────────────────────────┘   │
 │                                                            │
-│  ── Kết quả AI (nếu đã check) ─────────────────────────── │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Chi phí dự tính                          0 VNĐ     │  │
+│  │  (nền ĐỎ, text trắng — lặp lại ở cuối bảng)        │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                            │
+│  ── ACTION BUTTONS (6 nút ngang hàng) ──────────────────── │
+│  ┌──────────┐┌──────────┐┌──────────┐┌──────────┐┌───────┐│
+│  │LƯU CẤU  ││TẢI ẢNH   ││CHIA SẺ   ││TẢI EXCEL ││XEM &  ││
+│  │HÌNH 💾   ││CẤU HÌNH 📸││CẤU HÌNH ➡││CẤU HÌNH 📊││IN 🖨️  ││
+│  │(xanh)    ││(xanh)    ││(xanh)    ││(xanh)    ││(xanh) ││
+│  └──────────┘└──────────┘└──────────┘└──────────┘└───────┘│
+│  ┌────────────────────────────────────────────────────────┐│
+│  │         THÊM VÀO GIỎ HÀNG 🛒                          ││
+│  │         (nút lớn, nền trắng, viền xám, full width)    ││
+│  └────────────────────────────────────────────────────────┘│
+│                                                            │
+│  ── Kết quả AI kiểm tra tương thích (nếu có) ──────────── │
 │  ┌────────────────────────────────────────────────────┐    │
 │  │ ✅ Cấu hình tương thích!                            │    │
 │  │ CPU LGA 1700 phù hợp với mainboard Z790.           │    │
@@ -450,31 +578,68 @@ graph TD
 └────────────────────────────────────────────────────────────┘
 ```
 
-**Chọn linh kiện:** Click "Chọn ▼" → mở `Dialog` hoặc `Sheet` với danh sách SP của slot đó, có filter (thương hiệu, giá) và tìm kiếm. Chọn xong → đóng dialog, cập nhật bảng.
+**Khi đã chọn linh kiện cho 1 slot:** Hiển thị tên SP, giá, nút [✕ Xóa] trong hàng đó.  
+**Click "+ Chọn"** → mở `Dialog` hoặc `Sheet` với danh sách SP của slot đó, có filter (thương hiệu, giá) và tìm kiếm. Chọn xong → đóng dialog, cập nhật bảng.  
+**Cost bar đỏ:** Sticky ở trên khi cuộn, luôn hiển thị tổng chi phí dự tính.
 
 ### 4.5. Giỏ hàng (`/cart`)
 
+> **Tham chiếu:** `anphatpc.com.vn/cart` — Danh sách SP + khuyến mãi + BH tùy chọn + mã giảm giá + tổng tiền đỏ + 2 nút hành động.
+
 ```
-┌────────────────────────────────────────────────────────────┐
-│  Giỏ hàng của bạn (3 sản phẩm)                             │
-├────────────────────────────────────────┬───────────────────┤
-│                                        │                   │
-│  ┌───┬────────────────┬───┬────────┐   │  TÓM TẮT ĐƠN     │
-│  │IMG│ Intel i5-13600K│[- 1 +]│6.990k│   │                   │
-│  │   │ SKU: CPU-I5... │      │      │   │  Tạm tính: 20.97│
-│  │   │        [🗑 Xóa]│      │      │   │  Giao hàng: TBD  │
-│  ├───┼────────────────┼───┼────────┤   │                   │
-│  │IMG│ ASUS Z790-A    │[- 1 +]│8.99k│   │  Mã giảm giá:    │
-│  │   │ SKU: MB-ASUS...│      │      │   │  [________][Áp dụng]│
-│  ├───┼────────────────┼───┼────────┤   │                   │
-│  │IMG│ G.Skill DDR5   │[- 2 +]│4.98k│   │  TỔNG: 20.970.000│
-│  │   │ SKU: RAM-GS... │      │      │   │                   │
-│  └───┴────────────────┴───┴────────┘   │  [Thanh toán →]   │
-│                                        │                   │
-├────────────────────────────────────────┴───────────────────┤
-│  [FOOTER]                                                   │
-└────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────┐
+│  [TOP BAR + HEADER xanh đậm]                                       │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                    │
+│  ── DANH SÁCH SẢN PHẨM ───────────────────────────────────────── │
+│  ┌─────┬──────────────────────────────────────┬──────┬─────────┐  │
+│  │[IMG]│ Màn hình Gaming 4K IPS 27 inch...    │      │         │  │
+│  │     │ Mã sản phẩm: MOSS0148                │      │7.189.000│  │
+│  │ [🗑]│ Bảo hành: 24 tháng                   │[- 1 +]│Tổng:    │  │
+│  │     │                                      │      │7.189.000│  │
+│  │     │                                      │      │(đỏ đậm) │  │
+│  │     │ ── Khuyến mãi ──────────────────     │      │         │  │
+│  │     │ • Ưu đãi giảm 200K mua kèm Win      │      │         │  │
+│  │     │ • Ưu đãi giảm 1tr mua máy in         │      │         │  │
+│  │     │                                      │      │         │  │
+│  │     │ ── Dịch vụ bảo hành (tùy chọn) ──   │      │         │  │
+│  │     │ ☐ Thêm 2 năm BH (+679.000đ)         │      │         │  │
+│  │     │ ☐ Thêm 1 năm BH (+539.000đ)         │      │         │  │
+│  └─────┴──────────────────────────────────────┴──────┴─────────┘  │
+│                                                                    │
+│  ── MÃ GIẢM GIÁ / QUÀ TẶNG ─── (bên trái)                       │
+│  ┌────────────────────┐ ┌──────────┐                              │
+│  │ Nhập mã giảm giá   │ │ Áp dụng  │ (btn xanh)                  │
+│  └────────────────────┘ └──────────┘                              │
+│                                                                    │
+│  ── TỔNG KẾT ──────────────── (bên phải, căn phải)                │
+│                                    Phí vận chuyển:        0 đ     │
+│                                    Phí thu hộ:            0 đ     │
+│                                    Tổng cộng:    20.579.000 đ     │
+│                                    Giảm giá:              0 đ     │
+│                                    Thanh toán:   20.579.000 đ     │
+│                                    (ĐỎ ĐẬM, BOLD)                │
+│                                    (Giá chưa bao gồm phí VC      │
+│                                     chuyển ngoại tỉnh)            │
+│                                                                    │
+│                         [📄 In báo giá]  [📊 Tải file excel]       │
+│                                                                    │
+│  ┌─────────────────────────────┐ ┌─────────────────────────────┐  │
+│  │        ĐẶT HÀNG            │ │       MUA TRẢ GÓP           │  │
+│  │   (btn xanh đậm, lớn)      │ │   (btn ĐỎ/CAM, lớn)        │  │
+│  └─────────────────────────────┘ └─────────────────────────────┘  │
+│                                                                    │
+│  [FOOTER]                                                          │
+└────────────────────────────────────────────────────────────────────┘
 ```
+
+**Đặc điểm Cart (theo An Phát PC):**
+- Mỗi SP hiển thị: ảnh, tên, mã SP, thời gian BH, khuyến mãi đi kèm, dịch vụ BH tùy chọn (checkbox)
+- Quantity control `[- 1 +]` bên phải
+- Giá từng SP và tổng từng SP bên phải (text đỏ đậm)
+- Phần tổng kết căn phải: phí VC, phí thu hộ, tổng, giảm, thanh toán
+- **Thanh toán** (text đỏ đậm lớn nhất)
+- 2 nút lớn: "ĐẶT HÀNG" (xanh đậm) + "MUA TRẢ GÓP" (đỏ/cam)
 
 ### 4.6. Checkout (`/checkout`)
 
@@ -669,20 +834,23 @@ Mọi data fetch (Server/Client) đều hiển thị **Skeleton** thay vì spinn
 
 ---
 
-## 9. Component States (Acceptance Criteria)
+## 9. Component States (Acceptance Criteria — Light Theme)
 
 Mọi component tương tác cần định nghĩa đủ các trạng thái sau:
 
 | Component | Default | Hover | Focus | Active | Disabled | Loading | Error |
 |:----------|:--------|:------|:------|:-------|:---------|:--------|:------|
-| `Button` (primary) | bg-primary, text-white | bg-primary-hover | ring-2 ring-primary | scale-95 | opacity-50, cursor-not-allowed | Spinner icon, disable click | — |
-| `Button` (destructive) | bg-destructive | bg-destructive/90 | ring-2 ring-destructive | scale-95 | opacity-50 | Spinner icon | — |
-| `Input` | border-border | — | ring-2 ring-primary, border-primary | — | bg-muted, text-muted | — | border-destructive, text-destructive dưới field |
-| `Select` | border-border | — | ring-2 ring-primary | dropdown open | opacity-50 | Skeleton | border-destructive |
-| `Card` (Product) | shadow-sm | shadow-md, translate-y-[-2px] | ring-2 | — | — | Skeleton card | — |
-| `Badge` (status) | variant color | — | — | — | — | — | — |
-| `Toast` | slide-in animation | — | — | — | — | — | variant=destructive |
-| `Table Row` | bg-background | bg-muted/50 | ring inset | bg-muted | — | Skeleton rows | — |
+| `Button` (CTA mua) | bg-[#E31837], text-white | bg-red-700 | ring-2 ring-red-500 | scale-95 | opacity-50, cursor-not-allowed | Spinner icon | — |
+| `Button` (cart) | bg-blue-600, text-white | bg-blue-700 | ring-2 ring-blue-500 | scale-95 | opacity-50 | Spinner icon | — |
+| `Button` (outline) | bg-white, border-gray-300, text-gray-700 | bg-gray-50 | ring-2 ring-blue-500 | bg-gray-100 | opacity-50 | Spinner icon | — |
+| `Input` | bg-white, border-gray-300, text-gray-900 | — | ring-2 ring-blue-500, border-blue-500 | — | bg-gray-100, text-gray-400 | — | border-red-500, text-red-500 dưới field |
+| `Card` (Product) | bg-white, shadow-sm, border-gray-200 | shadow-md, translate-y-[-2px] | ring-2 ring-blue-500 | — | — | Skeleton card (bg-gray-200) | — |
+| `Badge` (sale) | bg-red-500, text-white | — | — | — | — | — | — |
+| `Badge` (stock) | bg-green-500, text-white | — | — | — | — | — | — |
+| `Toast` | bg-white, border-gray-200, shadow-lg | — | — | — | — | — | border-red-500, text-red-600 |
+| `Table Row` | bg-white | bg-gray-50 | ring inset | bg-blue-50 | — | Skeleton rows (bg-gray-200) | — |
+| **Giá bán** | text-[#E31837], font-bold, text-xl | — | — | — | — | — | — |
+| **Giá gốc** | text-gray-400, line-through, text-sm | — | — | — | — | — | — |
 
 > **Acceptance Criteria:** Mỗi state cần đo được qua Storybook visual regression test hoặc Figma inspect.
 

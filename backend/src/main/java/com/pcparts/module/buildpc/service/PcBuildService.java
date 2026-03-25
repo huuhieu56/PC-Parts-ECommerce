@@ -105,18 +105,20 @@ public class PcBuildService {
 
     /**
      * Adds or replaces a component in a specific slot.
-     * If the slot already has a component, it gets replaced.
+     * BUG-18 fix: normalizes slotType to uppercase.
      */
     @Transactional
     public PcBuildDto addComponent(Long buildId, Long userId, String sessionId,
                                    String slotType, Long productId, int quantity) {
-        validateSlotType(slotType);
+        // BUG-18 fix: normalize to uppercase before validation and DB storage
+        String normalizedSlot = slotType.toUpperCase();
+        validateSlotType(normalizedSlot);
         PcBuild build = findBuildWithOwnership(buildId, userId, sessionId);
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
 
         // Remove existing component in this slot
-        componentRepository.findByBuildIdAndSlotType(buildId, slotType)
+        componentRepository.findByBuildIdAndSlotType(buildId, normalizedSlot)
                 .ifPresent(existing -> {
                     build.getComponents().remove(existing);
                     componentRepository.delete(existing);
@@ -125,7 +127,7 @@ public class PcBuildService {
         // Add new component
         PcBuildComponent component = PcBuildComponent.builder()
                 .build(build)
-                .slotType(slotType)
+                .slotType(normalizedSlot)
                 .product(product)
                 .quantity(quantity)
                 .unitPrice(product.getSellingPrice())
@@ -155,7 +157,7 @@ public class PcBuildService {
 
     /**
      * Adds all build components to the user's shopping cart.
-     * Requires authentication (userId).
+     * BUG-17 fix: validates CPU and Mainboard are present.
      */
     @Transactional
     public void addBuildToCart(Long buildId, Long userId) {
@@ -169,6 +171,13 @@ public class PcBuildService {
 
         if (components.isEmpty()) {
             throw new BusinessException("Cấu hình chưa có linh kiện", HttpStatus.BAD_REQUEST);
+        }
+
+        // BUG-17 fix: validate minimum required components (CPU + Mainboard)
+        boolean hasCpu = components.stream().anyMatch(c -> "CPU".equals(c.getSlotType()));
+        boolean hasMainboard = components.stream().anyMatch(c -> "MAINBOARD".equals(c.getSlotType()));
+        if (!hasCpu || !hasMainboard) {
+            throw new BusinessException("Vui lòng chọn ít nhất CPU và Mainboard", HttpStatus.BAD_REQUEST);
         }
 
         UserProfile user = userProfileRepository.findById(userId)

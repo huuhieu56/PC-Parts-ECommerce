@@ -47,18 +47,18 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      className={`${inter.variable} h-full antialiased dark`}
+      className={`${inter.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-slate-950 text-white font-[family-name:var(--font-inter)]">
+      <body className="min-h-full flex flex-col bg-gray-50 text-gray-900 font-[family-name:var(--font-inter)]">
         {children}
         <Toaster
           position="top-right"
           toastOptions={{
             style: {
-              background: "rgb(15, 23, 42)",
-              border: "1px solid rgb(51, 65, 85)",
-              color: "white",
+              background: "white",
+              border: "1px solid #e5e7eb",
+              color: "#111827",
             },
           }}
         />

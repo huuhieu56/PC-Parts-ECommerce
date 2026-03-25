@@ -18,19 +18,10 @@
 - CI/CD: GitHub Actions + Docker + Docker Compose + Nginx
 - Monitoring: Prometheus + Grafana + ELK Stack
 
-## Môi trường: Windows (QUAN TRỌNG)
-- Shell: PowerShell — KHÔNG dùng bash, sh, hoặc Linux commands
-- Đường dẫn dùng dấu `\` hoặc `/` (PowerShell chấp nhận cả 2)
-- KHÔNG dùng: `rm -rf`, `touch`, `mkdir -p`, `cp -r`, `ls`
-- Thay thế tương đương:
-  | Linux        | PowerShell                          |
-  |-------------|--------------------------------------|
-  | `rm -rf`    | `Remove-Item -Recurse -Force`        |
-  | `touch`     | `New-Item -ItemType File`            |
-  | `mkdir -p`  | `New-Item -ItemType Directory -Force`|
-  | `cp -r`     | `Copy-Item -Recurse`                 |
-  | `ls`        | `Get-ChildItem`                      |
-  | `cat`       | `Get-Content`                        |
+## Môi trường: Linux / Ubuntu
+- Shell: Bash
+- Đường dẫn dùng dấu `/`
+- Dùng các lệnh Linux tiêu chuẩn: `rm -rf`, `touch`, `mkdir -p`, `cp -r`, `ls`, `cat`, v.v.
 
 ## Chạy Server: BẮT BUỘC dùng Docker
 - KHÔNG chạy server trực tiếp bằng `java -jar`, `npm run dev`, `mvn spring-boot:run`

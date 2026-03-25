@@ -1,6 +1,6 @@
 package com.pcparts.module.shopping.service;
 
-import com.pcparts.common.exception.BusinessException;
+
 import com.pcparts.common.exception.ResourceNotFoundException;
 import com.pcparts.module.auth.entity.UserProfile;
 import com.pcparts.module.auth.repository.UserProfileRepository;
@@ -9,12 +9,12 @@ import com.pcparts.module.product.repository.ProductRepository;
 import com.pcparts.module.shopping.entity.Wishlist;
 import com.pcparts.module.shopping.repository.WishlistRepository;
 import lombok.*;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,10 +30,16 @@ public class WishlistService {
         return wishlistRepository.findByUserId(userId).stream().map(this::toDto).collect(Collectors.toList());
     }
 
+    /**
+     * Adds product to wishlist, or removes it if already exists (toggle behavior — BUG-16 fix).
+     */
     @Transactional
     public void addToWishlist(Long userId, Long productId) {
-        if (wishlistRepository.existsByUserIdAndProductId(userId, productId)) {
-            throw new BusinessException("Sản phẩm đã có trong danh sách yêu thích", HttpStatus.CONFLICT);
+        // BUG-16 fix: toggle instead of throw
+        Optional<Wishlist> existing = wishlistRepository.findByUserIdAndProductId(userId, productId);
+        if (existing.isPresent()) {
+            wishlistRepository.delete(existing.get());
+            return;
         }
         UserProfile user = userProfileRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "id", userId));

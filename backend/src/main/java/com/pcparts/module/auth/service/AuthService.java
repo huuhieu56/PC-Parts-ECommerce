@@ -156,8 +156,8 @@ public class AuthService {
         String newAccessToken = jwtTokenProvider.generateAccessToken(accountId);
         String newRefreshToken = jwtTokenProvider.generateRefreshToken(accountId);
 
-        // Delete old refresh token and save new one
-        tokenRepository.delete(storedToken);
+        // BUG-15 fix: Delete ALL old refresh tokens and save new one (prevent token leak)
+        tokenRepository.deleteByAccountIdAndTokenType(account.getId(), "REFRESH");
         saveRefreshToken(account, newRefreshToken);
 
         UserProfile userProfile = userProfileRepository.findByAccountId(account.getId())
