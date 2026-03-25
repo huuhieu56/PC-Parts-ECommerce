@@ -10,12 +10,15 @@ import java.util.List;
 
 /**
  * CORS configuration for cross-origin requests.
+ * Allows frontend origins and exposes auth headers.
  */
 @Configuration
 public class CorsConfig {
 
     /**
-     * Configures allowed origins, methods, and headers.
+     * Configures allowed origins, methods, headers, and exposed headers.
+     *
+     * @return configured CORS source
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -23,15 +26,17 @@ public class CorsConfig {
         config.setAllowedOrigins(List.of(
             "http://localhost:3000",
             "http://localhost",
-            "http://localhost:80"
+            "http://localhost:80",
+            "https://pcparts.vn"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("Authorization", "X-Session-Id"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", config);
+        source.registerCorsConfiguration("/**", config);
         return source;
     }
 }
