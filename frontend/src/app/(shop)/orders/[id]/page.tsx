@@ -1,131 +1,87 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight, Clock, CheckCircle, XCircle, Truck, Package } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import api from "@/lib/api";
-import type { ApiResponse, Order } from "@/types";
+import { use, useEffect, useState } from "react";
+import { ChevronRight, Package, Truck, CheckCircle } from "lucide-react";
 
-const statusSteps = ["PENDING", "CONFIRMED", "DELIVERING", "COMPLETED"];
-const statusLabels: Record<string, string> = {
-  PENDING: "Chờ xác nhận",
-  CONFIRMED: "Đã xác nhận",
-  DELIVERING: "Đang giao",
-  COMPLETED: "Hoàn thành",
-  CANCELLED: "Đã hủy",
-};
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
-export default function OrderDetailPage() {
-  const params = useParams();
-  const [order, setOrder] = useState<Order | null>(null);
+export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const [order, setOrder] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchOrder();
-  }, [params.id]);
-
-  const fetchOrder = async () => {
-    try {
-      const res = await api.get<ApiResponse<Order>>(`/orders/${params.id}`);
-      setOrder(res.data.data);
-    } catch {
-      setOrder(null);
-    } finally {
-      setLoading(false);
+    async function fetch_() {
+      try {
+        const token = localStorage.getItem("access_token");
+        if (!token) { setLoading(false); return; }
+        const res = await fetch(`${API_URL}/orders/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) setOrder(await res.json());
+      } catch { /* empty */ } finally { setLoading(false); }
     }
-  };
+    fetch_();
+  }, [id]);
 
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
+  if (loading) return <div className="bg-gray-50 min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>;
+  if (!order) return <div className="bg-gray-50 min-h-screen flex items-center justify-center"><div className="text-center"><Package className="w-16 h-16 text-gray-300 mx-auto mb-4" /><h1 className="text-lg font-semibold text-gray-900">Không tìm thấy đơn hàng</h1><Link href="/orders" className="text-blue-600 text-sm mt-2 inline-block">← Quay lại</Link></div></div>;
 
-  if (loading) {
-    return <div className="max-w-4xl mx-auto px-4 py-8"><div className="h-96 bg-slate-900/50 rounded-xl animate-pulse" /></div>;
-  }
-
-  if (!order) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <h2 className="text-xl font-bold mb-4">Không tìm thấy đơn hàng</h2>
-        <Link href="/orders"><span className="text-blue-400 hover:underline">← Quay lại</span></Link>
-      </div>
-    );
-  }
-
-  const currentStep = statusSteps.indexOf(order.status);
+  const status = (order.status as string) || "PENDING";
+  const steps = ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"];
+  const currentStep = steps.indexOf(status);
+  const items = (order.items as Array<{ name: string; quantity: number; price: number }>) || [];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-slate-400 mb-8">
-        <Link href="/orders" className="hover:text-white transition-colors">Đơn hàng</Link>
-        <ChevronRight className="w-3 h-3" />
-        <span className="text-white">#{order.id}</span>
-      </nav>
-
-      {/* Status Timeline */}
-      {order.status !== "CANCELLED" ? (
-        <Card className="bg-slate-900/50 border-slate-800/50 p-6 mb-8">
-          <div className="flex items-center justify-between relative">
-            <div className="absolute top-5 left-0 right-0 h-0.5 bg-slate-700 -z-0" />
-            <div
-              className="absolute top-5 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 -z-0 transition-all duration-500"
-              style={{ width: `${(currentStep / (statusSteps.length - 1)) * 100}%` }}
-            />
-            {statusSteps.map((step, i) => (
-              <div key={step} className="relative flex flex-col items-center z-10">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  i <= currentStep ? "bg-gradient-to-br from-blue-500 to-purple-600" : "bg-slate-700"
-                }`}>
-                  {i <= currentStep ? <CheckCircle className="w-5 h-5 text-white" /> : <Clock className="w-5 h-5 text-slate-400" />}
+    <div className="bg-gray-50 min-h-screen">
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <nav className="flex items-center gap-1 text-sm text-gray-500">
+            <Link href="/" className="hover:text-blue-600">Trang chủ</Link><ChevronRight className="w-3.5 h-3.5" />
+            <Link href="/orders" className="hover:text-blue-600">Đơn hàng</Link><ChevronRight className="w-3.5 h-3.5" />
+            <span className="text-gray-900 font-medium">#{(order.orderNumber as string) || id}</span>
+          </nav>
+        </div>
+      </div>
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        {/* Progress */}
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="font-semibold text-gray-900 mb-4">Trạng thái đơn hàng</h2>
+          <div className="flex items-center justify-between">
+            {steps.map((s, i) => (
+              <div key={s} className="flex-1 flex flex-col items-center relative">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${i <= currentStep ? "bg-green-500 text-white" : "bg-gray-200 text-gray-400"}`}>
+                  {i <= currentStep ? <CheckCircle className="w-5 h-5" /> : i + 1}
                 </div>
-                <span className={`text-xs mt-2 whitespace-nowrap ${
-                  i <= currentStep ? "text-white font-medium" : "text-slate-500"
-                }`}>
-                  {statusLabels[step]}
+                <span className={`text-xs mt-1 ${i <= currentStep ? "text-green-600 font-medium" : "text-gray-400"}`}>
+                  {["Chờ xác nhận", "Xác nhận", "Xử lý", "Giao hàng", "Hoàn thành"][i]}
                 </span>
+                {i < steps.length - 1 && <div className={`absolute top-4 left-1/2 w-full h-0.5 ${i < currentStep ? "bg-green-500" : "bg-gray-200"}`} />}
               </div>
             ))}
           </div>
-        </Card>
-      ) : (
-        <Card className="bg-red-500/10 border-red-500/30 p-6 mb-8 text-center">
-          <XCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
-          <p className="text-red-400 font-semibold">Đơn hàng đã bị hủy</p>
-        </Card>
-      )}
-
-      {/* Items */}
-      <Card className="bg-slate-900/50 border-slate-800/50 p-6 mb-6">
-        <h3 className="font-semibold text-lg mb-4">Sản phẩm</h3>
-        <div className="space-y-4">
-          {order.items.map((item) => (
-            <div key={item.id} className="flex justify-between items-center">
-              <div>
-                <p className="text-sm font-medium text-white">{item.productName}</p>
-                <p className="text-xs text-slate-400">x{item.quantity} × {formatPrice(item.unitPrice)}</p>
-              </div>
-              <span className="font-medium text-white">{formatPrice(item.lineTotal)}</span>
+        </div>
+        {/* Items */}
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2"><Package className="w-5 h-5 text-blue-600" /> Sản phẩm</h2>
+          {items.length > 0 ? items.map((item, i) => (
+            <div key={i} className="flex justify-between py-2 border-t border-gray-100 text-sm">
+              <span className="text-gray-700">{item.name} x{item.quantity}</span>
+              <span className="text-gray-900 font-medium">{formatPrice(item.price * item.quantity)}</span>
             </div>
-          ))}
+          )) : <p className="text-sm text-gray-500">Không có thông tin sản phẩm.</p>}
+          <div className="border-t border-gray-200 mt-3 pt-3 flex justify-between font-bold"><span className="text-gray-900">Tổng cộng</span><span className="text-[#E31837]">{formatPrice((order.totalAmount as number) || 0)}</span></div>
         </div>
-        <Separator className="my-4 bg-slate-700" />
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between"><span className="text-slate-400">Tạm tính</span><span>{formatPrice(order.subtotal)}</span></div>
-          {order.discountAmount > 0 && (
-            <div className="flex justify-between"><span className="text-slate-400">Giảm giá</span><span className="text-green-400">-{formatPrice(order.discountAmount)}</span></div>
-          )}
-          <div className="flex justify-between"><span className="text-slate-400">Vận chuyển</span><span className="text-green-400">Miễn phí</span></div>
+        {/* Info */}
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2"><Truck className="w-5 h-5 text-blue-600" /> Thông tin giao hàng</h2>
+          <div className="text-sm space-y-1 text-gray-600">
+            <p>Người nhận: <span className="text-gray-900 font-medium">{(order.recipientName as string) || "—"}</span></p>
+            <p>Điện thoại: <span className="text-gray-900 font-medium">{(order.recipientPhone as string) || "—"}</span></p>
+            <p>Địa chỉ: <span className="text-gray-900 font-medium">{(order.shippingAddress as string) || "—"}</span></p>
+          </div>
         </div>
-        <Separator className="my-4 bg-slate-700" />
-        <div className="flex justify-between text-lg font-bold">
-          <span>Tổng cộng</span>
-          <span className="text-blue-400">{formatPrice(order.totalAmount)}</span>
-        </div>
-      </Card>
+      </div>
     </div>
   );
 }

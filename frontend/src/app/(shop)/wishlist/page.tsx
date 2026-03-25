@@ -1,113 +1,67 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Heart, Trash2, ShoppingCart } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import api from "@/lib/api";
-import { useAuthStore } from "@/stores/auth-store";
-import type { ApiResponse, WishlistItem } from "@/types";
-import { toast } from "sonner";
+import { ChevronRight, Heart, ShoppingCart, Trash2, Cpu } from "lucide-react";
+import { useState, useEffect } from "react";
+
+interface WishlistItem { id: number; productId: number; productName: string; productSlug: string; productPrice: number; productImage: string | null; }
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 export default function WishlistPage() {
-  const { isAuthenticated } = useAuthStore();
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isAuthenticated) fetchWishlist();
-    else setLoading(false);
-  }, [isAuthenticated]);
-
-  const fetchWishlist = async () => {
-    try {
-      const res = await api.get<ApiResponse<WishlistItem[]>>("/wishlist");
-      setItems(res.data.data);
-    } catch {
-      setItems([]);
-    } finally {
-      setLoading(false);
+    async function fetchWishlist() {
+      try {
+        const token = localStorage.getItem("access_token");
+        if (!token) { setLoading(false); return; }
+        const res = await fetch(`${API_URL}/wishlist`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) setItems(await res.json());
+      } catch { /* empty */ } finally { setLoading(false); }
     }
-  };
-
-  const removeItem = async (productId: number) => {
-    try {
-      await api.delete(`/wishlist/${productId}`);
-      setItems(items.filter((i) => i.productId !== productId));
-      toast.success("Đã xóa khỏi danh sách yêu thích");
-    } catch {
-      toast.error("Không thể xóa");
-    }
-  };
-
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
-
-  if (!isAuthenticated) {
-    return (
-      <div className="max-w-5xl mx-auto px-4 py-20 text-center">
-        <Heart className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-        <h2 className="text-xl font-semibold mb-4">Đăng nhập để xem danh sách yêu thích</h2>
-        <Link href="/login"><Button className="bg-gradient-to-r from-blue-600 to-purple-600">Đăng nhập</Button></Link>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="max-w-5xl mx-auto px-4 py-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-64 bg-slate-900/50 rounded-xl animate-pulse" />
-        ))}
-      </div>
-    );
-  }
+    fetchWishlist();
+  }, []);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 flex items-center gap-3">
-        <Heart className="w-8 h-8 text-red-400" />Yêu thích
-      </h1>
-
-      {items.length === 0 ? (
-        <div className="text-center py-20">
-          <Heart className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Danh sách yêu thích trống</h2>
-          <Link href="/products"><Button className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600">Khám phá sản phẩm</Button></Link>
+    <div className="bg-gray-50 min-h-screen">
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <nav className="flex items-center gap-1 text-sm text-gray-500">
+            <Link href="/" className="hover:text-blue-600">Trang chủ</Link><ChevronRight className="w-3.5 h-3.5" />
+            <span className="text-gray-900 font-medium">Sản phẩm yêu thích</span>
+          </nav>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item) => (
-            <Card key={item.productId} className="bg-slate-900/50 border-slate-800/50 overflow-hidden group">
-              <div className="aspect-square bg-slate-800/50 flex items-center justify-center">
-                {item.productImage ? (
-                  <img src={item.productImage} alt={item.productName} className="object-contain w-full h-full p-4" />
-                ) : (
-                  <div className="w-16 h-16 bg-slate-700/50 rounded-lg" />
-                )}
-              </div>
-              <div className="p-4">
-                <h3 className="text-sm font-medium text-white mb-2 line-clamp-2">{item.productName}</h3>
-                <p className="text-lg font-bold text-blue-400 mb-3">{formatPrice(item.sellingPrice)}</p>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1 border-slate-700 text-slate-300">
-                    <ShoppingCart className="w-3 h-3 mr-1" />Thêm vào giỏ
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeItem(item.productId)}
-                    className="h-8 w-8 text-slate-500 hover:text-red-400"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+      </div>
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <h1 className="text-xl font-bold text-gray-900 mb-6">Sản phẩm yêu thích</h1>
+        {loading ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="bg-white rounded-lg h-48 animate-pulse" />)}</div>
+        ) : items.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+            <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Chưa có sản phẩm yêu thích</h2>
+            <Link href="/products" className="text-blue-600 hover:text-blue-700 text-sm font-medium">Khám phá sản phẩm →</Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {items.map(item => (
+              <div key={item.id} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                <div className="aspect-square bg-gray-50 flex items-center justify-center"><Cpu className="w-10 h-10 text-gray-400" /></div>
+                <div className="p-3">
+                  <Link href={`/products/${item.productSlug}`} className="text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-2">{item.productName}</Link>
+                  <p className="text-[#E31837] font-bold mt-1">{formatPrice(item.productPrice)}</p>
+                  <div className="flex gap-2 mt-2">
+                    <button className="flex-1 bg-blue-600 text-white text-xs py-1.5 rounded font-medium hover:bg-blue-700 flex items-center justify-center gap-1"><ShoppingCart className="w-3 h-3" /> Mua</button>
+                    <button className="px-2 py-1.5 border border-gray-200 rounded text-red-500 hover:bg-red-50"><Trash2 className="w-3 h-3" /></button>
+                  </div>
                 </div>
               </div>
-            </Card>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

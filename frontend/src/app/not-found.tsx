@@ -1,34 +1,21 @@
 import Link from "next/link";
 import { Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
-/**
- * Global 404 Not Found page with dark theme design.
- */
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4">
-      <div className="max-w-md text-center space-y-6">
-        <div className="mx-auto w-16 h-16 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-center">
-          <Search className="w-8 h-8 text-blue-400" />
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="text-center max-w-md">
+        <div className="text-8xl font-bold text-gray-200 mb-4">404</div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Không tìm thấy trang</h1>
+        <p className="text-gray-500 text-sm mb-6">Trang bạn đang tìm không tồn tại hoặc đã bị xóa.</p>
+        <div className="flex gap-3 justify-center">
+          <Link href="/" className="bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+            Về trang chủ
+          </Link>
+          <Link href="/products" className="border border-gray-300 text-gray-700 px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-1">
+            <Search className="w-4 h-4" /> Tìm sản phẩm
+          </Link>
         </div>
-        <div>
-          <h1 className="text-6xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-4">
-            404
-          </h1>
-          <h2 className="text-2xl font-bold text-white mb-2">
-            Không tìm thấy trang
-          </h2>
-          <p className="text-slate-400">
-            Trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.
-          </p>
-        </div>
-        <Link
-          href="/"
-          className="inline-flex items-center justify-center h-9 px-4 rounded-lg text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white transition-all"
-        >
-          Về trang chủ
-        </Link>
       </div>
     </div>
   );

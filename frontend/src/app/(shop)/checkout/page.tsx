@@ -1,239 +1,94 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { MapPin, CreditCard, Truck, Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import api from "@/lib/api";
-import { useAuthStore } from "@/stores/auth-store";
-import type { ApiResponse, Address, CartDto, Order, CreateOrderRequest } from "@/types";
-import { toast } from "sonner";
+import Link from "next/link";
+import { ChevronRight, ShoppingCart, CreditCard, Truck, MapPin } from "lucide-react";
+import { useState } from "react";
 
-type PaymentMethod = "COD" | "VNPAY" | "MOMO";
+function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 export default function CheckoutPage() {
-  const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
-  const [addresses, setAddresses] = useState<Address[]>([]);
-  const [selectedAddress, setSelectedAddress] = useState<number | null>(null);
-  const [cart, setCart] = useState<CartDto | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("COD");
-  const [note, setNote] = useState("");
-  const [couponCode, setCouponCode] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/login");
-      return;
-    }
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      const [addressRes, cartRes] = await Promise.all([
-        api.get<ApiResponse<Address[]>>("/addresses"),
-        api.get<ApiResponse<CartDto>>("/cart"),
-      ]);
-      setAddresses(addressRes.data.data);
-      setCart(cartRes.data.data);
-      const defaultAddr = addressRes.data.data.find((a) => a.isDefault);
-      if (defaultAddr) setSelectedAddress(defaultAddr.id);
-    } catch {
-      toast.error("Không thể tải dữ liệu");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedAddress) {
-      toast.error("Vui lòng chọn địa chỉ giao hàng");
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const request: CreateOrderRequest = {
-        addressId: selectedAddress,
-        note: note || undefined,
-        couponCode: couponCode || undefined,
-        paymentMethod,
-      };
-      const res = await api.post<ApiResponse<Order>>("/orders", request);
-      toast.success("Đặt hàng thành công!");
-      router.push(`/orders/${res.data.data.id}`);
-    } catch {
-      toast.error("Không thể đặt hàng. Vui lòng thử lại.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
-
-  const paymentMethods: { key: PaymentMethod; label: string; desc: string }[] = [
-    { key: "COD", label: "Thanh toán khi nhận hàng", desc: "Trả tiền mặt khi nhận hàng" },
-    { key: "VNPAY", label: "VNPay", desc: "Thanh toán qua cổng VNPay" },
-    { key: "MOMO", label: "MoMo", desc: "Thanh toán qua ví MoMo" },
-  ];
-
-  if (loading) {
-    return (
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="h-96 bg-slate-900/50 rounded-xl animate-pulse" />
-      </div>
-    );
-  }
+  const [paymentMethod, setPaymentMethod] = useState("COD");
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Thanh toán</h1>
+    <div className="bg-gray-50 min-h-screen">
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <nav className="flex items-center gap-1 text-sm text-gray-500">
+            <Link href="/" className="hover:text-blue-600">Trang chủ</Link>
+            <ChevronRight className="w-3.5 h-3.5" />
+            <Link href="/cart" className="hover:text-blue-600">Giỏ hàng</Link>
+            <ChevronRight className="w-3.5 h-3.5" />
+            <span className="text-gray-900 font-medium">Thanh toán</span>
+          </nav>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Address Selection */}
-          <Card className="bg-slate-900/50 border-slate-800/50 p-6">
-            <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-blue-400" />Địa chỉ giao hàng
-            </h2>
-            {addresses.length === 0 ? (
-              <p className="text-slate-400">Chưa có địa chỉ. Vui lòng thêm địa chỉ trong phần tài khoản.</p>
-            ) : (
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <h1 className="text-xl font-bold text-gray-900 mb-6">Thanh toán đơn hàng</h1>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left: Forms */}
+          <div className="lg:col-span-2 space-y-5">
+            {/* Shipping Address */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h2 className="font-semibold text-gray-900 flex items-center gap-2 mb-4"><MapPin className="w-5 h-5 text-blue-600" /> 1. Địa chỉ giao hàng</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label className="block text-sm text-gray-600 mb-1">Họ tên *</label><input className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Nguyễn Văn A" /></div>
+                <div><label className="block text-sm text-gray-600 mb-1">Số điện thoại *</label><input className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="0912 345 678" /></div>
+                <div className="md:col-span-2"><label className="block text-sm text-gray-600 mb-1">Địa chỉ *</label><input className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="123 Đường ABC, Phường XYZ" /></div>
+                <div><label className="block text-sm text-gray-600 mb-1">Tỉnh/Thành phố</label><select className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"><option>TP. Hồ Chí Minh</option><option>Hà Nội</option><option>Đà Nẵng</option></select></div>
+                <div><label className="block text-sm text-gray-600 mb-1">Quận/Huyện</label><select className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"><option>Quận 1</option><option>Quận 7</option></select></div>
+              </div>
+              <div className="mt-4"><label className="block text-sm text-gray-600 mb-1">Ghi chú</label><textarea className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" rows={3} placeholder="Ghi chú cho đơn hàng (tùy chọn)" /></div>
+            </div>
+
+            {/* Payment Method */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h2 className="font-semibold text-gray-900 flex items-center gap-2 mb-4"><CreditCard className="w-5 h-5 text-blue-600" /> 2. Phương thức thanh toán</h2>
               <div className="space-y-3">
-                {addresses.map((addr) => (
-                  <button
-                    key={addr.id}
-                    onClick={() => setSelectedAddress(addr.id)}
-                    className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                      selectedAddress === addr.id
-                        ? "border-blue-500 bg-blue-500/10"
-                        : "border-slate-700 hover:border-slate-600"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-medium text-white">
-                          {addr.receiverName} — {addr.receiverPhone}
-                        </p>
-                        <p className="text-sm text-slate-400 mt-1">
-                          {addr.street}, {addr.ward}, {addr.district}, {addr.province}
-                        </p>
-                      </div>
-                      {selectedAddress === addr.id && (
-                        <Check className="w-5 h-5 text-blue-400 flex-shrink-0" />
-                      )}
-                    </div>
-                  </button>
+                {[
+                  { value: "COD", label: "Thanh toán khi nhận hàng (COD)", icon: Truck },
+                  { value: "VNPAY", label: "VNPay", icon: CreditCard },
+                  { value: "MOMO", label: "MoMo", icon: CreditCard },
+                  { value: "BANK", label: "Chuyển khoản ngân hàng", icon: CreditCard },
+                ].map(m => (
+                  <label key={m.value} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${paymentMethod === m.value ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}>
+                    <input type="radio" name="payment" value={m.value} checked={paymentMethod === m.value} onChange={() => setPaymentMethod(m.value)} className="text-blue-600 focus:ring-blue-500" />
+                    <m.icon className="w-5 h-5 text-gray-500" />
+                    <span className="text-sm text-gray-700 font-medium">{m.label}</span>
+                  </label>
                 ))}
               </div>
-            )}
-          </Card>
+            </div>
+          </div>
 
-          {/* Payment Method */}
-          <Card className="bg-slate-900/50 border-slate-800/50 p-6">
-            <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-blue-400" />Phương thức thanh toán
-            </h2>
-            <div className="space-y-3">
-              {paymentMethods.map((pm) => (
-                <button
-                  key={pm.key}
-                  onClick={() => setPaymentMethod(pm.key)}
-                  className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                    paymentMethod === pm.key
-                      ? "border-blue-500 bg-blue-500/10"
-                      : "border-slate-700 hover:border-slate-600"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-white">{pm.label}</p>
-                      <p className="text-sm text-slate-400">{pm.desc}</p>
-                    </div>
-                    {paymentMethod === pm.key && <Check className="w-5 h-5 text-blue-400" />}
+          {/* Right: Order Summary */}
+          <div>
+            <div className="bg-white rounded-xl shadow-sm p-6 sticky top-32">
+              <h2 className="font-semibold text-gray-900 flex items-center gap-2 mb-4"><ShoppingCart className="w-5 h-5 text-blue-600" /> Tóm tắt đơn hàng</h2>
+              <div className="space-y-3 text-sm">
+                {[
+                  { name: "Intel Core i5-13600K", qty: 1, price: 6990000 },
+                  { name: "ASUS ROG STRIX Z790-A", qty: 1, price: 8990000 },
+                  { name: "G.Skill DDR5 32GB", qty: 2, price: 3490000 },
+                ].map((item, i) => (
+                  <div key={i} className="flex justify-between">
+                    <span className="text-gray-600 truncate mr-2">{item.name} x{item.qty}</span>
+                    <span className="text-gray-900 font-medium shrink-0">{formatPrice(item.price * item.qty)}</span>
                   </div>
-                </button>
-              ))}
-            </div>
-          </Card>
-
-          {/* Note */}
-          <Card className="bg-slate-900/50 border-slate-800/50 p-6">
-            <Label className="text-sm text-slate-300 mb-2 block">Ghi chú đơn hàng</Label>
-            <Input
-              placeholder="Ghi chú cho đơn hàng (tùy chọn)..."
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              className="bg-slate-800/50 border-slate-700 text-white"
-            />
-          </Card>
-        </div>
-
-        {/* Order Summary */}
-        <div>
-          <Card className="bg-slate-900/50 border-slate-800/50 p-6 sticky top-24">
-            <h3 className="font-semibold text-lg mb-4">Đơn hàng</h3>
-            <div className="space-y-3 text-sm max-h-60 overflow-y-auto">
-              {cart?.items.map((item) => (
-                <div key={item.id} className="flex justify-between">
-                  <span className="text-slate-400 truncate flex-1 mr-2">
-                    {item.productName} x{item.quantity}
-                  </span>
-                  <span className="text-white whitespace-nowrap">
-                    {formatPrice(item.sellingPrice * item.quantity)}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <Separator className="my-4 bg-slate-700" />
-
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Tạm tính</span>
-                <span className="text-white">{formatPrice(cart?.totalPrice ?? 0)}</span>
+                ))}
+                <hr className="border-gray-200" />
+                <div className="flex justify-between text-gray-500"><span>Tạm tính:</span><span>{formatPrice(22960000)}</span></div>
+                <div className="flex justify-between text-gray-500"><span>Phí vận chuyển:</span><span>{formatPrice(30000)}</span></div>
+                <div className="flex justify-between text-gray-500"><span>Giảm giá:</span><span className="text-green-600">-{formatPrice(500000)}</span></div>
+                <hr className="border-gray-200" />
+                <div className="flex justify-between font-bold text-lg"><span className="text-gray-900">Tổng cộng:</span><span className="text-[#E31837]">{formatPrice(22490000)}</span></div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Vận chuyển</span>
-                <span className="text-green-400">Miễn phí</span>
-              </div>
+              <button className="w-full mt-6 bg-[#E31837] hover:bg-red-700 text-white py-3.5 rounded-lg font-bold text-base transition-colors">
+                ĐẶT HÀNG
+              </button>
+              <p className="text-xs text-gray-400 mt-3 text-center">Bằng việc đặt hàng, bạn đồng ý với điều khoản sử dụng.</p>
             </div>
-
-            <Separator className="my-4 bg-slate-700" />
-
-            {/* Coupon */}
-            <div className="flex gap-2 mb-4">
-              <Input
-                placeholder="Mã giảm giá"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)}
-                className="bg-slate-800/50 border-slate-700 text-white text-sm"
-              />
-              <Button variant="outline" size="sm" className="border-slate-700 text-slate-300">
-                Áp dụng
-              </Button>
-            </div>
-
-            <div className="flex justify-between text-lg font-bold mb-6">
-              <span>Tổng cộng</span>
-              <span className="text-blue-400">{formatPrice(cart?.totalPrice ?? 0)}</span>
-            </div>
-
-            <Button
-              onClick={handleSubmit}
-              disabled={submitting || !selectedAddress}
-              className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 font-semibold shadow-lg shadow-blue-500/20"
-            >
-              {submitting ? "Đang xử lý..." : "Đặt hàng"}
-            </Button>
-          </Card>
+          </div>
         </div>
       </div>
     </div>

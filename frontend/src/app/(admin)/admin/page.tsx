@@ -1,83 +1,62 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BarChart3, Package, ShoppingCart, Users, TrendingUp, DollarSign } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import api from "@/lib/api";
-import type { ApiResponse } from "@/types";
+import { DollarSign, Package, ShoppingCart, Users, TrendingUp, BarChart3 } from "lucide-react";
 
-interface DashboardStats {
-  totalRevenue: number;
-  totalOrders: number;
-  totalProducts: number;
-  totalCustomers: number;
-}
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
-export default function AdminDashboard() {
-  const [stats, setStats] = useState<DashboardStats>({ totalRevenue: 0, totalOrders: 0, totalProducts: 0, totalCustomers: 0 });
-  const [loading, setLoading] = useState(true);
+export default function AdminDashboardPage() {
+  const [stats, setStats] = useState({ totalRevenue: 0, totalOrders: 0, totalProducts: 0, totalUsers: 0, recentOrders: [] as Array<{ id: number; orderNumber: string; totalAmount: number; status: string }> });
 
   useEffect(() => {
-    fetchStats();
+    async function fetch_() {
+      try {
+        const token = localStorage.getItem("access_token");
+        if (!token) return;
+        const res = await fetch(`${API_URL}/admin/dashboard`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) setStats(await res.json());
+      } catch { /* empty */ }
+    }
+    fetch_();
   }, []);
 
-  const fetchStats = async () => {
-    try {
-      const res = await api.get<ApiResponse<DashboardStats>>("/admin/dashboard/stats");
-      setStats(res.data.data);
-    } catch {
-      // Keep default zeros
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
-
-  const statCards = [
-    { label: "Doanh thu", value: formatPrice(stats.totalRevenue), icon: DollarSign, color: "from-green-500 to-emerald-500" },
-    { label: "Đơn hàng", value: String(stats.totalOrders), icon: ShoppingCart, color: "from-blue-500 to-cyan-500" },
-    { label: "Sản phẩm", value: String(stats.totalProducts), icon: Package, color: "from-purple-500 to-pink-500" },
-    { label: "Khách hàng", value: String(stats.totalCustomers), icon: Users, color: "from-orange-500 to-red-500" },
+  const cards = [
+    { label: "Doanh thu", value: formatPrice(stats.totalRevenue), icon: DollarSign, color: "text-green-600 bg-green-50" },
+    { label: "Đơn hàng", value: stats.totalOrders.toString(), icon: ShoppingCart, color: "text-blue-600 bg-blue-50" },
+    { label: "Sản phẩm", value: stats.totalProducts.toString(), icon: Package, color: "text-purple-600 bg-purple-50" },
+    { label: "Người dùng", value: stats.totalUsers.toString(), icon: Users, color: "text-amber-600 bg-amber-50" },
   ];
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-8">Dashboard</h1>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statCards.map((stat) => (
-          <Card key={stat.label} className="bg-slate-900/50 border-slate-800/50 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
-                <stat.icon className="w-5 h-5 text-white" />
-              </div>
-              <TrendingUp className="w-4 h-4 text-green-400" />
+      <h1 className="text-xl font-bold text-gray-900 mb-6">Dashboard</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {cards.map(c => (
+          <div key={c.label} className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-gray-500">{c.label}</span>
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${c.color}`}><c.icon className="w-5 h-5" /></div>
             </div>
-            {loading ? (
-              <div className="h-8 bg-slate-800/50 rounded animate-pulse mb-1" />
-            ) : (
-              <p className="text-2xl font-bold text-white">{stat.value}</p>
-            )}
-            <p className="text-sm text-slate-400">{stat.label}</p>
-          </Card>
+            <p className="text-2xl font-bold text-gray-900">{c.value}</p>
+            <p className="text-xs text-green-600 mt-1 flex items-center gap-0.5"><TrendingUp className="w-3 h-3" /> +12% so với tháng trước</p>
+          </div>
         ))}
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-slate-900/50 border-slate-800/50 p-6">
-          <h3 className="font-semibold mb-4">Doanh thu theo tháng</h3>
-          <div className="h-48 flex items-center justify-center text-slate-500">
-            <BarChart3 className="w-12 h-12" />
-          </div>
-        </Card>
-        <Card className="bg-slate-900/50 border-slate-800/50 p-6">
-          <h3 className="font-semibold mb-4">Đơn hàng gần đây</h3>
-          <div className="h-48 flex items-center justify-center text-slate-500">
-            <p className="text-sm">Tính năng đang phát triển</p>
-          </div>
-        </Card>
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <h2 className="font-semibold text-gray-900 flex items-center gap-2 mb-4"><BarChart3 className="w-5 h-5 text-blue-600" /> Đơn hàng gần đây</h2>
+        {stats.recentOrders.length === 0 ? (
+          <p className="text-sm text-gray-500">Chưa có đơn hàng.</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead><tr className="text-left text-gray-500 border-b border-gray-200"><th className="pb-2 font-medium">Mã đơn</th><th className="pb-2 font-medium">Tổng tiền</th><th className="pb-2 font-medium">Trạng thái</th></tr></thead>
+            <tbody>
+              {stats.recentOrders.map(o => (
+                <tr key={o.id} className="border-b border-gray-50"><td className="py-2 text-gray-900 font-medium">#{o.orderNumber}</td><td className="py-2 text-[#E31837] font-medium">{formatPrice(o.totalAmount)}</td><td className="py-2"><span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{o.status}</span></td></tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

@@ -1,223 +1,136 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Trash2, Minus, Plus, ShoppingBag, ArrowRight, Tag } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import api from "@/lib/api";
-import { useAuthStore } from "@/stores/auth-store";
-import type { ApiResponse, CartDto } from "@/types";
-import { toast } from "sonner";
+import { ShoppingCart, Trash2, Minus, Plus, ChevronRight, Tag, FileText, FileSpreadsheet } from "lucide-react";
+import { useState } from "react";
 
-export default function CartPage() {
-  const { isAuthenticated } = useAuthStore();
-  const [cart, setCart] = useState<CartDto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [couponCode, setCouponCode] = useState("");
-
-  useEffect(() => {
-    fetchCart();
-  }, []);
-
-  const getHeaders = () => {
-    if (!isAuthenticated) {
-      const sid = getSessionId();
-      return { "X-Session-Id": sid };
-    }
-    return {};
-  };
-
-  const fetchCart = async () => {
-    try {
-      const res = await api.get<ApiResponse<CartDto>>("/cart", { headers: getHeaders() });
-      setCart(res.data.data);
-    } catch {
-      setCart({ items: [], totalPrice: 0, totalItems: 0 });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateQuantity = async (productId: number, quantity: number) => {
-    try {
-      const res = await api.put<ApiResponse<CartDto>>(
-        `/cart/items/${productId}?quantity=${quantity}`,
-        null,
-        { headers: getHeaders() }
-      );
-      setCart(res.data.data);
-    } catch {
-      toast.error("Không thể cập nhật số lượng");
-    }
-  };
-
-  const removeItem = async (productId: number) => {
-    try {
-      const res = await api.delete<ApiResponse<CartDto>>(
-        `/cart/items/${productId}`,
-        { headers: getHeaders() }
-      );
-      setCart(res.data.data);
-      toast.success("Đã xóa sản phẩm");
-    } catch {
-      toast.error("Không thể xóa sản phẩm");
-    }
-  };
-
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
-
-  if (loading) {
-    return (
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-24 bg-slate-900/50 rounded-xl animate-pulse" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  const items = cart?.items ?? [];
-
-  return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 flex items-center gap-3">
-        <ShoppingBag className="w-8 h-8 text-blue-400" />
-        Giỏ hàng
-        {items.length > 0 && (
-          <span className="text-lg font-normal text-slate-400">({items.length} sản phẩm)</span>
-        )}
-      </h1>
-
-      {items.length === 0 ? (
-        <div className="text-center py-20">
-          <ShoppingBag className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Giỏ hàng trống</h2>
-          <p className="text-slate-400 mb-6">Hãy thêm sản phẩm vào giỏ hàng</p>
-          <Link href="/products">
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500">
-              Khám phá sản phẩm
-            </Button>
-          </Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-4">
-            {items.map((item) => (
-              <Card key={item.id} className="bg-slate-900/50 border-slate-800/50 p-4 flex gap-4">
-                {/* Image */}
-                <div className="w-24 h-24 bg-slate-800/50 rounded-lg flex-shrink-0 flex items-center justify-center">
-                  {item.productImage ? (
-                    <img src={item.productImage} alt={item.productName} className="object-contain w-full h-full p-2" />
-                  ) : (
-                    <div className="w-12 h-12 bg-slate-700/50 rounded" />
-                  )}
-                </div>
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-medium text-white truncate">{item.productName}</h3>
-                  <p className="text-lg font-bold text-blue-400 mt-1">{formatPrice(item.sellingPrice)}</p>
-                  <div className="flex items-center gap-4 mt-2">
-                    <div className="flex items-center border border-slate-700 rounded-lg">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-white"
-                        onClick={() => updateQuantity(item.productId, Math.max(1, item.quantity - 1))}
-                      >
-                        <Minus className="w-3 h-3" />
-                      </Button>
-                      <span className="w-8 text-center text-sm">{item.quantity}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-white"
-                        onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                      >
-                        <Plus className="w-3 h-3" />
-                      </Button>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeItem(item.productId)}
-                      className="h-8 w-8 text-slate-500 hover:text-red-400"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-white">
-                    {formatPrice(item.sellingPrice * item.quantity)}
-                  </p>
-                </div>
-              </Card>
-            ))}
-          </div>
-
-          {/* Order Summary */}
-          <div>
-            <Card className="bg-slate-900/50 border-slate-800/50 p-6 sticky top-24">
-              <h3 className="font-semibold text-lg mb-4">Tóm tắt đơn hàng</h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Tạm tính</span>
-                  <span className="text-white font-medium">{formatPrice(cart?.totalPrice ?? 0)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Phí vận chuyển</span>
-                  <span className="text-green-400">Miễn phí</span>
-                </div>
-              </div>
-
-              {/* Coupon */}
-              <div className="mt-4">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Mã giảm giá"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    className="bg-slate-800/50 border-slate-700 text-white text-sm"
-                  />
-                  <Button variant="outline" size="sm" className="border-slate-700 text-slate-300 whitespace-nowrap">
-                    <Tag className="w-3 h-3 mr-1" />Áp dụng
-                  </Button>
-                </div>
-              </div>
-
-              <Separator className="my-4 bg-slate-700" />
-              <div className="flex justify-between text-lg font-bold">
-                <span>Tổng cộng</span>
-                <span className="text-blue-400">{formatPrice(cart?.totalPrice ?? 0)}</span>
-              </div>
-
-              <Link href={isAuthenticated ? "/checkout" : "/login"}>
-                <Button className="w-full mt-6 h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 font-semibold shadow-lg shadow-blue-500/20">
-                  {isAuthenticated ? "Thanh toán" : "Đăng nhập để thanh toán"}
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-            </Card>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+interface CartItem {
+  id: number;
+  name: string;
+  sku: string;
+  price: number;
+  quantity: number;
+  image: string | null;
+  warranty: number;
 }
 
-function getSessionId(): string {
-  if (typeof window === "undefined") return "";
-  let sid = localStorage.getItem("sessionId");
-  if (!sid) {
-    sid = "session_" + Math.random().toString(36).slice(2) + Date.now();
-    localStorage.setItem("sessionId", sid);
-  }
-  return sid;
+const mockItems: CartItem[] = [
+  { id: 1, name: "CPU Intel Core i5-13600K (3.5GHz up to 5.1GHz, 24MB Cache, 125W)", sku: "CPU0156", price: 6990000, quantity: 1, image: null, warranty: 36 },
+  { id: 2, name: "Mainboard ASUS ROG STRIX Z790-A GAMING WIFI D5", sku: "MB00456", price: 8990000, quantity: 1, image: null, warranty: 36 },
+  { id: 3, name: "RAM G.Skill Trident Z5 RGB DDR5 32GB (2x16GB) 6000MHz", sku: "RAM0234", price: 3490000, quantity: 2, image: null, warranty: 24 },
+];
+
+function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
+
+export default function CartPage() {
+  const [items, setItems] = useState(mockItems);
+  const [couponCode, setCouponCode] = useState("");
+
+  const updateQty = (id: number, delta: number) => {
+    setItems(items.map(i => i.id === id ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i));
+  };
+  const removeItem = (id: number) => setItems(items.filter(i => i.id !== id));
+
+  const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
+  const shipping = 0;
+  const discount = 0;
+  const total = subtotal - discount + shipping;
+
+  return (
+    <div className="bg-gray-50 min-h-screen">
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <nav className="flex items-center gap-1 text-sm text-gray-500">
+            <Link href="/" className="hover:text-blue-600">Trang chủ</Link>
+            <ChevronRight className="w-3.5 h-3.5" />
+            <span className="text-gray-900 font-medium">Giỏ hàng</span>
+          </nav>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {items.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+            <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Giỏ hàng trống</h2>
+            <p className="text-gray-500 text-sm mb-6">Hãy thêm sản phẩm vào giỏ hàng.</p>
+            <Link href="/products" className="bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+              Tiếp tục mua sắm
+            </Link>
+          </div>
+        ) : (
+          <>
+            {/* Product List */}
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-4">
+              {items.map((item, idx) => (
+                <div key={item.id} className={`p-4 ${idx > 0 ? "border-t border-gray-200" : ""}`}>
+                  <div className="flex gap-4">
+                    <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+                      <ShoppingCart className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <Link href={`/products/${item.sku.toLowerCase()}`} className="text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-2">{item.name}</Link>
+                      <p className="text-xs text-gray-400 mt-0.5">Mã SP: {item.sku}</p>
+                      <p className="text-xs text-gray-400">Bảo hành: {item.warranty} tháng</p>
+                      <div className="mt-2 text-xs text-green-600">
+                        <p>Khuyến mãi:</p>
+                        <p className="text-gray-500">• Ưu đãi giảm tới 200.000 VNĐ khi mua phần mềm</p>
+                      </div>
+                      <button onClick={() => removeItem(item.id)} className="text-xs text-red-500 hover:text-red-600 mt-2 flex items-center gap-1">
+                        <Trash2 className="w-3 h-3" /> Xóa
+                      </button>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-sm text-gray-400">{formatPrice(item.price)}</p>
+                      <div className="flex items-center border border-gray-300 rounded mt-2 w-fit ml-auto">
+                        <button onClick={() => updateQty(item.id, -1)} className="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-50"><Minus className="w-3 h-3" /></button>
+                        <span className="w-8 text-center text-sm font-medium border-x border-gray-300">{item.quantity}</span>
+                        <button onClick={() => updateQty(item.id, 1)} className="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-50"><Plus className="w-3 h-3" /></button>
+                      </div>
+                      <p className="text-[#E31837] font-bold mt-2">Tổng: {formatPrice(item.price * item.quantity)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Coupon + Summary */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+              <div className="bg-white rounded-xl shadow-sm p-5">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-1"><Tag className="w-4 h-4 text-blue-600" /> Mã giảm giá / Quà tặng</h3>
+                <div className="flex gap-2">
+                  <input value={couponCode} onChange={e => setCouponCode(e.target.value)} placeholder="Nhập mã giảm giá" className="flex-1 h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <button className="bg-blue-600 text-white px-4 h-10 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">Áp dụng</button>
+                </div>
+              </div>
+              <div className="bg-white rounded-xl shadow-sm p-5">
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between text-gray-500"><span>Phí vận chuyển:</span><span>{formatPrice(shipping)}</span></div>
+                  <div className="flex justify-between text-gray-500"><span>Tổng cộng:</span><span>{formatPrice(subtotal)}</span></div>
+                  <div className="flex justify-between text-gray-500"><span>Giảm giá:</span><span>{formatPrice(discount)}</span></div>
+                  <hr className="border-gray-200" />
+                  <div className="flex justify-between font-bold text-lg"><span className="text-gray-900">Thanh toán:</span><span className="text-[#E31837]">{formatPrice(total)}</span></div>
+                  <p className="text-xs text-gray-400">(Giá chưa bao gồm phí vận chuyển ngoại tỉnh)</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Action links + buttons */}
+            <div className="flex items-center justify-center gap-4 mb-4 text-sm text-gray-500">
+              <button className="flex items-center gap-1 hover:text-blue-600"><FileText className="w-4 h-4" /> In báo giá</button>
+              <button className="flex items-center gap-1 hover:text-blue-600"><FileSpreadsheet className="w-4 h-4" /> Tải file excel</button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto">
+              <Link href="/checkout" className="bg-[#1A4B9C] hover:bg-blue-900 text-white py-3.5 rounded-lg font-bold text-center transition-colors text-base">
+                ĐẶT HÀNG
+              </Link>
+              <button className="bg-[#E31837] hover:bg-red-700 text-white py-3.5 rounded-lg font-bold text-center transition-colors text-base">
+                MUA TRẢ GÓP
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
 }

@@ -1,254 +1,125 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Heart, Trash2, ShoppingCart, Cpu, Plus, Minus, ArrowRight, Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import api from "@/lib/api";
-import { useAuthStore } from "@/stores/auth-store";
-import type { ApiResponse, PcBuild, PcBuildComponent } from "@/types";
-import { toast } from "sonner";
+import { ChevronRight, Plus, X, Save, Image, Share2, FileSpreadsheet, Printer, ShoppingCart, Cpu } from "lucide-react";
+import { useState } from "react";
 
-const SLOT_LABELS: Record<string, string> = {
-  CPU: "Bộ xử lý (CPU)",
-  MAINBOARD: "Bo mạch chủ",
-  RAM: "Bộ nhớ RAM",
-  GPU: "Card đồ họa (GPU)",
-  SSD: "Ổ cứng SSD",
-  HDD: "Ổ cứng HDD",
-  PSU: "Nguồn (PSU)",
-  CASE: "Vỏ máy (Case)",
-  COOLER: "Tản nhiệt",
-  FAN: "Quạt tản nhiệt",
-  MONITOR: "Màn hình",
-};
+const slots = [
+  { id: 1, name: "BỘ VI XỬ LÝ", label: "Bộ vi xử lý" },
+  { id: 2, name: "BO MẠCH CHỦ", label: "Bo mạch chủ" },
+  { id: 3, name: "RAM", label: "RAM" },
+  { id: 4, name: "SSD 1", label: "SSD 1" },
+  { id: 5, name: "SSD 2", label: "SSD 2" },
+  { id: 6, name: "HDD", label: "HDD" },
+  { id: 7, name: "VGA", label: "VGA" },
+  { id: 8, name: "NGUỒN", label: "Nguồn" },
+  { id: 9, name: "VỎ CASE", label: "Vỏ Case" },
+  { id: 10, name: "TẢN NHIỆT KHÍ CPU", label: "Tản nhiệt khí CPU" },
+  { id: 11, name: "TẢN NHIỆT NƯỚC CPU", label: "Tản nhiệt nước CPU" },
+  { id: 12, name: "QUẠT TẢN NHIỆT VỎ CASE", label: "Quạt tản nhiệt vỏ case" },
+  { id: 13, name: "MÀN HÌNH", label: "Màn hình" },
+  { id: 14, name: "BÀN PHÍM", label: "Bàn phím" },
+  { id: 15, name: "CHUỘT", label: "Chuột" },
+  { id: 16, name: "TAI NGHE", label: "Tai nghe" },
+  { id: 17, name: "LOA", label: "Loa" },
+  { id: 18, name: "WINDOWS BẢN QUYỀN", label: "Windows bản quyền" },
+];
 
-export default function BuildPCPage() {
-  const { isAuthenticated } = useAuthStore();
-  const [build, setBuild] = useState<PcBuild | null>(null);
-  const [slots, setSlots] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchBuild();
-  }, []);
-
-  const getHeaders = () => {
-    if (!isAuthenticated) {
-      const sid = getSessionId();
-      return { "X-Session-Id": sid };
-    }
-    return {};
-  };
-
-  const fetchBuild = async () => {
-    try {
-      const [slotsRes, buildsRes] = await Promise.all([
-        api.get<ApiResponse<string[]>>("/build-pc/slots"),
-        api.get<ApiResponse<PcBuild[]>>("/build-pc", { headers: getHeaders() }),
-      ]);
-      setSlots(slotsRes.data.data);
-      if (buildsRes.data.data.length > 0) {
-        setBuild(buildsRes.data.data[0]);
-      }
-    } catch {
-      setSlots(Object.keys(SLOT_LABELS));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createBuild = async () => {
-    try {
-      const res = await api.post<ApiResponse<PcBuild>>("/build-pc", { name: "Cấu hình mới" }, {
-        headers: getHeaders(),
-      });
-      setBuild(res.data.data);
-      toast.success("Đã tạo cấu hình mới");
-    } catch {
-      toast.error("Không thể tạo cấu hình");
-    }
-  };
-
-  const addToCart = async () => {
-    if (!build) return;
-    if (!isAuthenticated) {
-      toast.info("Vui lòng đăng nhập để thêm vào giỏ hàng");
-      return;
-    }
-    try {
-      await api.post(`/build-pc/${build.id}/add-to-cart`);
-      toast.success("Đã thêm cấu hình vào giỏ hàng!");
-    } catch {
-      toast.error("Không thể thêm vào giỏ hàng");
-    }
-  };
-
-  const removeComponent = async (slotType: string) => {
-    if (!build) return;
-    try {
-      const res = await api.delete<ApiResponse<PcBuild>>(
-        `/build-pc/${build.id}/components/${slotType}`,
-        { headers: getHeaders() }
-      );
-      setBuild(res.data.data);
-      toast.success("Đã xóa linh kiện");
-    } catch {
-      toast.error("Không thể xóa linh kiện");
-    }
-  };
-
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
-
-  const getComponentForSlot = (slot: string): PcBuildComponent | undefined =>
-    build?.components.find((c) => c.slotType === slot);
-
-  if (loading) {
-    return (
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="h-96 bg-slate-900/50 rounded-xl animate-pulse" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <div className="text-center mb-10">
-        <h1 className="text-3xl md:text-4xl font-bold mb-3">
-          <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Build PC
-          </span>
-        </h1>
-        <p className="text-slate-400 max-w-xl mx-auto">
-          Tự chọn linh kiện, xây dựng cấu hình máy tính trong mơ. Không cần đăng nhập!
-        </p>
-      </div>
-
-      {!build ? (
-        <div className="text-center py-16">
-          <Cpu className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-4">Bắt đầu xây dựng cấu hình</h2>
-          <Button
-            onClick={createBuild}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 h-12 px-8"
-          >
-            <Plus className="w-5 h-5 mr-2" />Tạo cấu hình mới
-          </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Component Slots */}
-          <div className="lg:col-span-2 space-y-3">
-            {slots.map((slot) => {
-              const comp = getComponentForSlot(slot);
-              return (
-                <Card key={slot} className={`bg-slate-900/50 border-slate-800/50 p-4 transition-all ${
-                  comp ? "border-blue-500/20" : "border-dashed"
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold ${
-                        comp ? "bg-blue-500/20 text-blue-400" : "bg-slate-800 text-slate-500"
-                      }`}>
-                        {slot.slice(0, 2)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-slate-500 uppercase tracking-wider">
-                          {SLOT_LABELS[slot] || slot}
-                        </p>
-                        {comp ? (
-                          <p className="text-sm font-medium text-white truncate">{comp.productName}</p>
-                        ) : (
-                          <p className="text-sm text-slate-500 italic">Chưa chọn</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {comp ? (
-                        <>
-                          <span className="text-sm font-semibold text-blue-400 whitespace-nowrap">
-                            {formatPrice(comp.lineTotal)}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeComponent(slot)}
-                            className="h-8 w-8 text-slate-500 hover:text-red-400"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </>
-                      ) : (
-                        <Link href={`/products?slot=${slot}`}>
-                          <Button variant="outline" size="sm" className="border-slate-700 text-slate-400 hover:text-white">
-                            <Plus className="w-3 h-3 mr-1" />Chọn
-                          </Button>
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-
-          {/* Summary */}
-          <div>
-            <Card className="bg-slate-900/50 border-slate-800/50 p-6 sticky top-24">
-              <h3 className="font-semibold text-lg mb-4">{build.name}</h3>
-              <Badge variant="outline" className="mb-4 text-xs border-slate-700 text-slate-400">
-                {build.components.length}/{slots.length} linh kiện
-              </Badge>
-
-              <Separator className="my-4 bg-slate-700" />
-
-              {build.components.length > 0 ? (
-                <div className="space-y-2 text-sm mb-4">
-                  {build.components.map((c) => (
-                    <div key={c.id} className="flex justify-between">
-                      <span className="text-slate-400 truncate flex-1 mr-2">{SLOT_LABELS[c.slotType] || c.slotType}</span>
-                      <span className="text-white whitespace-nowrap">{formatPrice(c.lineTotal)}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-slate-500 mb-4">Chưa có linh kiện nào</p>
-              )}
-
-              <Separator className="my-4 bg-slate-700" />
-
-              <div className="flex justify-between text-xl font-bold mb-6">
-                <span>Tổng cộng</span>
-                <span className="text-blue-400">{formatPrice(build.totalPrice)}</span>
-              </div>
-
-              <div className="space-y-3">
-                <Button
-                  onClick={addToCart}
-                  disabled={build.components.length === 0}
-                  className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 font-semibold shadow-lg shadow-blue-500/20"
-                >
-                  <ShoppingCart className="w-5 h-5 mr-2" />Thêm vào giỏ hàng
-                </Button>
-              </div>
-            </Card>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+interface SelectedItem {
+  slotId: number;
+  name: string;
+  price: number;
 }
 
-function getSessionId(): string {
-  if (typeof window === "undefined") return "";
-  let sid = localStorage.getItem("sessionId");
-  if (!sid) {
-    sid = "session_" + Math.random().toString(36).slice(2) + Date.now();
-    localStorage.setItem("sessionId", sid);
-  }
-  return sid;
+function formatPrice(p: number): string { return p.toLocaleString("vi-VN"); }
+
+export default function BuildPCPage() {
+  const [selected, setSelected] = useState<SelectedItem[]>([]);
+  const total = selected.reduce((s, i) => s + i.price, 0);
+
+  const removeItem = (slotId: number) => setSelected(selected.filter(i => i.slotId !== slotId));
+  const getSelected = (slotId: number) => selected.find(i => i.slotId === slotId);
+
+  return (
+    <div className="bg-gray-50 min-h-screen">
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <nav className="flex items-center gap-1 text-sm text-gray-500">
+            <Link href="/" className="hover:text-blue-600">Trang chủ</Link>
+            <ChevronRight className="w-3.5 h-3.5" />
+            <span className="text-gray-900 font-medium">Build PC</span>
+          </nav>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        <div className="text-center mb-6">
+          <h1 className="text-xl font-bold text-gray-900 mb-1">Xây dựng cấu hình PC</h1>
+          <p className="text-sm text-gray-500">Vui lòng chọn linh kiện bạn cần để xây dựng cấu hình máy tính riêng cho bạn</p>
+        </div>
+
+        {/* Cost Bar */}
+        <div className="bg-[#E31837] text-white rounded-lg px-6 py-3 flex items-center justify-between mb-4 sticky top-[7.5rem] z-10 shadow-md">
+          <span className="font-semibold text-sm">Chi phí dự tính</span>
+          <span className="font-bold text-lg">{formatPrice(total)} VNĐ</span>
+        </div>
+
+        {/* Slots Table */}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-4">
+          {slots.map((slot, idx) => {
+            const item = getSelected(slot.id);
+            return (
+              <div key={slot.id} className={`flex items-center gap-4 px-4 py-3 ${idx > 0 ? "border-t border-gray-100" : ""}`}>
+                <div className="w-48 shrink-0">
+                  <span className="text-sm font-semibold text-gray-700">{slot.id}. {slot.name}</span>
+                </div>
+                <div className="flex-1">
+                  {item ? (
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center"><Cpu className="w-5 h-5 text-gray-400" /></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-900 font-medium truncate">{item.name}</p>
+                        <p className="text-sm text-[#E31837] font-bold">{formatPrice(item.price)} đ</p>
+                      </div>
+                      <button onClick={() => removeItem(slot.id)} className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-600 transition-colors">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-md font-medium flex items-center gap-1.5 transition-colors">
+                      <Plus className="w-4 h-4" /> Chọn {slot.label}
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Cost Bar Bottom */}
+        <div className="bg-[#E31837] text-white rounded-lg px-6 py-3 flex items-center justify-between mb-6">
+          <span className="font-semibold text-sm">Chi phí dự tính</span>
+          <span className="font-bold text-lg">{formatPrice(total)} VNĐ</span>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-3">
+          {[
+            { icon: Save, label: "LƯU CẤU HÌNH" },
+            { icon: Image, label: "TẢI ẢNH" },
+            { icon: Share2, label: "CHIA SẺ" },
+            { icon: FileSpreadsheet, label: "TẢI EXCEL" },
+            { icon: Printer, label: "XEM & IN" },
+          ].map(({ icon: Icon, label }) => (
+            <button key={label} className="bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors">
+              <Icon className="w-4 h-4" /> {label}
+            </button>
+          ))}
+        </div>
+        <button className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 py-3 rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-colors">
+          <ShoppingCart className="w-5 h-5" /> THÊM VÀO GIỎ HÀNG
+        </button>
+      </div>
+    </div>
+  );
 }
