@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Search, Shield } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 const statusColors: Record<string, string> = { PENDING: "bg-amber-100 text-amber-700", IN_PROGRESS: "bg-blue-100 text-blue-700", RESOLVED: "bg-green-100 text-green-700", REJECTED: "bg-red-100 text-red-700" };
 
 interface WarrantyReq { id: number; productName: string; customerName: string; issueDescription: string; status: string; createdAt: string; }

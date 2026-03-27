@@ -5,7 +5,7 @@ import { ChevronRight, Heart, ShoppingCart, Trash2, Cpu } from "lucide-react";
 import { useState, useEffect } from "react";
 
 interface WishlistItem { id: number; productId: number; productName: string; productSlug: string; productPrice: number; productImage: string | null; }
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 export default function WishlistPage() {

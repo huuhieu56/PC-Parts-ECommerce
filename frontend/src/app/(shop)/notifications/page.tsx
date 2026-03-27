@@ -5,7 +5,7 @@ import { ChevronRight, Bell, Check, CheckCheck } from "lucide-react";
 import { useState, useEffect } from "react";
 
 interface Notification { id: number; title: string; message: string; type: string; isRead: boolean; createdAt: string; }
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);

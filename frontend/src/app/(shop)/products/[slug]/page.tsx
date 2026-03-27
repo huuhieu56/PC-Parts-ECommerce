@@ -4,6 +4,24 @@ import Link from "next/link";
 import { useState, useEffect, use } from "react";
 import { Cpu, Star, ShoppingCart, Heart, Phone, MapPin, ChevronRight, Shield, Truck, RotateCcw, Minus, Plus } from "lucide-react";
 
+interface ProductDto {
+  id: number;
+  name: string;
+  slug: string;
+  sku: string;
+  description: string;
+  sellingPrice: number;
+  originalPrice: number;
+  categoryId: number;
+  categoryName: string;
+  brandId: number;
+  brandName: string;
+  condition: string;
+  status: string;
+  images: { id: number; imageUrl: string; isPrimary: boolean; sortOrder: number }[];
+  attributes: { attributeId: number; attributeName: string; value: string }[];
+}
+
 interface ProductDetail {
   id: number;
   name: string;
@@ -23,7 +41,35 @@ interface ProductDetail {
   discountPercent: number;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
+
+function mapProductDto(dto: ProductDto): ProductDetail {
+  const discount = dto.originalPrice > dto.sellingPrice
+    ? Math.round((1 - dto.sellingPrice / dto.originalPrice) * 100)
+    : 0;
+  const attrs: Record<string, string> = {};
+  (dto.attributes || []).forEach((a) => {
+    attrs[a.attributeName] = a.value;
+  });
+  return {
+    id: dto.id,
+    name: dto.name,
+    slug: dto.slug,
+    sku: dto.sku,
+    description: dto.description || '',
+    price: dto.sellingPrice,
+    originalPrice: dto.originalPrice > dto.sellingPrice ? dto.originalPrice : null,
+    categoryName: dto.categoryName,
+    brandName: dto.brandName,
+    averageRating: 0,
+    reviewCount: 0,
+    images: (dto.images || []).map((img) => img.imageUrl),
+    quantity: 1,
+    warranty: 12,
+    attributes: attrs,
+    discountPercent: discount,
+  };
+}
 
 function formatPrice(price: number): string {
   return price.toLocaleString("vi-VN") + " đ";
@@ -41,8 +87,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
       try {
         const res = await fetch(`${API_URL}/products/${resolvedParams.slug}`);
         if (res.ok) {
-          const data = await res.json();
-          setProduct(data);
+          const json = await res.json();
+          // API returns ApiResponse<ProductDto>
+          const dto: ProductDto = json.data || json;
+          setProduct(mapProductDto(dto));
         }
       } catch {
         console.error("Failed to fetch product");

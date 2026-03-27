@@ -397,7 +397,7 @@ INSERT INTO coupon (code, discount_type, discount_value, min_order_value, max_di
 -- =============================================
 -- Password: Customer@123
 INSERT INTO account (email, password_hash, is_active, is_verified, role_id)
-SELECT 'customer@test.com', '$2a$12$LJ3m4yst.VBJvGQHvke/PeXHBNMj6JfOLSpiPPuROBb0BNfMbx6Lq', true, true, r.id
+SELECT 'customer@test.com', '$2a$12$BKUaW3EgQHe6jH9/ut6fJeEUTaB6b9bagM2Yfk8uXYG2A2NmEcxhS', true, true, r.id
 FROM role r WHERE r.name = 'CUSTOMER';
 
 INSERT INTO user_profile (account_id, full_name, phone)
@@ -416,7 +416,7 @@ WHERE a.email = 'customer@test.com';
 -- =============================================
 -- Password: Sales@123
 INSERT INTO account (email, password_hash, is_active, is_verified, role_id)
-SELECT 'sales@pcparts.vn', '$2a$12$LJ3m4yst.VBJvGQHvke/PeXHBNMj6JfOLSpiPPuROBb0BNfMbx6Lq', true, true, r.id
+SELECT 'sales@pcparts.vn', '$2a$12$BKUaW3EgQHe6jH9/ut6fJeEUTaB6b9bagM2Yfk8uXYG2A2NmEcxhS', true, true, r.id
 FROM role r WHERE r.name = 'SALES';
 
 INSERT INTO user_profile (account_id, full_name, phone)
@@ -428,7 +428,7 @@ FROM account a WHERE a.email = 'sales@pcparts.vn';
 -- =============================================
 -- Password: Warehouse@123
 INSERT INTO account (email, password_hash, is_active, is_verified, role_id)
-SELECT 'warehouse@pcparts.vn', '$2a$12$LJ3m4yst.VBJvGQHvke/PeXHBNMj6JfOLSpiPPuROBb0BNfMbx6Lq', true, true, r.id
+SELECT 'warehouse@pcparts.vn', '$2a$12$BKUaW3EgQHe6jH9/ut6fJeEUTaB6b9bagM2Yfk8uXYG2A2NmEcxhS', true, true, r.id
 FROM role r WHERE r.name = 'WAREHOUSE';
 
 INSERT INTO user_profile (account_id, full_name, phone)

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Search, Tag } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 interface Coupon { id: number; code: string; discountType: string; discountValue: number; minOrderAmount: number; maxUses: number; currentUses: number; isActive: boolean; expiryDate: string; }
