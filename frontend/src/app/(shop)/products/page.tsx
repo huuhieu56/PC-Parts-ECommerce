@@ -2,10 +2,27 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Cpu, ShoppingCart, Star, Filter, X, ChevronRight, SlidersHorizontal } from "lucide-react";
+import { Cpu, ShoppingCart, Filter, X, ChevronRight, SlidersHorizontal } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 
-interface Product {
+interface ProductDto {
+  id: number;
+  name: string;
+  slug: string;
+  sku: string;
+  sellingPrice: number;
+  originalPrice: number;
+  categoryId: number;
+  categoryName: string;
+  brandId: number;
+  brandName: string;
+  condition: string;
+  status: string;
+  images: { id: number; imageUrl: string; isPrimary: boolean; sortOrder: number }[];
+  attributes: { attributeId: number; attributeName: string; value: string }[];
+}
+
+interface DisplayProduct {
   id: number;
   name: string;
   slug: string;
@@ -14,28 +31,48 @@ interface Product {
   originalPrice: number | null;
   categoryName: string;
   brandName: string;
-  averageRating: number;
-  reviewCount: number;
-  thumbnailUrl: string | null;
-  quantity: number;
   discountPercent: number;
+  thumbnailUrl: string | null;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 
 function formatPrice(price: number): string {
   return price.toLocaleString("vi-VN") + " đ";
 }
 
-function ProductCard({ product }: { product: Product }) {
+function mapProduct(dto: ProductDto): DisplayProduct {
+  const discount = dto.originalPrice > dto.sellingPrice
+    ? Math.round((1 - dto.sellingPrice / dto.originalPrice) * 100)
+    : 0;
+  const primaryImage = dto.images?.find((img) => img.isPrimary) || dto.images?.[0];
+  return {
+    id: dto.id,
+    name: dto.name,
+    slug: dto.slug,
+    sku: dto.sku,
+    price: dto.sellingPrice,
+    originalPrice: dto.originalPrice > dto.sellingPrice ? dto.originalPrice : null,
+    categoryName: dto.categoryName,
+    brandName: dto.brandName,
+    discountPercent: discount,
+    thumbnailUrl: primaryImage?.imageUrl || null,
+  };
+}
+
+function ProductCard({ product }: { product: DisplayProduct }) {
   return (
     <Link href={`/products/${product.slug}`} className="block group">
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden h-full flex flex-col">
         {/* Image */}
         <div className="relative aspect-square bg-gray-50 p-4">
-          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-md flex items-center justify-center">
-            <Cpu className="w-10 h-10 text-gray-400" />
-          </div>
+          {product.thumbnailUrl ? (
+            <img src={product.thumbnailUrl} alt={product.name} className="w-full h-full object-contain rounded-md" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-md flex items-center justify-center">
+              <Cpu className="w-10 h-10 text-gray-400" />
+            </div>
+          )}
           {product.discountPercent > 0 && (
             <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded">
               -{product.discountPercent}%
@@ -48,24 +85,15 @@ function ProductCard({ product }: { product: Product }) {
             {product.name}
           </h3>
           <p className="text-xs text-gray-400 mb-1">Mã SP: {product.sku}</p>
-          <div className="flex items-center gap-1 mb-2">
-            <div className="flex">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <Star key={s} className={`w-3 h-3 ${s <= Math.round(product.averageRating || 0) ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
-              ))}
-            </div>
-            <span className="text-xs text-gray-400">({product.reviewCount || 0})</span>
-          </div>
+          <p className="text-xs text-gray-500 mb-2">{product.brandName}</p>
           <div className="mt-auto">
-            {product.originalPrice && product.originalPrice > product.price && (
+            {product.originalPrice && (
               <p className="text-xs text-gray-400 line-through">{formatPrice(product.originalPrice)}</p>
             )}
             <p className="text-[#E31837] font-bold text-base">{formatPrice(product.price)}</p>
           </div>
           <div className="mt-2 flex items-center justify-between">
-            <span className={`text-xs flex items-center gap-0.5 ${product.quantity > 0 ? "text-green-600" : "text-red-500"}`}>
-              {product.quantity > 0 ? "✓ Còn hàng" : "✗ Hết hàng"}
-            </span>
+            <span className="text-xs flex items-center gap-0.5 text-green-600">✓ Còn hàng</span>
             <button
               onClick={(e) => { e.preventDefault(); }}
               className="w-7 h-7 rounded bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors"
@@ -81,7 +109,7 @@ function ProductCard({ product }: { product: Product }) {
 
 function ProductsContent() {
   const searchParams = useSearchParams();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<DisplayProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const category = searchParams.get("category") || "";
@@ -92,15 +120,18 @@ function ProductsContent() {
       setLoading(true);
       try {
         const params = new URLSearchParams();
-        if (category) params.set("category", category);
         if (keyword) params.set("keyword", keyword);
         params.set("page", "0");
         params.set("size", "20");
 
         const res = await fetch(`${API_URL}/products?${params.toString()}`);
         if (res.ok) {
-          const data = await res.json();
-          setProducts(data.content || []);
+          const json = await res.json();
+          // API returns ApiResponse<PageResponse<ProductDto>>
+          // json = { status, message, data: { content: [...], page, size, totalElements, totalPages, last } }
+          const pageData = json.data || json;
+          const items: ProductDto[] = pageData.content || [];
+          setProducts(items.map(mapProduct));
         }
       } catch {
         console.error("Failed to fetch products");

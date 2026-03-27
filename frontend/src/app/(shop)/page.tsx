@@ -1,5 +1,35 @@
+"use client";
+
 import Link from "next/link";
-import { Cpu, Monitor, MemoryStick, HardDrive, Zap, ShoppingCart, ArrowRight, Star, ChevronRight, Truck, Shield, Headphones } from "lucide-react";
+import { Cpu, Monitor, MemoryStick, HardDrive, Zap, ShoppingCart, ArrowRight, ChevronRight, Truck, Shield, Headphones } from "lucide-react";
+import { useState, useEffect } from "react";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
+
+interface ProductDto {
+  id: number;
+  name: string;
+  sku: string;
+  slug: string;
+  originalPrice: number;
+  sellingPrice: number;
+  categoryName: string;
+  brandName: string;
+  images: { id: number; imageUrl: string; isPrimary: boolean; sortOrder: number }[];
+}
+
+interface DisplayProduct {
+  id: number;
+  name: string;
+  sku: string;
+  slug: string;
+  price: number;
+  oldPrice: number | null;
+  discount: number;
+  inStock: boolean;
+  image: string | null;
+  brandName: string;
+}
 
 const categories = [
   { name: "CPU", icon: Cpu, href: "/products?category=cpu", color: "bg-blue-50 text-blue-600 border-blue-200" },
@@ -12,7 +42,7 @@ const categories = [
   { name: "Tản nhiệt", icon: Zap, href: "/products?category=cooling", color: "bg-indigo-50 text-indigo-600 border-indigo-200" },
 ];
 
-const brands = ["Intel", "AMD", "ASUS", "GIGABYTE", "MSI", "CORSAIR", "Kingston", "Samsung", "WD", "Lenovo", "LG", "Dell"];
+const brands = ["Intel", "AMD", "ASUS", "GIGABYTE", "MSI", "CORSAIR", "Kingston", "Samsung", "WD", "NZXT", "Noctua", "Seasonic"];
 
 const promoBanners = [
   { title: "TBVP", sub: "Giảm tới 32%", gradient: "from-red-500 to-orange-400" },
@@ -20,41 +50,22 @@ const promoBanners = [
   { title: "GEAR", sub: "Giảm 50%", gradient: "from-fuchsia-500 to-purple-500" },
 ];
 
-const productTabs = ["BÁN CHẠY", "PC GAMING", "LAPTOP", "MÀN HÌNH GAMING"];
-
-const featuredProducts = [
-  { id: 1, name: "CPU Intel Core i5-13600K", sku: "CPU0156", price: 6990000, oldPrice: 8190000, rating: 4.5, reviews: 23, image: null, discount: 15, inStock: true },
-  { id: 2, name: "VGA MSI RTX 4060 VENTUS 2X", sku: "VGA0089", price: 8990000, oldPrice: null, rating: 4.8, reviews: 45, image: null, discount: 0, inStock: true },
-  { id: 3, name: "RAM G.Skill Trident Z5 RGB DDR5", sku: "RAM0234", price: 3490000, oldPrice: 4990000, rating: 4.6, reviews: 12, image: null, discount: 30, inStock: true },
-  { id: 4, name: "Mainboard ASUS ROG STRIX Z790-A", sku: "MB00456", price: 8990000, oldPrice: null, rating: 4.7, reviews: 18, image: null, discount: 0, inStock: true },
-  { id: 5, name: "SSD Samsung 990 PRO 1TB NVMe", sku: "SSD0078", price: 3290000, oldPrice: 3790000, rating: 4.9, reviews: 67, image: null, discount: 13, inStock: true },
-];
-
 function formatPrice(price: number): string {
   return price.toLocaleString("vi-VN") + " đ";
 }
 
-function StarRating({ rating, reviews }: { rating: number; reviews: number }) {
-  return (
-    <div className="flex items-center gap-1">
-      <div className="flex">
-        {[1, 2, 3, 4, 5].map((s) => (
-          <Star key={s} className={`w-3.5 h-3.5 ${s <= Math.round(rating) ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
-        ))}
-      </div>
-      <span className="text-xs text-gray-400">({reviews})</span>
-    </div>
-  );
-}
-
-function ProductCard({ product }: { product: typeof featuredProducts[0] }) {
+function ProductCard({ product }: { product: DisplayProduct }) {
   return (
     <div className="group bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden">
       {/* Image */}
       <div className="relative aspect-square bg-gray-50 p-4">
-        <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-md flex items-center justify-center">
-          <Cpu className="w-12 h-12 text-gray-400" />
-        </div>
+        {product.image ? (
+          <img src={product.image} alt={product.name} className="w-full h-full object-contain rounded-md" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-md flex items-center justify-center">
+            <Cpu className="w-12 h-12 text-gray-400" />
+          </div>
+        )}
         {product.discount > 0 && (
           <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded">
             -{product.discount}%
@@ -75,8 +86,8 @@ function ProductCard({ product }: { product: typeof featuredProducts[0] }) {
         <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1 leading-snug min-h-[2.5rem]">
           {product.name}
         </h3>
-        <p className="text-xs text-gray-400 mb-1.5">Mã SP: {product.sku}</p>
-        <StarRating rating={product.rating} reviews={product.reviews} />
+        <p className="text-xs text-gray-400 mb-1">Mã SP: {product.sku}</p>
+        <p className="text-xs text-gray-500 mb-1.5">{product.brandName}</p>
         <div className="mt-2">
           {product.oldPrice && (
             <p className="text-xs text-gray-400 line-through">{formatPrice(product.oldPrice)}</p>
@@ -96,7 +107,48 @@ function ProductCard({ product }: { product: typeof featuredProducts[0] }) {
   );
 }
 
+function mapApiProduct(dto: ProductDto): DisplayProduct {
+  const discount = dto.originalPrice > dto.sellingPrice
+    ? Math.round((1 - dto.sellingPrice / dto.originalPrice) * 100)
+    : 0;
+  const primaryImage = dto.images?.find((img) => img.isPrimary) || dto.images?.[0];
+  return {
+    id: dto.id,
+    name: dto.name,
+    sku: dto.sku,
+    slug: dto.slug,
+    price: dto.sellingPrice,
+    oldPrice: dto.originalPrice > dto.sellingPrice ? dto.originalPrice : null,
+    discount,
+    inStock: true,
+    image: primaryImage?.imageUrl || null,
+    brandName: dto.brandName,
+  };
+}
+
 export default function HomePage() {
+  const [featuredProducts, setFeaturedProducts] = useState<DisplayProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const res = await fetch(`${API_URL}/products?page=0&size=10&sort=createdAt`);
+        if (res.ok) {
+          const json = await res.json();
+          const pageData = json.data || json;
+          const items: ProductDto[] = pageData.content || [];
+          setFeaturedProducts(items.map(mapApiProduct));
+        }
+      } catch {
+        console.error("Failed to fetch featured products");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
+
   return (
     <div className="bg-gray-50">
       {/* Hero Banner + Promo Cards */}
@@ -199,35 +251,45 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Top Products with Tabs */}
+      {/* Top Products — fetched from API */}
       <section className="max-w-7xl mx-auto px-4 py-6">
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="flex items-center justify-between border-b border-gray-200 px-6">
-            <div className="flex items-center gap-0 overflow-x-auto">
-              <h2 className="text-lg font-bold text-[#1A4B9C] flex items-center gap-2 pr-4 py-4 border-b-2 border-[#1A4B9C] whitespace-nowrap">
-                TOP SẢN PHẨM BÁN CHẠY
-              </h2>
-              {productTabs.slice(1).map((tab) => (
-                <button
-                  key={tab}
-                  className="px-4 py-4 text-sm font-medium text-gray-500 hover:text-[#1A4B9C] border-b-2 border-transparent hover:border-[#1A4B9C] transition-colors whitespace-nowrap"
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
+            <h2 className="text-lg font-bold text-[#1A4B9C] flex items-center gap-2 py-4 border-b-2 border-[#1A4B9C] whitespace-nowrap">
+              TOP SẢN PHẨM BÁN CHẠY
+            </h2>
             <Link href="/products" className="hidden md:flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap">
               Xem tất cả <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {featuredProducts.map((product) => (
-                <Link key={product.id} href={`/products/${product.sku.toLowerCase()}`}>
-                  <ProductCard product={product} />
-                </Link>
-              ))}
-            </div>
+            {loading ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="bg-white rounded-lg border border-gray-200 overflow-hidden animate-pulse">
+                    <div className="aspect-square bg-gray-200" />
+                    <div className="p-3 space-y-2">
+                      <div className="h-4 bg-gray-200 rounded w-3/4" />
+                      <div className="h-3 bg-gray-200 rounded w-1/2" />
+                      <div className="h-5 bg-gray-200 rounded w-1/3" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : featuredProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <Cpu className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">Chưa có sản phẩm nào</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                {featuredProducts.slice(0, 10).map((product) => (
+                  <Link key={product.id} href={`/products/${product.slug}`}>
+                    <ProductCard product={product} />
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>

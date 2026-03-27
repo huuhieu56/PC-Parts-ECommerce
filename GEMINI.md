@@ -18,10 +18,11 @@
 - CI/CD: GitHub Actions + Docker + Docker Compose + Nginx
 - Monitoring: Prometheus + Grafana + ELK Stack
 
-## Môi trường: Linux / Ubuntu
-- Shell: Bash
-- Đường dẫn dùng dấu `/`
-- Dùng các lệnh Linux tiêu chuẩn: `rm -rf`, `touch`, `mkdir -p`, `cp -r`, `ls`, `cat`, v.v.
+## Môi trường: Windows
+- Shell: PowerShell
+- Đường dẫn dùng dấu `\` (hoặc `/` trong một số trường hợp)
+- Dùng các lệnh PowerShell tiêu chuẩn: `Remove-Item -Recurse -Force`, `New-Item`, `mkdir`, `Copy-Item -Recurse`, `Get-ChildItem`, `Get-Content`, v.v.
+- Tương đương nhanh: `rm -r -fo` (alias), `ni` (New-Item), `cp -r`, `ls`, `cat`
 
 ## Chạy Server: BẮT BUỘC dùng Docker
 - KHÔNG chạy server trực tiếp bằng `java -jar`, `npm run dev`, `mvn spring-boot:run`
