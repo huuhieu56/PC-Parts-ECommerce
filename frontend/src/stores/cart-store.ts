@@ -51,10 +51,13 @@ export const useCartStore = create<CartState>()(
       loading: false,
 
       setCartFromResponse: (data) => {
+        const items = data.items || [];
+        const computedTotal = items.reduce((sum: number, i: CartItemData) => sum + (i.sellingPrice || 0) * (i.quantity || 0), 0);
+        const computedCount = items.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
         set({
-          items: data.items || [],
-          totalPrice: data.totalPrice || 0,
-          totalItems: data.totalItems || 0,
+          items,
+          totalPrice: data.totalPrice || computedTotal,
+          totalItems: data.totalItems || computedCount,
         });
       },
 
@@ -63,10 +66,13 @@ export const useCartStore = create<CartState>()(
         try {
           const res = await api.get("/cart", { headers: getHeaders() });
           const cart = res.data.data || res.data;
+          const items = cart.items || [];
+          const computedTotal = items.reduce((sum: number, i: CartItemData) => sum + (i.sellingPrice || 0) * (i.quantity || 0), 0);
+          const computedCount = items.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
           set({
-            items: cart.items || [],
-            totalPrice: cart.totalPrice || 0,
-            totalItems: cart.totalItems || 0,
+            items,
+            totalPrice: cart.totalPrice || computedTotal,
+            totalItems: cart.totalItems || computedCount,
           });
         } catch {
           // If unauthenticated and no session cart, just keep empty
@@ -79,10 +85,13 @@ export const useCartStore = create<CartState>()(
         try {
           const res = await api.post("/cart/items", { productId, quantity }, { headers: getHeaders() });
           const cart = res.data.data || res.data;
+          const items = cart.items || [];
+          const computedTotal = items.reduce((sum: number, i: CartItemData) => sum + (i.sellingPrice || 0) * (i.quantity || 0), 0);
+          const computedCount = items.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
           set({
-            items: cart.items || [],
-            totalPrice: cart.totalPrice || 0,
-            totalItems: cart.totalItems || 0,
+            items,
+            totalPrice: cart.totalPrice || computedTotal,
+            totalItems: cart.totalItems || computedCount,
           });
         } catch (err) {
           console.error("Failed to add item to cart", err);
@@ -94,10 +103,13 @@ export const useCartStore = create<CartState>()(
         try {
           const res = await api.put(`/cart/items/${productId}?quantity=${quantity}`, null, { headers: getHeaders() });
           const cart = res.data.data || res.data;
+          const items = cart.items || [];
+          const computedTotal = items.reduce((sum: number, i: CartItemData) => sum + (i.sellingPrice || 0) * (i.quantity || 0), 0);
+          const computedCount = items.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
           set({
-            items: cart.items || [],
-            totalPrice: cart.totalPrice || 0,
-            totalItems: cart.totalItems || 0,
+            items,
+            totalPrice: cart.totalPrice || computedTotal,
+            totalItems: cart.totalItems || computedCount,
           });
         } catch (err) {
           console.error("Failed to update cart item", err);
@@ -109,10 +121,13 @@ export const useCartStore = create<CartState>()(
         try {
           const res = await api.delete(`/cart/items/${productId}`, { headers: getHeaders() });
           const cart = res.data.data || res.data;
+          const items = cart.items || [];
+          const computedTotal = items.reduce((sum: number, i: CartItemData) => sum + (i.sellingPrice || 0) * (i.quantity || 0), 0);
+          const computedCount = items.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
           set({
-            items: cart.items || [],
-            totalPrice: cart.totalPrice || 0,
-            totalItems: cart.totalItems || 0,
+            items,
+            totalPrice: cart.totalPrice || computedTotal,
+            totalItems: cart.totalItems || computedCount,
           });
         } catch (err) {
           console.error("Failed to remove cart item", err);
