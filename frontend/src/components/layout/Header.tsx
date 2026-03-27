@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const navLinks = [
   { href: "/", label: "Trang chủ" },
@@ -27,11 +27,23 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [cartShake, setCartShake] = useState(false);
+  const prevTotalItems = useRef(totalItems);
   const isAdmin = user?.role === "ADMIN" || user?.role === "SALES" || user?.role === "WAREHOUSE";
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Shake cart icon when items count increases
+  useEffect(() => {
+    if (mounted && totalItems > prevTotalItems.current) {
+      setCartShake(true);
+      const timer = setTimeout(() => setCartShake(false), 600);
+      return () => clearTimeout(timer);
+    }
+    prevTotalItems.current = totalItems;
+  }, [totalItems, mounted]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,11 +117,11 @@ export function Header() {
                 <span className="text-[10px] font-medium">Yêu thích</span>
               </Link>
             )}
-            <Link href="/cart" className="flex flex-col items-center gap-0.5 px-3 py-1 hover:bg-white/10 rounded-lg transition-colors text-white/90 hover:text-white relative">
+            <Link href="/cart" className={`flex flex-col items-center gap-0.5 px-3 py-1 hover:bg-white/10 rounded-lg transition-colors text-white/90 hover:text-white relative ${cartShake ? 'animate-cart-shake' : ''}`}>
               <ShoppingCart className="w-5 h-5" />
               <span className="text-[10px] font-medium">Giỏ hàng</span>
               {mounted && totalItems > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{totalItems > 9 ? "9+" : totalItems}</span>
+                <span className={`absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center transition-transform ${cartShake ? 'animate-badge-bounce' : ''}`}>{totalItems > 9 ? "9+" : totalItems}</span>
               )}
             </Link>
             {mounted && isAuthenticated ? (

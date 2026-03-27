@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Cpu, Monitor, MemoryStick, HardDrive, Zap, ShoppingCart, ArrowRight, ChevronRight, Truck, Shield, Headphones } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Cpu, Monitor, MemoryStick, HardDrive, Zap, ShoppingCart, ArrowRight, ChevronRight, Truck, Shield, Headphones, Check, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { useCartStore } from "@/stores/cart-store";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 
@@ -54,29 +55,46 @@ function formatPrice(price: number): string {
   return price.toLocaleString("vi-VN") + " đ";
 }
 
-function ProductCard({ product }: { product: DisplayProduct }) {
+function ProductCard({ product, onAddToCart }: { product: DisplayProduct; onAddToCart: (productId: number) => Promise<void> }) {
+  const [adding, setAdding] = useState(false);
+  const [added, setAdded] = useState(false);
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (adding) return;
+    setAdding(true);
+    try {
+      await onAddToCart(product.id);
+      setAdded(true);
+      setTimeout(() => setAdded(false), 1500);
+    } catch { /* empty */ } finally {
+      setAdding(false);
+    }
+  };
+
   return (
-    <div className="group bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden">
+    <div className="group bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden">
       {/* Image */}
       <div className="relative aspect-square bg-gray-50 p-4">
         {product.image ? (
-          <img src={product.image} alt={product.name} className="w-full h-full object-contain rounded-md" />
+          <img src={product.image} alt={product.name} className="w-full h-full object-contain rounded-md transition-transform duration-300 group-hover:scale-105" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-md flex items-center justify-center">
             <Cpu className="w-12 h-12 text-gray-400" />
           </div>
         )}
         {product.discount > 0 && (
-          <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded">
+          <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded shadow-sm">
             -{product.discount}%
           </span>
         )}
         {/* Hover overlay */}
-        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3 gap-2">
-          <button className="bg-white/90 backdrop-blur-sm text-gray-700 text-xs px-3 py-1.5 rounded-md shadow-sm hover:bg-white transition-colors">
+        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center pb-3 gap-2">
+          <button className="bg-white/90 backdrop-blur-sm text-gray-700 text-xs px-3 py-1.5 rounded-md shadow-sm hover:bg-white transition-all cursor-pointer active:scale-95">
             So sánh
           </button>
-          <button className="bg-white/90 backdrop-blur-sm text-gray-700 text-xs px-3 py-1.5 rounded-md shadow-sm hover:bg-white transition-colors">
+          <button className="bg-white/90 backdrop-blur-sm text-gray-700 text-xs px-3 py-1.5 rounded-md shadow-sm hover:bg-white transition-all cursor-pointer active:scale-95">
             ❤️ Thích
           </button>
         </div>
@@ -98,8 +116,23 @@ function ProductCard({ product }: { product: DisplayProduct }) {
           <div className="flex items-center gap-1">
             <span className="text-xs text-green-600 flex items-center gap-0.5">✓ Còn hàng</span>
           </div>
-          <button className="w-8 h-8 rounded-md bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors">
-            <ShoppingCart className="w-4 h-4" />
+          <button
+            onClick={handleAddToCart}
+            disabled={adding}
+            className={`w-8 h-8 rounded-md flex items-center justify-center transition-all duration-200 cursor-pointer active:scale-90 ${
+              added
+                ? "bg-green-500 text-white scale-110"
+                : "bg-blue-600 hover:bg-blue-700 hover:shadow-md text-white"
+            }`}
+            title="Thêm vào giỏ hàng"
+          >
+            {adding ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : added ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              <ShoppingCart className="w-4 h-4" />
+            )}
           </button>
         </div>
       </div>
@@ -129,6 +162,11 @@ function mapApiProduct(dto: ProductDto): DisplayProduct {
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<DisplayProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const addItem = useCartStore((s) => s.addItem);
+
+  const handleAddToCart = useCallback(async (productId: number) => {
+    await addItem(productId, 1);
+  }, [addItem]);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -168,13 +206,13 @@ export default function HomePage() {
               <div className="flex gap-3">
                 <Link
                   href="/products"
-                  className="bg-[#E31837] hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-colors shadow-lg"
+                  className="bg-[#E31837] hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all shadow-lg active:scale-95 cursor-pointer"
                 >
                   MUA NGAY
                 </Link>
                 <Link
                   href="/build-pc"
-                  className="bg-white/15 hover:bg-white/25 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-colors backdrop-blur-sm border border-white/20"
+                  className="bg-white/15 hover:bg-white/25 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all backdrop-blur-sm border border-white/20 active:scale-95 cursor-pointer"
                 >
                   BUILD PC
                 </Link>
@@ -213,7 +251,7 @@ export default function HomePage() {
               <Link
                 key={cat.name}
                 href={cat.href}
-                className={`flex flex-col items-center gap-2 p-3 rounded-xl border hover:shadow-md transition-all ${cat.color}`}
+                className={`flex flex-col items-center gap-2 p-3 rounded-xl border hover:shadow-md transition-all cursor-pointer active:scale-95 ${cat.color}`}
               >
                 <cat.icon className="w-7 h-7" />
                 <span className="text-xs font-medium text-center">{cat.name}</span>
@@ -242,7 +280,7 @@ export default function HomePage() {
           {promoBanners.map((b) => (
             <div
               key={b.title}
-              className={`bg-gradient-to-r ${b.gradient} rounded-xl text-white p-6 flex flex-col justify-center hover:shadow-lg transition-shadow cursor-pointer`}
+              className={`bg-gradient-to-r ${b.gradient} rounded-xl text-white p-6 flex flex-col justify-center hover:shadow-lg transition-all cursor-pointer active:scale-[0.98]`}
             >
               <p className="text-sm font-semibold opacity-90">{b.title}</p>
               <p className="text-2xl font-bold">{b.sub}</p>
@@ -285,7 +323,7 @@ export default function HomePage() {
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {featuredProducts.slice(0, 10).map((product) => (
                   <Link key={product.id} href={`/products/${product.slug}`}>
-                    <ProductCard product={product} />
+                    <ProductCard product={product} onAddToCart={handleAddToCart} />
                   </Link>
                 ))}
               </div>
