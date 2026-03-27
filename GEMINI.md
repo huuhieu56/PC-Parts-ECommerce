@@ -32,6 +32,43 @@
 - Xem log: `docker compose logs -f [service-name]`
 - Nếu chưa có `docker-compose.yml` → tạo trước khi chạy bất kỳ service nào
 
+## Quản lý Database (QUAN TRỌNG)
+- **Flyway checksum lỗi?** KHÔNG sửa checksum. Xóa volume rồi tạo lại:
+  ```powershell
+  docker compose down
+  docker volume rm pc-parts-ecommerce_postgres_data  # hoặc tên volume tương ứng
+  docker compose up -d
+  ```
+  Migration sẽ tự chạy lại từ đầu. Dữ liệu dev không quan trọng.
+- **Sửa migration file?** Luôn xóa volume và chạy lại, KHÔNG bao giờ sửa checksum trong DB.
+
+## Tạo Tài Khoản Test (QUAN TRỌNG)
+- **KHÔNG hardcode bcrypt hash trong SQL migration.** Dễ sai, khó debug.
+- **Cách đúng:**
+  1. Đăng ký tài khoản qua REST API: `POST /api/v1/auth/register`
+  2. Nếu cần role đặc biệt (ADMIN, SALES, WAREHOUSE): update trực tiếp trong DB:
+     ```sql
+     -- Table: account (email, password_hash, role_id), role (id, name)
+     -- role_id: 1=ADMIN, 2=SALES, 3=WAREHOUSE, 4=CUSTOMER
+     UPDATE account SET role_id = 1 WHERE email = 'admin@pcparts.com';
+     ```
+  3. Lưu thông tin tài khoản test vào bảng bên dưới để không phải đoán mò.
+
+### Tài khoản test hiện tại
+
+| Role | Email | Password | Ghi chú |
+|------|-------|----------|---------|
+| ADMIN | admin@pcparts.com | Admin@123 | Đăng ký qua API → update role_id = 1 |
+| CUSTOMER | customer@pcparts.com | Customer@123 | Đăng ký qua API |
+
+> **DB Schema:** `account` (id, email, password_hash, role_id) + `user_profile` (id, account_id, full_name, phone) + `role` (id, name)
+>
+> **Quy trình tạo tài khoản test sau khi reset DB:**
+> 1. `docker compose up -d` (đợi backend healthy)
+> 2. `Invoke-RestMethod -Uri "http://localhost/api/v1/auth/register" -Method POST -ContentType "application/json" -Body '{"fullName":"Admin User","email":"admin@pcparts.com","password":"Admin@123","phone":"0901234567"}'`
+> 3. Update role: `docker compose exec postgres psql -U pcparts -d pcparts -c "UPDATE account SET role_id = 1 WHERE email = 'admin@pcparts.com';"`
+> 4. Cập nhật bảng tài khoản test ở trên
+
 ## Quy tắc Test (QUAN TRỌNG)
 - Test phải được viết DỰA THEO tài liệu trong docs/, không tự suy luận
 - Một task chỉ được coi là HOÀN THÀNH khi tất cả test liên quan PASS
