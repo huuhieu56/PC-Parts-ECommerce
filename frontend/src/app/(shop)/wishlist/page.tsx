@@ -3,26 +3,40 @@
 import Link from "next/link";
 import { ChevronRight, Heart, ShoppingCart, Trash2, Cpu } from "lucide-react";
 import { useState, useEffect } from "react";
+import api from "@/lib/api";
+import { useCartStore } from "@/stores/cart-store";
 
 interface WishlistItem { id: number; productId: number; productName: string; productSlug: string; productPrice: number; productImage: string | null; }
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 export default function WishlistPage() {
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const { addItem: addToCart } = useCartStore();
 
   useEffect(() => {
     async function fetchWishlist() {
       try {
-        const token = localStorage.getItem("access_token");
-        if (!token) { setLoading(false); return; }
-        const res = await fetch(`${API_URL}/wishlist`, { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) setItems(await res.json());
-      } catch { /* empty */ } finally { setLoading(false); }
+        const res = await api.get("/wishlist");
+        const data = res.data.data || res.data;
+        setItems(Array.isArray(data) ? data : (data.content || []));
+      } catch { /* user not logged in or empty */ } finally { setLoading(false); }
     }
     fetchWishlist();
   }, []);
+
+  const handleRemove = async (productId: number) => {
+    try {
+      await api.delete(`/wishlist/${productId}`);
+      setItems(items.filter(i => i.productId !== productId));
+    } catch { /* empty */ }
+  };
+
+  const handleAddToCart = async (productId: number) => {
+    try {
+      await addToCart(productId, 1);
+    } catch { /* empty */ }
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -53,8 +67,8 @@ export default function WishlistPage() {
                   <Link href={`/products/${item.productSlug}`} className="text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-2">{item.productName}</Link>
                   <p className="text-[#E31837] font-bold mt-1">{formatPrice(item.productPrice)}</p>
                   <div className="flex gap-2 mt-2">
-                    <button className="flex-1 bg-blue-600 text-white text-xs py-1.5 rounded font-medium hover:bg-blue-700 flex items-center justify-center gap-1"><ShoppingCart className="w-3 h-3" /> Mua</button>
-                    <button className="px-2 py-1.5 border border-gray-200 rounded text-red-500 hover:bg-red-50"><Trash2 className="w-3 h-3" /></button>
+                    <button onClick={() => handleAddToCart(item.productId)} className="flex-1 bg-blue-600 text-white text-xs py-1.5 rounded font-medium hover:bg-blue-700 flex items-center justify-center gap-1"><ShoppingCart className="w-3 h-3" /> Mua</button>
+                    <button onClick={() => handleRemove(item.productId)} className="px-2 py-1.5 border border-gray-200 rounded text-red-500 hover:bg-red-50"><Trash2 className="w-3 h-3" /></button>
                   </div>
                 </div>
               </div>

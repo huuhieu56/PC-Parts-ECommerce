@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { ChevronRight, Package, Truck, CheckCircle } from "lucide-react";
+import api from "@/lib/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -13,15 +13,14 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetch_() {
+    async function fetchOrder() {
       try {
-        const token = localStorage.getItem("access_token");
-        if (!token) { setLoading(false); return; }
-        const res = await fetch(`${API_URL}/orders/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) setOrder(await res.json());
+        const res = await api.get(`/orders/${id}`);
+        const data = res.data.data || res.data;
+        setOrder(data);
       } catch { /* empty */ } finally { setLoading(false); }
     }
-    fetch_();
+    fetchOrder();
   }, [id]);
 
   if (loading) return <div className="bg-gray-50 min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>;

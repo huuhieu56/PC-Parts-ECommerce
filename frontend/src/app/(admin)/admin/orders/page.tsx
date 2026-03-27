@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
+import api from "@/lib/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 const statusColors: Record<string, string> = { PENDING: "bg-amber-100 text-amber-700", CONFIRMED: "bg-blue-100 text-blue-700", PROCESSING: "bg-blue-100 text-blue-700", SHIPPED: "bg-purple-100 text-purple-700", DELIVERED: "bg-green-100 text-green-700", CANCELLED: "bg-red-100 text-red-700" };
 
@@ -14,15 +14,14 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetch_() {
+    async function fetchOrders() {
       try {
-        const token = localStorage.getItem("access_token");
-        if (!token) { setLoading(false); return; }
-        const res = await fetch(`${API_URL}/orders?page=0&size=50`, { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) { const data = await res.json(); setOrders(data.content || []); }
+        const res = await api.get("/orders/admin?page=0&size=50");
+        const data = res.data.data || res.data;
+        setOrders(data.content || []);
       } catch { /* empty */ } finally { setLoading(false); }
     }
-    fetch_();
+    fetchOrders();
   }, []);
 
   return (

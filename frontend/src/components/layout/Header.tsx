@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Cpu, ShoppingCart, Heart, User, Menu, LogOut, Package, Settings, Search, Phone, MapPin, Tag, Monitor } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
+import { useCartStore } from "@/stores/cart-store";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const navLinks = [
   { href: "/", label: "Trang chủ" },
@@ -22,9 +23,15 @@ const navLinks = [
 
 export function Header() {
   const { user, isAuthenticated, clearAuth } = useAuthStore();
+  const { totalItems } = useCartStore();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [mounted, setMounted] = useState(false);
   const isAdmin = user?.role === "ADMIN" || user?.role === "SALES" || user?.role === "WAREHOUSE";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +99,7 @@ export function Header() {
               <Monitor className="w-5 h-5" />
               <span className="text-[10px] font-medium">Build PC</span>
             </Link>
-            {isAuthenticated && (
+            {mounted && isAuthenticated && (
               <Link href="/wishlist" className="flex flex-col items-center gap-0.5 px-3 py-1 hover:bg-white/10 rounded-lg transition-colors text-white/90 hover:text-white">
                 <Heart className="w-5 h-5" />
                 <span className="text-[10px] font-medium">Yêu thích</span>
@@ -101,8 +108,11 @@ export function Header() {
             <Link href="/cart" className="flex flex-col items-center gap-0.5 px-3 py-1 hover:bg-white/10 rounded-lg transition-colors text-white/90 hover:text-white relative">
               <ShoppingCart className="w-5 h-5" />
               <span className="text-[10px] font-medium">Giỏ hàng</span>
+              {mounted && totalItems > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{totalItems > 9 ? "9+" : totalItems}</span>
+              )}
             </Link>
-            {isAuthenticated ? (
+            {mounted && isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex flex-col items-center gap-0.5 px-3 py-1 hover:bg-white/10 rounded-lg transition-colors text-white/90 hover:text-white cursor-pointer">
                   <User className="w-5 h-5" />

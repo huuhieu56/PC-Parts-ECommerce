@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { ChevronRight, Shield, Clock, AlertCircle } from "lucide-react";
 import { useState, useEffect } from "react";
+import api from "@/lib/api";
 
 interface WarrantyRequest { id: number; productName: string; status: string; issueDescription: string; createdAt: string; }
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 const statusColors: Record<string, string> = { PENDING: "bg-amber-100 text-amber-700", IN_PROGRESS: "bg-blue-100 text-blue-700", RESOLVED: "bg-green-100 text-green-700", REJECTED: "bg-red-100 text-red-700" };
 const statusLabels: Record<string, string> = { PENDING: "Chờ xử lý", IN_PROGRESS: "Đang xử lý", RESOLVED: "Đã xử lý", REJECTED: "Từ chối" };
 
@@ -14,15 +14,14 @@ export default function WarrantyPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetch_() {
+    async function fetchWarranty() {
       try {
-        const token = localStorage.getItem("access_token");
-        if (!token) { setLoading(false); return; }
-        const res = await fetch(`${API_URL}/warranty/my`, { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) setRequests(await res.json());
+        const res = await api.get("/warranty/my");
+        const data = res.data.data || res.data;
+        setRequests(Array.isArray(data) ? data : (data.content || []));
       } catch { /* empty */ } finally { setLoading(false); }
     }
-    fetch_();
+    fetchWarranty();
   }, []);
 
   return (

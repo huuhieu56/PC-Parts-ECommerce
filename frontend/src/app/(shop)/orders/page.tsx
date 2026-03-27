@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { ChevronRight, Package, Clock, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
+import api from "@/lib/api";
 
 interface Order { id: number; orderNumber: string; status: string; totalAmount: number; createdAt: string; itemCount: number; }
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 const statusColors: Record<string, string> = {
@@ -28,11 +28,10 @@ export default function OrdersPage() {
   useEffect(() => {
     async function fetchOrders() {
       try {
-        const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-        if (!token) { setLoading(false); return; }
-        const res = await fetch(`${API_URL}/orders/my?page=0&size=20`, { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) { const data = await res.json(); setOrders(data.content || []); }
-      } catch { /* empty */ } finally { setLoading(false); }
+        const res = await api.get("/orders?page=0&size=20");
+        const data = res.data.data || res.data;
+        setOrders(data.content || []);
+      } catch { /* user not logged in */ } finally { setLoading(false); }
     }
     fetchOrders();
   }, []);

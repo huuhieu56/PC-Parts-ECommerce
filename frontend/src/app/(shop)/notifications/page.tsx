@@ -3,31 +3,28 @@
 import Link from "next/link";
 import { ChevronRight, Bell, Check, CheckCheck } from "lucide-react";
 import { useState, useEffect } from "react";
+import api from "@/lib/api";
 
 interface Notification { id: number; title: string; message: string; type: string; isRead: boolean; createdAt: string; }
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetch_() {
+    async function fetchNotifications() {
       try {
-        const token = localStorage.getItem("access_token");
-        if (!token) { setLoading(false); return; }
-        const res = await fetch(`${API_URL}/notifications?page=0&size=50`, { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) { const data = await res.json(); setNotifications(data.content || []); }
+        const res = await api.get("/notifications?page=0&size=50");
+        const data = res.data.data || res.data;
+        setNotifications(data.content || []);
       } catch { /* empty */ } finally { setLoading(false); }
     }
-    fetch_();
+    fetchNotifications();
   }, []);
 
   const markAllRead = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) return;
-      await fetch(`${API_URL}/notifications/mark-all-read`, { method: "PUT", headers: { Authorization: `Bearer ${token}` } });
+      await api.put("/notifications/mark-all-read");
       setNotifications(notifications.map(n => ({ ...n, isRead: true })));
     } catch { /* empty */ }
   };

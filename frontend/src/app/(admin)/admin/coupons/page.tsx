@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Search, Tag } from "lucide-react";
+import api from "@/lib/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 interface Coupon { id: number; code: string; discountType: string; discountValue: number; minOrderAmount: number; maxUses: number; currentUses: number; isActive: boolean; expiryDate: string; }
@@ -13,15 +13,14 @@ export default function AdminCouponsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetch_() {
+    async function fetchCoupons() {
       try {
-        const token = localStorage.getItem("access_token");
-        if (!token) { setLoading(false); return; }
-        const res = await fetch(`${API_URL}/coupons`, { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) setCoupons(await res.json());
+        const res = await api.get("/coupons");
+        const data = res.data.data || res.data;
+        setCoupons(Array.isArray(data) ? data : (data.content || []));
       } catch { /* empty */ } finally { setLoading(false); }
     }
-    fetch_();
+    fetchCoupons();
   }, []);
 
   return (

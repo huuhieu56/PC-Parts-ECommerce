@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Search, Shield } from "lucide-react";
+import api from "@/lib/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 const statusColors: Record<string, string> = { PENDING: "bg-amber-100 text-amber-700", IN_PROGRESS: "bg-blue-100 text-blue-700", RESOLVED: "bg-green-100 text-green-700", REJECTED: "bg-red-100 text-red-700" };
 
 interface WarrantyReq { id: number; productName: string; customerName: string; issueDescription: string; status: string; createdAt: string; }
@@ -13,15 +13,14 @@ export default function AdminWarrantyPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetch_() {
+    async function fetchWarranty() {
       try {
-        const token = localStorage.getItem("access_token");
-        if (!token) { setLoading(false); return; }
-        const res = await fetch(`${API_URL}/warranty?page=0&size=50`, { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) { const data = await res.json(); setRequests(data.content || data || []); }
+        const res = await api.get("/warranty?page=0&size=50");
+        const data = res.data.data || res.data;
+        setRequests(data.content || data || []);
       } catch { /* empty */ } finally { setLoading(false); }
     }
-    fetch_();
+    fetchWarranty();
   }, []);
 
   return (

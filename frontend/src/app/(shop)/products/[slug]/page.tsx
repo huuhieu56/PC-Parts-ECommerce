@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useState, useEffect, use } from "react";
+import { useRouter } from "next/navigation";
 import { Cpu, Star, ShoppingCart, Heart, Phone, MapPin, ChevronRight, Shield, Truck, RotateCcw, Minus, Plus } from "lucide-react";
+import { useCartStore } from "@/stores/cart-store";
+import api from "@/lib/api";
 
 interface ProductDto {
   id: number;
@@ -77,9 +80,54 @@ function formatPrice(price: number): string {
 
 export default function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
+  const router = useRouter();
+  const { addItem } = useCartStore();
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState(1);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [cartMsg, setCartMsg] = useState("");
+
+  const handleAddToCart = async () => {
+    if (!product) return;
+    setAddingToCart(true);
+    try {
+      await addItem(product.id, qty);
+      setCartMsg("Đã thêm vào giỏ hàng!");
+      setTimeout(() => setCartMsg(""), 3000);
+    } catch {
+      setCartMsg("Lỗi khi thêm vào giỏ hàng");
+      setTimeout(() => setCartMsg(""), 3000);
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!product) return;
+    setAddingToCart(true);
+    try {
+      await addItem(product.id, qty);
+      router.push("/checkout");
+    } catch {
+      setCartMsg("Lỗi khi thêm vào giỏ hàng");
+      setTimeout(() => setCartMsg(""), 3000);
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
+  const handleWishlist = async () => {
+    if (!product) return;
+    try {
+      await api.post(`/wishlist/${product.id}`);
+      setCartMsg("Đã thêm vào yêu thích!");
+      setTimeout(() => setCartMsg(""), 3000);
+    } catch {
+      setCartMsg("Cần đăng nhập để thêm yêu thích");
+      setTimeout(() => setCartMsg(""), 3000);
+    }
+  };
 
   useEffect(() => {
     async function fetchProduct() {
@@ -259,19 +307,24 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
               </div>
 
               {/* CTA Buttons */}
+              {cartMsg && (
+                <div className={`text-sm text-center py-2 px-3 rounded-lg mb-2 ${cartMsg.includes("Lỗi") || cartMsg.includes("Cần") ? "bg-red-50 text-red-600" : "bg-green-50 text-green-600"}`}>
+                  {cartMsg}
+                </div>
+              )}
               <div className="space-y-2">
-                <button className="w-full bg-[#E31837] hover:bg-red-700 text-white py-3.5 rounded-lg font-bold text-base transition-colors shadow-md">
-                  ĐẶT MUA NGAY
+                <button onClick={handleBuyNow} disabled={addingToCart} className="w-full bg-[#E31837] hover:bg-red-700 text-white py-3.5 rounded-lg font-bold text-base transition-colors shadow-md disabled:opacity-50">
+                  {addingToCart ? "Đang xử lý..." : "ĐẶT MUA NGAY"}
                 </button>
                 <div className="grid grid-cols-2 gap-2">
                   <button className="border border-gray-300 text-gray-700 hover:bg-gray-50 py-2.5 rounded-lg text-sm font-medium transition-colors">
                     MUA TRẢ GÓP
                   </button>
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1">
-                    <ShoppingCart className="w-4 h-4" /> CHO VÀO GIỎ
+                  <button onClick={handleAddToCart} disabled={addingToCart} className="bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1 disabled:opacity-50">
+                    <ShoppingCart className="w-4 h-4" /> {addingToCart ? "Đang thêm..." : "CHO VÀO GIỎ"}
                   </button>
                 </div>
-                <button className="w-full border border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-200 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1">
+                <button onClick={handleWishlist} className="w-full border border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-200 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1">
                   <Heart className="w-4 h-4" /> Thêm vào yêu thích
                 </button>
               </div>
