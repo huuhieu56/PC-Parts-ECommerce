@@ -56,8 +56,8 @@ export const useCartStore = create<CartState>()(
         const computedCount = items.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
         set({
           items,
-          totalPrice: data.totalPrice || computedTotal,
-          totalItems: data.totalItems || computedCount,
+          totalPrice: computedTotal || data.totalPrice || 0,
+          totalItems: computedCount,
         });
       },
 
@@ -71,8 +71,8 @@ export const useCartStore = create<CartState>()(
           const computedCount = items.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
           set({
             items,
-            totalPrice: cart.totalPrice || computedTotal,
-            totalItems: cart.totalItems || computedCount,
+            totalPrice: computedTotal || cart.totalPrice || 0,
+            totalItems: computedCount,
           });
         } catch {
           // If unauthenticated and no session cart, just keep empty
@@ -90,8 +90,8 @@ export const useCartStore = create<CartState>()(
           const computedCount = items.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
           set({
             items,
-            totalPrice: cart.totalPrice || computedTotal,
-            totalItems: cart.totalItems || computedCount,
+            totalPrice: computedTotal || cart.totalPrice || 0,
+            totalItems: computedCount,
           });
         } catch (err) {
           console.error("Failed to add item to cart", err);
@@ -108,8 +108,8 @@ export const useCartStore = create<CartState>()(
           const computedCount = items.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
           set({
             items,
-            totalPrice: cart.totalPrice || computedTotal,
-            totalItems: cart.totalItems || computedCount,
+            totalPrice: computedTotal || cart.totalPrice || 0,
+            totalItems: computedCount,
           });
         } catch (err) {
           console.error("Failed to update cart item", err);
@@ -126,8 +126,8 @@ export const useCartStore = create<CartState>()(
           const computedCount = items.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
           set({
             items,
-            totalPrice: cart.totalPrice || computedTotal,
-            totalItems: cart.totalItems || computedCount,
+            totalPrice: computedTotal || cart.totalPrice || 0,
+            totalItems: computedCount,
           });
         } catch (err) {
           console.error("Failed to remove cart item", err);
