@@ -610,8 +610,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                   ? Math.round((1 - p.sellingPrice / p.originalPrice) * 100)
                   : 0;
                 return (
-                  <Link key={p.id} href={`/products/${p.slug}`} className="group">
-                    <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                  <Link key={p.id} href={`/products/${p.slug}`} className="group h-full">
+                    <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col">
                       <div className="aspect-square p-3 relative">
                         {img ? (
                           <img src={img.imageUrl} alt={p.name} className="w-full h-full object-contain" />
@@ -622,12 +622,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                           <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded">-{discount}%</span>
                         )}
                       </div>
-                      <div className="p-3">
-                        <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">{p.name}</p>
-                        {p.originalPrice > p.sellingPrice && (
-                          <p className="text-xs text-gray-400 line-through">{formatPrice(p.originalPrice)}</p>
-                        )}
-                        <p className="text-[#E31837] font-bold">{formatPrice(p.sellingPrice)}</p>
+                      <div className="p-3 flex-1 flex flex-col">
+                        <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1 min-h-[2.5rem] leading-snug">{p.name}</p>
+                        <div className="mt-auto">
+                          {p.originalPrice > p.sellingPrice && (
+                            <p className="text-xs text-gray-400 line-through">{formatPrice(p.originalPrice)}</p>
+                          )}
+                          <p className="text-[#E31837] font-bold">{formatPrice(p.sellingPrice)}</p>
+                        </div>
                       </div>
                     </div>
                   </Link>

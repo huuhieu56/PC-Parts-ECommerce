@@ -55,11 +55,12 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/build-pc/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/build-pc/export-quote").permitAll()
-                // Cart — GET and POST /items for guests (session-based), PUT/DELETE require auth
+                // Cart — guests use session-based cart (X-Session-Id header)
                 .requestMatchers(HttpMethod.GET, "/api/v1/cart/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/cart/items").permitAll()
-                .requestMatchers(HttpMethod.PUT, "/api/v1/cart/**").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/cart/**").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/v1/cart/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/cart/items/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/cart").authenticated()
                 // Admin endpoints
                 .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN", "SALES", "WAREHOUSE")
                 // All other requests require authentication
