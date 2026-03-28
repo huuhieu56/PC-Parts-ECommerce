@@ -17,7 +17,7 @@ set -euo pipefail
 
 # ── Config ──────────────────────────────────────────────
 BASE_URL="${BASE_URL:-http://localhost/api/v1/auth}"
-HEALTH_URL="${HEALTH_URL:-http://localhost/api/v1/actuator/health}"
+HEALTH_URL="${HEALTH_URL:-http://localhost/actuator/health}"
 DB_USER="${DB_USER:-pcparts}"
 DB_NAME="${DB_NAME:-pcparts}"
 MAX_WAIT="${MAX_WAIT:-120}"  # seconds
