@@ -100,7 +100,7 @@ export function Header() {
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/products" className="flex items-center gap-1 hover:text-amber-400 transition-colors">
+            <Link href="/products?sale=true" className="flex items-center gap-1 hover:text-amber-400 transition-colors">
               <Tag className="w-3 h-3" />
               Khuyến mãi
             </Link>
@@ -281,7 +281,7 @@ export function Header() {
               </Link>
             ))}
             <Link
-              href="/products"
+              href="/products?sale=true"
               className="px-4 h-full flex items-center text-sm font-medium text-amber-400 hover:text-amber-300 hover:bg-white/5 transition-colors"
             >
               🔥 Khuyến mãi

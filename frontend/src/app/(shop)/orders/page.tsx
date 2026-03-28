@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { ChevronRight, Package, Clock, ChevronDown } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import api from "@/lib/api";
+import Pagination from "@/components/Pagination";
 
 interface Order { id: number; orderNumber: string; status: string; totalAmount: number; createdAt: string; itemCount: number; }
+interface PageData { content: Order[]; page: number; totalPages: number; totalElements: number; hasNext: boolean; hasPrevious: boolean; size: number; }
 function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 const statusColors: Record<string, string> = {
@@ -22,19 +24,23 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [pageData, setPageData] = useState<PageData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
+  const pageSize = 10;
 
-  useEffect(() => {
-    async function fetchOrders() {
-      try {
-        const res = await api.get("/orders?page=0&size=20");
-        const data = res.data.data || res.data;
-        setOrders(data.content || []);
-      } catch { /* user not logged in */ } finally { setLoading(false); }
-    }
-    fetchOrders();
+  const fetchOrders = useCallback(async (page: number) => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/orders?page=${page}&size=${pageSize}`);
+      const data = res.data.data || res.data;
+      setPageData(data);
+    } catch { /* user not logged in */ } finally { setLoading(false); }
   }, []);
+
+  useEffect(() => { fetchOrders(currentPage); }, [currentPage, fetchOrders]);
+
+  const orders = pageData?.content || [];
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -58,28 +64,35 @@ export default function OrdersPage() {
             <Link href="/products" className="text-blue-600 hover:text-blue-700 text-sm font-medium">Mua sắm ngay →</Link>
           </div>
         ) : (
-          <div className="space-y-3">
-            {orders.map(order => (
-              <Link key={order.id} href={`/orders/${order.id}`} className="block bg-white rounded-xl shadow-sm p-5 hover:shadow-md transition-shadow border border-gray-100">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-semibold text-gray-900">#{order.orderNumber}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[order.status] || "bg-gray-100 text-gray-600"}`}>
-                      {statusLabels[order.status] || order.status}
-                    </span>
+          <>
+            <div className="space-y-3">
+              {orders.map(order => (
+                <Link key={order.id} href={`/orders/${order.id}`} className="block bg-white rounded-xl shadow-sm p-5 hover:shadow-md transition-shadow border border-gray-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-semibold text-gray-900">#{order.orderNumber}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[order.status] || "bg-gray-100 text-gray-600"}`}>
+                        {statusLabels[order.status] || order.status}
+                      </span>
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-gray-400 -rotate-90" />
                   </div>
-                  <ChevronDown className="w-4 h-4 text-gray-400 -rotate-90" />
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-4 text-gray-500">
-                    <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {new Date(order.createdAt).toLocaleDateString("vi-VN")}</span>
-                    <span>{order.itemCount || "—"} sản phẩm</span>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-4 text-gray-500">
+                      <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {new Date(order.createdAt).toLocaleDateString("vi-VN")}</span>
+                      <span>{order.itemCount || "—"} sản phẩm</span>
+                    </div>
+                    <span className="font-bold text-[#E31837]">{formatPrice(order.totalAmount)}</span>
                   </div>
-                  <span className="font-bold text-[#E31837]">{formatPrice(order.totalAmount)}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+            {pageData && (
+              <div className="mt-4 bg-white rounded-xl shadow-sm overflow-hidden">
+                <Pagination page={pageData.page} totalPages={pageData.totalPages} totalElements={pageData.totalElements} hasNext={pageData.hasNext} hasPrevious={pageData.hasPrevious} onPageChange={setCurrentPage} size={pageSize} />
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

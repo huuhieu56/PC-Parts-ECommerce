@@ -210,6 +210,16 @@ public class OrderService {
     }
 
     /**
+     * Gets order detail for admin (no owner validation).
+     */
+    @Transactional(readOnly = true)
+    public OrderDto getOrderByIdAdmin(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
+        return toDto(order);
+    }
+
+    /**
      * Lists orders for the current user. BUG-13 fix: uses accountId.
      */
     @Transactional(readOnly = true)
@@ -218,10 +228,7 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", accountId));
         Page<Order> orders = orderRepository.findByUserIdOrderByCreatedAtDesc(user.getId(), PageRequest.of(page, size));
         List<OrderDto> dtos = orders.getContent().stream().map(this::toDto).collect(Collectors.toList());
-        return PageResponse.<OrderDto>builder()
-                .content(dtos).page(orders.getNumber()).size(orders.getSize())
-                .totalElements(orders.getTotalElements()).totalPages(orders.getTotalPages())
-                .last(orders.isLast()).build();
+        return PageResponse.from(orders, dtos);
     }
 
     /**
@@ -281,10 +288,7 @@ public class OrderService {
                 ? orderRepository.findByStatusOrderByCreatedAtDesc(status, PageRequest.of(page, size))
                 : orderRepository.findAll(PageRequest.of(page, size));
         List<OrderDto> dtos = orders.getContent().stream().map(this::toDto).collect(Collectors.toList());
-        return PageResponse.<OrderDto>builder()
-                .content(dtos).page(orders.getNumber()).size(orders.getSize())
-                .totalElements(orders.getTotalElements()).totalPages(orders.getTotalPages())
-                .last(orders.isLast()).build();
+        return PageResponse.from(orders, dtos);
     }
 
     /**
@@ -326,14 +330,37 @@ public class OrderService {
                         .lineTotal(d.getLineTotal())
                         .build())
                 .collect(Collectors.toList());
+        // Build shipping address from Address entity
+        Address addr = order.getAddress();
+        String recipientName = null;
+        String recipientPhone = null;
+        String shippingAddress = null;
+        if (addr != null) {
+            recipientName = addr.getReceiverName();
+            recipientPhone = addr.getReceiverPhone();
+            shippingAddress = String.join(", ",
+                    addr.getStreet() != null ? addr.getStreet() : "",
+                    addr.getWard() != null ? addr.getWard() : "",
+                    addr.getDistrict() != null ? addr.getDistrict() : "",
+                    addr.getProvince() != null ? addr.getProvince() : ""
+            ).replaceAll("^,\\s*|,\\s*$", "").replaceAll(",\\s*,", ",");
+        }
+
         return OrderDto.builder()
                 .id(order.getId())
+                .orderNumber(String.format("ORD-%06d", order.getId()))
                 .subtotal(order.getSubtotal())
                 .discountAmount(order.getDiscountAmount())
                 .totalAmount(order.getTotalAmount())
                 .status(order.getStatus())
                 .note(order.getNote())
+                .recipientName(recipientName)
+                .recipientPhone(recipientPhone)
+                .shippingAddress(shippingAddress)
+                .paymentMethod("COD")
+                .paymentStatus("PENDING")
                 .createdAt(order.getCreatedAt() != null ? order.getCreatedAt().toString() : null)
+                .itemCount(detailDtos.size())
                 .items(detailDtos)
                 .build();
     }
@@ -360,12 +387,19 @@ public class OrderService {
     @Data @Builder @NoArgsConstructor @AllArgsConstructor
     public static class OrderDto {
         private Long id;
+        private String orderNumber;
         private BigDecimal subtotal;
         private BigDecimal discountAmount;
         private BigDecimal totalAmount;
         private String status;
         private String note;
+        private String recipientName;
+        private String recipientPhone;
+        private String shippingAddress;
+        private String paymentMethod;
+        private String paymentStatus;
         private String createdAt;
+        private int itemCount;
         private List<OrderDetailDto> items;
     }
 

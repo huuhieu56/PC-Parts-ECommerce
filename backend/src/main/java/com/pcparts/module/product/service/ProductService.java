@@ -48,25 +48,24 @@ public class ProductService {
                                                   Long categoryId, Long brandId, String keyword,
                                                   BigDecimal minPrice, BigDecimal maxPrice,
                                                   List<Long> attributeValueIds) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, sort != null ? sort : "createdAt"));
+        Sort springSort;
+        if (sort != null && !sort.isBlank()) {
+            String[] parts = sort.split(",", 2);
+            String field = parts[0].trim();
+            Sort.Direction direction = (parts.length > 1 && parts[1].trim().equalsIgnoreCase("asc"))
+                    ? Sort.Direction.ASC : Sort.Direction.DESC;
+            springSort = Sort.by(direction, field);
+        } else {
+            springSort = Sort.by(Sort.Direction.DESC, "createdAt");
+        }
+        Pageable pageable = PageRequest.of(page, size, springSort);
 
         Specification<Product> spec = ProductSpecification.buildFilter(
                 categoryId, brandId, keyword, minPrice, maxPrice, attributeValueIds);
 
         Page<Product> productPage = productRepository.findAll(spec, pageable);
 
-        List<ProductDto> dtos = productPage.getContent().stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
-
-        return PageResponse.<ProductDto>builder()
-                .content(dtos)
-                .page(productPage.getNumber())
-                .size(productPage.getSize())
-                .totalElements(productPage.getTotalElements())
-                .totalPages(productPage.getTotalPages())
-                .last(productPage.isLast())
-                .build();
+        return PageResponse.from(productPage, this::toDto);
     }
 
     /**

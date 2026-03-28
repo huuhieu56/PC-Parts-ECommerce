@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Search, Edit2, Trash2, Tag } from "lucide-react";
 import api from "@/lib/api";
+import Pagination from "@/components/Pagination";
 
 interface Brand { id: number; name: string; description: string; logoUrl?: string; }
 
@@ -14,6 +15,8 @@ export default function AdminBrandsPage() {
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState({ name: "", description: "" });
   const [msg, setMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const pageSize = 15;
 
   const fetchBrands = async () => {
     try { const res = await api.get("/brands"); setBrands(res.data.data || res.data || []); } catch { /* empty */ } finally { setLoading(false); }
@@ -21,6 +24,9 @@ export default function AdminBrandsPage() {
   useEffect(() => { fetchBrands(); }, []);
 
   const filtered = brands.filter(b => b.name.toLowerCase().includes(search.toLowerCase()));
+  const totalPages = Math.ceil(filtered.length / pageSize);
+  const paged = filtered.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+
   const openCreate = () => { setEditId(null); setForm({ name: "", description: "" }); setShowForm(true); };
   const openEdit = (b: Brand) => { setEditId(b.id); setForm({ name: b.name, description: b.description || "" }); setShowForm(true); };
 
@@ -63,13 +69,13 @@ export default function AdminBrandsPage() {
       )}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-4 border-b border-gray-200"><div className="relative max-w-sm"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm thương hiệu..." className="w-full h-9 pl-9 pr-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" /></div></div>
-        {loading ? <div className="p-8 text-center text-gray-400">Đang tải...</div> : filtered.length === 0 ? (
+          <input value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(0); }} placeholder="Tìm thương hiệu..." className="w-full h-9 pl-9 pr-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" /></div></div>
+        {loading ? <div className="p-8 text-center text-gray-400">Đang tải...</div> : paged.length === 0 ? (
           <div className="p-8 text-center"><Tag className="w-12 h-12 text-gray-300 mx-auto mb-2" /><p className="text-gray-400">Không có thương hiệu nào</p></div>
         ) : (
           <table className="w-full text-sm">
             <thead><tr className="text-left text-gray-500 bg-gray-50 border-b border-gray-200"><th className="px-4 py-3 font-medium">Tên</th><th className="px-4 py-3 font-medium">Mô tả</th><th className="px-4 py-3 font-medium">Thao tác</th></tr></thead>
-            <tbody>{filtered.map(b => (
+            <tbody>{paged.map(b => (
               <tr key={b.id} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="px-4 py-3 font-medium text-gray-900">{b.name}</td>
                 <td className="px-4 py-3 text-gray-500 max-w-md truncate">{b.description || "—"}</td>
@@ -81,6 +87,7 @@ export default function AdminBrandsPage() {
             ))}</tbody>
           </table>
         )}
+        <Pagination page={currentPage} totalPages={totalPages} totalElements={filtered.length} hasNext={currentPage < totalPages - 1} hasPrevious={currentPage > 0} onPageChange={setCurrentPage} size={pageSize} />
       </div>
     </div>
   );

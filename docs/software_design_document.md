@@ -128,13 +128,13 @@ Hệ thống được thiết kế theo kiến trúc **Monolithic phân lớp (L
 │  │                                                          │   │
 │  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐   │   │
 │  │  │Controller│ │Controller│ │Controller│ │Controller│   │   │
-│  │  │  Auth    │ │ Product  │ │  Order   │ │ Build PC │   │   │
+│  │  │  Auth    │ │ Product  │ │  Order   │ │Notification│  │   │
 │  │  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘   │   │
 │  │       │             │            │             │         │   │
 │  │  ┌────┴─────────────┴────────────┴─────────────┴─────┐   │   │
 │  │  │              SERVICE LAYER (Business Logic)       │   │   │
 │  │  │  AuthService, ProductService, OrderService,       │   │   │
-│  │  │  CartService, BuildPCService, InventoryService,   │   │   │
+│  │  │  CartService, NotificationService, InventoryService,│   │   │
 │  │  │  CouponService, ReviewService, WarrantyService,   │   │   │
 │  │  │  ShippingService, PaymentService, ReportService   │   │   │
 │  │  └────────────────────────┬──────────────────────────┘   │   │
@@ -699,14 +699,13 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 
 #### 4.2.5. Module Build PC (M05)
 
+> **Ghi chú kiến trúc:** Build PC là tính năng **frontend-only**. Người dùng chọn linh kiện, tính giá, xuất báo giá trên giao diện. Backend chỉ hỗ trợ 1 API kiểm tra tương thích AI (Phase 4).
+
 | Method | Endpoint | Mô tả | Actor |
 |:-------|:---------|:------|:------|
-| GET | `/build-pc/categories` | Danh sách slot (CPU, Main, RAM, ...) | Public |
-| GET | `/build-pc/products?category={id}` | SP theo slot, hỗ trợ filter | Public |
-| POST | `/build-pc/export-quote` | Xuất báo giá PDF | Public |
-| POST | `/build-pc/check-compatibility` | Kiểm tra tương thích AI (LLM) | Customer |
-| POST | `/build-pc/add-to-cart` | Thêm cấu hình vào giỏ | Customer |
-| POST | `/build-pc/create-order` | Tạo đơn hàng trực tiếp từ cấu hình Build PC | Customer |
+| POST | `/products/check-compatibility` | Kiểm tra tương thích AI (LLM) — nhận list product IDs, gọi LLM, trả kết quả | Customer |
+
+> Các thao tác khác (chọn linh kiện, tính giá, xuất báo giá PDF, thêm vào giỏ hàng) được xử lý hoàn toàn trên **Frontend** (Zustand state + PDF export lib). Khi người dùng muốn đặt hàng từ Build PC, frontend gọi API tạo đơn hàng tiêu chuẩn (`POST /orders`).
 
 #### 4.2.6. Module Kho hàng (M06 - Inventory)
 

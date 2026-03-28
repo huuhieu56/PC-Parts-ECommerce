@@ -66,7 +66,7 @@ public class OrderController {
      * Update order status (admin/sales).
      */
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SALES')")
+    @PreAuthorize("hasAuthority('order.update')")
     public ResponseEntity<ApiResponse<OrderDto>> updateStatus(
             @PathVariable Long id,
             @RequestParam String status,
@@ -76,10 +76,20 @@ public class OrderController {
     }
 
     /**
+     * Get order detail for admin (no owner validation).
+     */
+    @GetMapping("/admin/{id}")
+    @PreAuthorize("hasAuthority('order.view')")
+    public ResponseEntity<ApiResponse<OrderDto>> getOrderAdmin(@PathVariable Long id) {
+        OrderDto order = orderService.getOrderByIdAdmin(id);
+        return ResponseEntity.ok(ApiResponse.success("Chi tiết đơn hàng", order));
+    }
+
+    /**
      * List all orders (admin).
      */
     @GetMapping("/admin")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SALES')")
+    @PreAuthorize("hasAuthority('order.view')")
     public ResponseEntity<ApiResponse<PageResponse<OrderDto>>> getAllOrders(
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") @Min(0) int page,

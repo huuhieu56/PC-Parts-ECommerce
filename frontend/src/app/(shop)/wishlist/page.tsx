@@ -6,8 +6,18 @@ import { useState, useEffect } from "react";
 import api from "@/lib/api";
 import { useCartStore } from "@/stores/cart-store";
 
-interface WishlistItem { id: number; productId: number; productName: string; productSlug: string; productPrice: number; productImage: string | null; }
-function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
+// Backend WishlistItemDto fields: productId, productName, sellingPrice, slug, status
+interface WishlistItem {
+  productId: number;
+  productName: string;
+  sellingPrice: number;
+  slug: string;
+  status: string;
+}
+function formatPrice(p: number | undefined | null): string {
+  if (p == null) return "0 đ";
+  return p.toLocaleString("vi-VN") + " đ";
+}
 
 export default function WishlistPage() {
   const [items, setItems] = useState<WishlistItem[]>([]);
@@ -61,11 +71,11 @@ export default function WishlistPage() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {items.map(item => (
-              <div key={item.id} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+              <div key={item.productId} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                 <div className="aspect-square bg-gray-50 flex items-center justify-center"><Cpu className="w-10 h-10 text-gray-400" /></div>
                 <div className="p-3">
-                  <Link href={`/products/${item.productSlug}`} className="text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-2">{item.productName}</Link>
-                  <p className="text-[#E31837] font-bold mt-1">{formatPrice(item.productPrice)}</p>
+                  <Link href={`/products/${item.slug}`} className="text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-2">{item.productName}</Link>
+                  <p className="text-[#E31837] font-bold mt-1">{formatPrice(item.sellingPrice)}</p>
                   <div className="flex gap-2 mt-2">
                     <button onClick={() => handleAddToCart(item.productId)} className="flex-1 bg-blue-600 text-white text-xs py-1.5 rounded font-medium hover:bg-blue-700 flex items-center justify-center gap-1"><ShoppingCart className="w-3 h-3" /> Mua</button>
                     <button onClick={() => handleRemove(item.productId)} className="px-2 py-1.5 border border-gray-200 rounded text-red-500 hover:bg-red-50"><Trash2 className="w-3 h-3" /></button>

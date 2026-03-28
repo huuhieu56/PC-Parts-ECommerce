@@ -33,14 +33,14 @@ public class WarrantyController {
     }
 
     @GetMapping("/admin")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SALES')")
+    @PreAuthorize("hasAuthority('warranty.view')")
     public ResponseEntity<ApiResponse<Page<WarrantyDto>>> getAllRequests(
             @RequestParam(required = false) String status, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(ApiResponse.success("Tất cả yêu cầu", warrantyService.getAllRequests(status, page, size)));
     }
 
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SALES')")
+    @PreAuthorize("hasAuthority('warranty.manage')")
     public ResponseEntity<ApiResponse<WarrantyDto>> updateStatus(
             @PathVariable Long id, @RequestParam String status, @RequestParam(required = false) String resolution) {
         return ResponseEntity.ok(ApiResponse.success("Cập nhật thành công", warrantyService.updateStatus(id, status, resolution)));

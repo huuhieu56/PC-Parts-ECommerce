@@ -97,7 +97,7 @@ Hệ thống áp dụng kiến trúc **Modular Monolith** (ứng dụng Backend)
     │  • Server Components│ ◄──────   │  • Product Module       │
     │  • TypeScript       │  JSON     │  • Order Module         │
     │  • Tailwind + shadcn│           │  • Cart Module          │
-    │  • Zustand          │           │  • BuildPC Module       │
+    │  • Zustand          │           │  • Notification Module  │
     │  • TanStack Query   │           │  • Inventory Module     │
     │  • React Hook Form  │           │  • Coupon Module        │
     │  • Skeleton Loading │           │  • Review Module        │
@@ -219,7 +219,7 @@ graph TB
             ProductCtrl["ProductController"]
             CartCtrl["CartController"]
             OrderCtrl["OrderController"]
-            BuildPCCtrl["BuildPCController"]
+            NotificationCtrl["NotificationController"]
             InventoryCtrl["InventoryController"]
             CouponCtrl["CouponController"]
             ReviewCtrl["ReviewController"]
@@ -233,7 +233,7 @@ graph TB
             ProductSvc["ProductService"]
             CartSvc["CartService"]
             OrderSvc["OrderService"]
-            BuildPCSvc["BuildPCService"]
+            NotificationSvc["NotificationService"]
             InventorySvc["InventoryService"]
             CouponSvc["CouponService"]
             ReviewSvc["ReviewService"]
@@ -264,7 +264,7 @@ graph TB
     CartCtrl --> CartSvc
     OrderCtrl --> OrderSvc --> PaymentSvc
     OrderCtrl --> OrderSvc --> ShippingSvc
-    BuildPCCtrl --> BuildPCSvc --> LLMSvc
+    NotificationCtrl --> NotificationSvc
     InventoryCtrl --> InventorySvc
     CouponCtrl --> CouponSvc
     ReviewCtrl --> ReviewSvc

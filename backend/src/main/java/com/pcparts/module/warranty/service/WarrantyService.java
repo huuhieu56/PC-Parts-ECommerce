@@ -10,7 +10,9 @@ import com.pcparts.module.order.repository.OrderDetailRepository;
 import com.pcparts.module.order.repository.OrderRepository;
 import com.pcparts.module.product.entity.Product;
 import com.pcparts.module.product.repository.ProductRepository;
+import com.pcparts.module.warranty.entity.WarrantyPolicy;
 import com.pcparts.module.warranty.entity.WarrantyRequest;
+import com.pcparts.module.warranty.repository.WarrantyPolicyRepository;
 import com.pcparts.module.warranty.repository.WarrantyRequestRepository;
 import lombok.*;
 import org.springframework.data.domain.Page;
@@ -23,15 +25,15 @@ import java.time.LocalDateTime;
 
 /**
  * Service for warranty ticket operations.
- * BUG-10 fix: validates order is COMPLETED and warranty period is still valid.
- * BUG-11 fix: validates order belongs to the requesting user.
- * BUG-13 fix: resolves accountId → UserProfile.
+ * Uses WarrantyPolicy to determine warranty duration per product/category.
+ * Falls back to DEFAULT_WARRANTY_MONTHS if no specific policy exists.
  */
 @Service
 @RequiredArgsConstructor
 public class WarrantyService {
 
     private final WarrantyRequestRepository warrantyRepo;
+    private final WarrantyPolicyRepository warrantyPolicyRepo;
     private final UserProfileRepository userProfileRepository;
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
@@ -42,6 +44,7 @@ public class WarrantyService {
 
     /**
      * Creates a warranty request with full business validation.
+     * Uses WarrantyPolicy to determine warranty duration.
      *
      * @param accountId the account ID from JWT
      * @param req       warranty request details
@@ -49,7 +52,6 @@ public class WarrantyService {
      */
     @Transactional
     public WarrantyDto createRequest(Long accountId, WarrantyRequestDto req) {
-        // BUG-13 fix: resolve accountId → UserProfile
         UserProfile user = userProfileRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", accountId));
         Order order = orderRepository.findById(req.getOrderId())
@@ -57,29 +59,32 @@ public class WarrantyService {
         Product product = productRepository.findById(req.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "id", req.getProductId()));
 
-        // BUG-11 fix: validate order belongs to user
+        // Validate order belongs to user
         if (!order.getUser().getId().equals(user.getId())) {
             throw new BusinessException("Đơn hàng này không thuộc về bạn", HttpStatus.FORBIDDEN);
         }
 
-        // BUG-10 fix: validate order is COMPLETED
+        // Validate order is COMPLETED
         if (!"COMPLETED".equals(order.getStatus())) {
             throw new BusinessException("Chỉ có thể yêu cầu bảo hành cho đơn hàng đã hoàn thành", HttpStatus.BAD_REQUEST);
         }
 
-        // BUG-10 fix: validate product is in this order
+        // Validate product is in this order
         boolean productInOrder = orderDetailRepository.findByOrderId(order.getId()).stream()
                 .anyMatch(d -> d.getProduct().getId().equals(product.getId()));
         if (!productInOrder) {
             throw new BusinessException("Sản phẩm này không có trong đơn hàng", HttpStatus.BAD_REQUEST);
         }
 
-        // BUG-10 fix: validate warranty period
+        // Determine warranty duration from WarrantyPolicy
+        int warrantyMonths = getWarrantyDuration(product);
+
+        // Validate warranty period
         LocalDateTime orderDate = order.getCreatedAt();
-        LocalDateTime warrantyExpiry = orderDate.plusMonths(DEFAULT_WARRANTY_MONTHS);
+        LocalDateTime warrantyExpiry = orderDate.plusMonths(warrantyMonths);
         if (LocalDateTime.now().isAfter(warrantyExpiry)) {
             throw new BusinessException("Sản phẩm đã hết hạn bảo hành (hạn bảo hành: "
-                    + DEFAULT_WARRANTY_MONTHS + " tháng kể từ ngày mua)", HttpStatus.BAD_REQUEST);
+                    + warrantyMonths + " tháng kể từ ngày mua)", HttpStatus.BAD_REQUEST);
         }
 
         WarrantyRequest wr = WarrantyRequest.builder()
@@ -127,6 +132,29 @@ public class WarrantyService {
         wr.setResolution(resolution);
         wr = warrantyRepo.save(wr);
         return toDto(wr);
+    }
+
+    /**
+     * Determines warranty duration for a product.
+     * Priority: product-specific policy > category-level policy > default 12 months.
+     *
+     * @param product the product to check
+     * @return warranty duration in months
+     */
+    private int getWarrantyDuration(Product product) {
+        // Check product-specific policy first
+        return warrantyPolicyRepo.findByProductId(product.getId())
+                .map(WarrantyPolicy::getDurationMonths)
+                .orElseGet(() -> {
+                    // Fall back to category-level policy
+                    if (product.getCategory() != null) {
+                        var categoryPolicies = warrantyPolicyRepo.findByCategoryId(product.getCategory().getId());
+                        if (!categoryPolicies.isEmpty()) {
+                            return categoryPolicies.get(0).getDurationMonths();
+                        }
+                    }
+                    return DEFAULT_WARRANTY_MONTHS;
+                });
     }
 
     private WarrantyDto toDto(WarrantyRequest wr) {

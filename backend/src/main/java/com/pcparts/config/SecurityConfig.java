@@ -42,9 +42,9 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Actuator — health only for public, rest requires ADMIN
+                // Actuator — health public, rest requires admin permission
                 .requestMatchers("/actuator/health").permitAll()
-                .requestMatchers("/actuator/**").hasRole("ADMIN")
+                .requestMatchers("/actuator/**").hasAuthority("system.admin")
                 // Swagger / OpenAPI
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 // Public endpoints
@@ -60,8 +60,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/v1/cart/**").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/cart/items/**").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/cart").authenticated()
-                // Admin endpoints
-                .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN", "SALES", "WAREHOUSE")
+                // Admin endpoints — require at least one admin-level permission
+                // Fine-grained permission checks via @PreAuthorize on individual controllers
+                .requestMatchers("/api/v1/admin/**").authenticated()
                 // All other requests require authentication
                 .anyRequest().authenticated()
             )

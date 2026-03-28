@@ -27,7 +27,7 @@ public class InventoryController {
      * Gets inventory for a product.
      */
     @GetMapping("/{productId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE')")
+    @PreAuthorize("hasAuthority('inventory.view')")
     public ResponseEntity<ApiResponse<InventoryDto>> getInventory(@PathVariable Long productId) {
         InventoryDto dto = inventoryService.getByProductId(productId);
         return ResponseEntity.ok(ApiResponse.success("Thông tin tồn kho", dto));
@@ -37,7 +37,7 @@ public class InventoryController {
      * Imports stock.
      */
     @PostMapping("/{productId}/import")
-    @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE')")
+    @PreAuthorize("hasAuthority('inventory.import')")
     public ResponseEntity<ApiResponse<InventoryDto>> importStock(
             @PathVariable Long productId,
             @RequestBody StockRequest request,
@@ -51,7 +51,7 @@ public class InventoryController {
      * Exports stock.
      */
     @PostMapping("/{productId}/export")
-    @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE')")
+    @PreAuthorize("hasAuthority('inventory.import')")
     public ResponseEntity<ApiResponse<InventoryDto>> exportStock(
             @PathVariable Long productId,
             @RequestBody StockRequest request,
@@ -65,7 +65,7 @@ public class InventoryController {
      * Adjusts stock (manual correction).
      */
     @PostMapping("/{productId}/adjust")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('inventory.adjust')")
     public ResponseEntity<ApiResponse<InventoryDto>> adjustStock(
             @PathVariable Long productId,
             @RequestBody StockRequest request,
@@ -79,7 +79,7 @@ public class InventoryController {
      * Gets audit log for a product.
      */
     @GetMapping("/{productId}/logs")
-    @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE')")
+    @PreAuthorize("hasAuthority('inventory.view')")
     public ResponseEntity<ApiResponse<Page<InventoryLog>>> getAuditLog(
             @PathVariable Long productId,
             @RequestParam(defaultValue = "0") int page,

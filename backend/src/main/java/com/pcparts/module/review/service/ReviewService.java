@@ -53,29 +53,34 @@ public class ReviewService {
 
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "id", request.getProductId()));
-        Order order = orderRepository.findById(request.getOrderId())
-                .orElseThrow(() -> new ResourceNotFoundException("Order", "id", request.getOrderId()));
-
-        // BUG-06 fix: validate order belongs to user
-        if (!order.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("Đơn hàng không thuộc về bạn", HttpStatus.FORBIDDEN);
-        }
-
-        // BUG-06 fix: validate order is COMPLETED
-        if (!"COMPLETED".equals(order.getStatus())) {
-            throw new BusinessException("Chỉ có thể đánh giá sản phẩm khi đơn hàng đã hoàn thành", HttpStatus.BAD_REQUEST);
-        }
-
-        // BUG-06 fix: validate product is in this order
-        boolean productInOrder = orderDetailRepository.findByOrderId(order.getId()).stream()
-                .anyMatch(d -> d.getProduct().getId().equals(product.getId()));
-        if (!productInOrder) {
-            throw new BusinessException("Sản phẩm này không có trong đơn hàng", HttpStatus.BAD_REQUEST);
-        }
 
         // Validate rating range
         if (request.getRating() == null || request.getRating() < 1 || request.getRating() > 5) {
             throw new BusinessException("Số sao phải từ 1 đến 5", HttpStatus.BAD_REQUEST);
+        }
+
+        Order order = null;
+        // Order validation is optional — if orderId is provided, validate it
+        if (request.getOrderId() != null) {
+            order = orderRepository.findById(request.getOrderId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Order", "id", request.getOrderId()));
+
+            // BUG-06 fix: validate order belongs to user
+            if (!order.getUser().getId().equals(user.getId())) {
+                throw new BusinessException("Đơn hàng không thuộc về bạn", HttpStatus.FORBIDDEN);
+            }
+
+            // BUG-06 fix: validate order is COMPLETED
+            if (!"COMPLETED".equals(order.getStatus())) {
+                throw new BusinessException("Chỉ có thể đánh giá sản phẩm khi đơn hàng đã hoàn thành", HttpStatus.BAD_REQUEST);
+            }
+
+            // BUG-06 fix: validate product is in this order
+            boolean productInOrder = orderDetailRepository.findByOrderId(order.getId()).stream()
+                    .anyMatch(d -> d.getProduct().getId().equals(product.getId()));
+            if (!productInOrder) {
+                throw new BusinessException("Sản phẩm này không có trong đơn hàng", HttpStatus.BAD_REQUEST);
+            }
         }
 
         Review review = Review.builder()

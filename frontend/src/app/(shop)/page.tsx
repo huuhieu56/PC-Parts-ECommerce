@@ -110,9 +110,9 @@ function ProductCard({ product, onAddToCart }: { product: DisplayProduct; onAddT
         )}
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center pb-3 gap-2">
-          <Link href={`/products/${product.slug}`} className="bg-white/90 backdrop-blur-sm text-gray-700 text-xs px-3 py-1.5 rounded-md shadow-sm hover:bg-white transition-all cursor-pointer active:scale-95">
+          <span className="bg-white/90 backdrop-blur-sm text-gray-700 text-xs px-3 py-1.5 rounded-md shadow-sm hover:bg-white transition-all cursor-pointer active:scale-95">
             Xem chi tiết
-          </Link>
+          </span>
           <button onClick={async (e) => { e.preventDefault(); e.stopPropagation(); try { await api.post(`/wishlist/${product.id}`); } catch { /* need login */ } }} className="bg-white/90 backdrop-blur-sm text-gray-700 text-xs px-3 py-1.5 rounded-md shadow-sm hover:bg-white transition-all cursor-pointer active:scale-95">
             ❤️ Thích
           </button>

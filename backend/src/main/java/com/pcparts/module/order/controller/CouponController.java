@@ -23,13 +23,13 @@ public class CouponController {
     private final CouponService couponService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('coupon.create', 'coupon.update', 'coupon.delete')")
     public ResponseEntity<ApiResponse<List<CouponDto>>> getAll() {
         return ResponseEntity.ok(ApiResponse.success("Danh sách mã giảm giá", couponService.getAllCoupons()));
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('coupon.create')")
     public ResponseEntity<ApiResponse<CouponDto>> create(@RequestBody CouponDto dto) {
         CouponDto created = couponService.createCoupon(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -37,13 +37,13 @@ public class CouponController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('coupon.update')")
     public ResponseEntity<ApiResponse<CouponDto>> update(@PathVariable Long id, @RequestBody CouponDto dto) {
         return ResponseEntity.ok(ApiResponse.success("Cập nhật thành công", couponService.updateCoupon(id, dto)));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('coupon.delete')")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         couponService.deleteCoupon(id);
         return ResponseEntity.ok(ApiResponse.success("Xóa thành công", null));

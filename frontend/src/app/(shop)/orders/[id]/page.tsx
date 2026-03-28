@@ -29,7 +29,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const status = (order.status as string) || "PENDING";
   const steps = ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"];
   const currentStep = steps.indexOf(status);
-  const items = (order.items as Array<{ name: string; quantity: number; price: number }>) || [];
+  const items = (order.items as Array<{ productName: string; quantity: number; unitPrice: number; lineTotal: number }>) || [];
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -65,8 +65,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2"><Package className="w-5 h-5 text-blue-600" /> Sản phẩm</h2>
           {items.length > 0 ? items.map((item, i) => (
             <div key={i} className="flex justify-between py-2 border-t border-gray-100 text-sm">
-              <span className="text-gray-700">{item.name} x{item.quantity}</span>
-              <span className="text-gray-900 font-medium">{formatPrice(item.price * item.quantity)}</span>
+              <span className="text-gray-700">{item.productName} x{item.quantity}</span>
+              <span className="text-gray-900 font-medium">{formatPrice(item.lineTotal || item.unitPrice * item.quantity)}</span>
             </div>
           )) : <p className="text-sm text-gray-500">Không có thông tin sản phẩm.</p>}
           <div className="border-t border-gray-200 mt-3 pt-3 flex justify-between font-bold"><span className="text-gray-900">Tổng cộng</span><span className="text-[#E31837]">{formatPrice((order.totalAmount as number) || 0)}</span></div>

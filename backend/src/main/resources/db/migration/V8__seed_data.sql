@@ -53,7 +53,9 @@ INSERT INTO permission (code, description) VALUES
     ('return.view', 'Xem đổi trả'),
     ('return.manage', 'Duyệt đổi trả'),
     -- Report
-    ('report.revenue', 'Xem thống kê doanh thu');
+    ('report.revenue', 'Xem thống kê doanh thu'),
+    -- System
+    ('system.admin', 'Quyền quản trị hệ thống');
 
 -- Assign all permissions to ADMIN
 INSERT INTO role_permission (role_id, permission_id)
@@ -67,7 +69,8 @@ SELECT r.id, p.id
 FROM role r, permission p
 WHERE r.name = 'SALES'
   AND p.code IN (
-    'product.view', 'order.view', 'order.update',
+    'product.view', 'product.create', 'product.update',
+    'order.view', 'order.update',
     'coupon.create', 'coupon.update', 'coupon.delete',
     'warranty.view', 'warranty.manage',
     'return.view', 'return.manage',

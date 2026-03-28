@@ -199,10 +199,11 @@ function ProductsContent() {
   const selectedBrandId = searchParams.get("brandId") ? Number(searchParams.get("brandId")) : null;
   const keyword = searchParams.get("keyword") || "";
   const categorySlug = searchParams.get("category") || "";
+  const isSale = searchParams.get("sale") === "true";
 
   // Client-side price filter
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<number[]>([]);
-  const [sortBy, setSortBy] = useState("default");
+  const [sortBy, setSortBy] = useState(isSale ? "discount" : "default");
 
   const handleAddToCart = useCallback(async (productId: number) => {
     await addItem(productId, 1);
@@ -265,6 +266,7 @@ function ProductsContent() {
         if (sortBy === "price-asc") params.set("sort", "sellingPrice,asc");
         else if (sortBy === "price-desc") params.set("sort", "sellingPrice,desc");
         else if (sortBy === "name-asc") params.set("sort", "name,asc");
+        else if (sortBy === "discount") params.set("sort", "originalPrice,desc");
 
         // If category slug is provided but no categoryId, try to find the ID
         if (categorySlug && !selectedCategoryId) {
@@ -294,10 +296,18 @@ function ProductsContent() {
           const json = await res.json();
           const pageData = json.data || json;
           const items: ProductDto[] = pageData.content || [];
-          const mapped = items.map(mapProduct);
+          let mapped = items.map(mapProduct);
+          // Client-side sort by discount percentage for "discount" option
+          if (sortBy === "discount") {
+            mapped = mapped.sort((a, b) => b.discountPercent - a.discountPercent);
+          }
+          // Filter to only discounted products when sale=true
+          if (isSale) {
+            mapped = mapped.filter(p => p.discountPercent > 0);
+          }
           setProducts(mapped);
           setTotalPages(pageData.totalPages || 0);
-          setTotalElements(pageData.totalElements || items.length);
+          setTotalElements(isSale ? mapped.length : (pageData.totalElements || items.length));
         }
       } catch {
         console.error("Failed to fetch products");
@@ -306,7 +316,7 @@ function ProductsContent() {
       }
     }
     fetchProducts();
-  }, [selectedCategoryId, selectedBrandId, keyword, categorySlug, categories, currentPage, selectedAttrValues, selectedPriceRanges, sortBy]);
+  }, [selectedCategoryId, selectedBrandId, keyword, categorySlug, categories, currentPage, selectedAttrValues, selectedPriceRanges, sortBy, isSale]);
 
   function findCategoryBySlug(cats: CategoryDto[], slug: string): CategoryDto | null {
     for (const cat of cats) {
@@ -526,7 +536,7 @@ function ProductsContent() {
           <div className="flex-1">
             <div className="flex items-center justify-between mb-4 gap-3">
               <h1 className="text-xl font-bold text-gray-900">
-                {keyword ? `Tìm kiếm: "${keyword}"` : flatCats.find(c => c.id === selectedCategoryId)?.name || categorySlug || "Tất cả sản phẩm"}
+                {isSale ? "🔥 Khuyến mãi" : keyword ? `Tìm kiếm: "${keyword}"` : flatCats.find(c => c.id === selectedCategoryId)?.name || categorySlug || "Tất cả sản phẩm"}
                 {!loading && <span className="text-sm font-normal text-gray-500 ml-2">({totalElements} sản phẩm)</span>}
               </h1>
               <div className="flex items-center gap-2">

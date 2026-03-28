@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Search, RotateCcw, Eye } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Search, RotateCcw } from "lucide-react";
 import api from "@/lib/api";
+import Pagination from "@/components/Pagination";
 
 interface ReturnItem { id: number; orderNumber: string; customerName: string; productName: string; reason: string; type: string; status: string; refundAmount?: number; createdAt: string; }
+interface PageData { content: ReturnItem[]; page: number; totalPages: number; totalElements: number; hasNext: boolean; hasPrevious: boolean; size: number; }
 function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 const statusColors: Record<string, string> = {
@@ -16,33 +18,35 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function AdminReturnsPage() {
-  const [returns, setReturns] = useState<ReturnItem[]>([]);
+  const [pageData, setPageData] = useState<PageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
   const [msg, setMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const pageSize = 15;
 
-  useEffect(() => {
-    async function fetch() {
-      try {
-        const res = await api.get("/admin/returns?page=0&size=50");
-        const data = res.data.data || res.data;
-        setReturns(data.content || data || []);
-      } catch { /* empty */ } finally { setLoading(false); }
-    }
-    fetch();
-  }, []);
+  const fetchData = useCallback(async (page: number) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), size: String(pageSize) });
+      if (statusFilter) params.set("status", statusFilter);
+      const res = await api.get(`/returns?${params}`);
+      const data = res.data.data || res.data;
+      setPageData(data);
+    } catch { /* empty */ } finally { setLoading(false); }
+  }, [statusFilter]);
 
-  const filtered = returns.filter(r => {
-    const matchSearch = r.customerName?.toLowerCase().includes(search.toLowerCase()) || r.orderNumber?.toLowerCase().includes(search.toLowerCase()) || r.productName?.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = !statusFilter || r.status === statusFilter;
-    return matchSearch && matchStatus;
-  });
+  useEffect(() => { fetchData(currentPage); }, [currentPage, fetchData]);
+  useEffect(() => { setCurrentPage(0); }, [statusFilter]);
+
+  const returns = pageData?.content || [];
+  const filtered = returns.filter(r => !search.trim() || r.customerName?.toLowerCase().includes(search.toLowerCase()) || r.orderNumber?.toLowerCase().includes(search.toLowerCase()) || r.productName?.toLowerCase().includes(search.toLowerCase()));
 
   const updateStatus = async (id: number, newStatus: string) => {
     try {
-      await api.put(`/admin/returns/${id}/status`, { status: newStatus });
-      setReturns(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+      await api.put(`/returns/${id}/status`, null, { params: { status: newStatus } });
+      setPageData(prev => prev ? { ...prev, content: prev.content.map(r => r.id === id ? { ...r, status: newStatus } : r) } : prev);
       setMsg({ type: "success", text: "Cập nhật trạng thái thành công!" });
     } catch { setMsg({ type: "error", text: "Cập nhật thất bại." }); }
     setTimeout(() => setMsg(null), 3000);
@@ -50,9 +54,7 @@ export default function AdminReturnsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Quản lý đổi trả</h1>
-      </div>
+      <h1 className="text-xl font-bold text-gray-900 mb-6">Quản lý đổi trả</h1>
       {msg && <div className={`mb-4 rounded-lg px-4 py-3 text-sm font-medium ${msg.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>{msg.text}</div>}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-4 border-b border-gray-200 flex gap-3 flex-wrap">
@@ -89,6 +91,9 @@ export default function AdminReturnsPage() {
               </tr>
             ))}</tbody>
           </table>
+        )}
+        {pageData && (
+          <Pagination page={pageData.page} totalPages={pageData.totalPages} totalElements={pageData.totalElements} hasNext={pageData.hasNext} hasPrevious={pageData.hasPrevious} onPageChange={setCurrentPage} size={pageSize} />
         )}
       </div>
     </div>

@@ -46,6 +46,7 @@ interface ReviewDto {
   id: number;
   rating: number;
   comment: string;
+  content: string;
   customerName: string;
   createdAt: string;
 }
@@ -106,7 +107,7 @@ function ReviewForm({ productId, onSubmitted }: { productId: number; onSubmitted
     setSubmitting(true);
     setMsg("");
     try {
-      await api.post("/reviews", { productId, rating, comment: comment.trim() });
+      await api.post("/reviews", { productId, rating, content: comment.trim() });
       setMsg("Đánh giá đã được gửi thành công!");
       setMsgError(false);
       setRating(0);
@@ -584,7 +585,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                             <span className="text-sm font-medium text-gray-900">{r.customerName || "Khách hàng"}</span>
                             <span className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleDateString("vi-VN")}</span>
                           </div>
-                          <p className="text-sm text-gray-600">{r.comment}</p>
+                          <p className="text-sm text-gray-600">{r.content || r.comment}</p>
                         </div>
                       ))}
                     </div>

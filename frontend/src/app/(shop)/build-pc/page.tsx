@@ -1,33 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, Plus, X, Save, Image, Share2, FileSpreadsheet, Printer, ShoppingCart, Cpu, Search, CheckCircle, AlertTriangle } from "lucide-react";
+import { ChevronRight, Plus, X, Save, Image, Share2, FileSpreadsheet, Printer, ShoppingCart, Cpu, Search, CheckCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
 import { useCartStore } from "@/stores/cart-store";
 
 const slots = [
-  { id: 1, name: "BỘ VI XỬ LÝ", label: "Bộ vi xử lý", category: "cpu" },
-  { id: 2, name: "BO MẠCH CHỦ", label: "Bo mạch chủ", category: "mainboard" },
-  { id: 3, name: "RAM", label: "RAM", category: "ram" },
-  { id: 4, name: "SSD 1", label: "SSD 1", category: "ssd" },
-  { id: 5, name: "SSD 2", label: "SSD 2", category: "ssd" },
-  { id: 6, name: "HDD", label: "HDD", category: "hdd" },
-  { id: 7, name: "VGA", label: "VGA", category: "vga" },
-  { id: 8, name: "NGUỒN", label: "Nguồn", category: "psu" },
-  { id: 9, name: "VỎ CASE", label: "Vỏ Case", category: "case" },
-  { id: 10, name: "TẢN NHIỆT KHÍ CPU", label: "Tản nhiệt khí CPU", category: "cooling" },
-  { id: 11, name: "TẢN NHIỆT NƯỚC CPU", label: "Tản nhiệt nước CPU", category: "cooling" },
-  { id: 12, name: "QUẠT TẢN NHIỆT VỎ CASE", label: "Quạt tản nhiệt vỏ case", category: "fan" },
-  { id: 13, name: "MÀN HÌNH", label: "Màn hình", category: "monitor" },
-  { id: 14, name: "BÀN PHÍM", label: "Bàn phím", category: "keyboard" },
-  { id: 15, name: "CHUỘT", label: "Chuột", category: "mouse" },
-  { id: 16, name: "TAI NGHE", label: "Tai nghe", category: "headset" },
-  { id: 17, name: "LOA", label: "Loa", category: "speaker" },
-  { id: 18, name: "WINDOWS BẢN QUYỀN", label: "Windows bản quyền", category: "software" },
+  { id: 1, name: "BỘ VI XỬ LÝ", label: "Bộ vi xử lý", category: "CPU" },
+  { id: 2, name: "BO MẠCH CHỦ", label: "Bo mạch chủ", category: "Mainboard" },
+  { id: 3, name: "RAM", label: "RAM", category: "RAM" },
+  { id: 4, name: "SSD 1", label: "SSD 1", category: "SSD" },
+  { id: 5, name: "SSD 2", label: "SSD 2", category: "SSD" },
+  { id: 6, name: "HDD", label: "HDD", category: "SSD" },
+  { id: 7, name: "VGA", label: "VGA", category: "VGA" },
+  { id: 8, name: "NGUỒN", label: "Nguồn", category: "PSU" },
+  { id: 9, name: "VỎ CASE", label: "Vỏ Case", category: "Case" },
+  { id: 10, name: "TẢN NHIỆT", label: "Tản nhiệt", category: "Cooling" },
 ];
 
-interface Product { id: number; name: string; slug: string; sellingPrice: number; imageUrl?: string; brandName?: string; }
+interface CategoryDto { id: number; name: string; slug: string; children?: CategoryDto[]; }
+interface ProductItem {
+  id: number; name: string; slug: string; sellingPrice: number; originalPrice: number;
+  brandName?: string; status: string;
+  images?: { id: number; imageUrl: string; isPrimary: boolean; sortOrder: number }[];
+}
 interface SelectedItem { slotId: number; productId: number; name: string; price: number; imageUrl?: string; }
 
 function formatPrice(p: number): string { return p.toLocaleString("vi-VN"); }
@@ -35,23 +32,45 @@ function formatPrice(p: number): string { return p.toLocaleString("vi-VN"); }
 export default function BuildPCPage() {
   const [selected, setSelected] = useState<SelectedItem[]>([]);
   const [dialogSlot, setDialogSlot] = useState<typeof slots[0] | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [aiResult, setAiResult] = useState<string | null>(null);
   const [checkingAi, setCheckingAi] = useState(false);
+  const [categories, setCategories] = useState<CategoryDto[]>([]);
   const { addItem } = useCartStore();
 
   const total = selected.reduce((s, i) => s + i.price, 0);
   const removeItem = (slotId: number) => setSelected(selected.filter(i => i.slotId !== slotId));
   const getSelected = (slotId: number) => selected.find(i => i.slotId === slotId);
 
+  // Fetch categories once on mount
+  useEffect(() => {
+    async function fetchCats() {
+      try {
+        const res = await api.get("/categories");
+        const data = res.data.data || res.data;
+        setCategories(Array.isArray(data) ? data : data.content || []);
+      } catch { /* empty */ }
+    }
+    fetchCats();
+  }, []);
+
   const openDialog = async (slot: typeof slots[0]) => {
     setDialogSlot(slot);
     setSearchTerm("");
     setLoadingProducts(true);
     try {
-      const res = await api.get(`/products?keyword=${slot.category}&page=0&size=20`);
+      // Find categoryId by name match
+      const cat = categories.find(c => c.name.toLowerCase() === slot.category.toLowerCase());
+      const params = new URLSearchParams({ page: "0", size: "50" });
+      if (cat) {
+        params.set("categoryId", String(cat.id));
+      } else {
+        // Fallback to keyword if category not found
+        params.set("keyword", slot.category);
+      }
+      const res = await api.get(`/products?${params}`);
       const data = res.data.data || res.data;
       setProducts(data.content || []);
     } catch {
@@ -59,10 +78,17 @@ export default function BuildPCPage() {
     } finally { setLoadingProducts(false); }
   };
 
-  const selectProduct = (product: Product) => {
+  const selectProduct = (product: ProductItem) => {
+    const primaryImg = product.images?.find(i => i.isPrimary) || product.images?.[0];
     setSelected(prev => {
       const without = prev.filter(i => i.slotId !== dialogSlot!.id);
-      return [...without, { slotId: dialogSlot!.id, productId: product.id, name: product.name, price: product.sellingPrice, imageUrl: product.imageUrl }];
+      return [...without, {
+        slotId: dialogSlot!.id,
+        productId: product.id,
+        name: product.name,
+        price: product.sellingPrice,
+        imageUrl: primaryImg?.imageUrl
+      }];
     });
     setDialogSlot(null);
   };
@@ -215,19 +241,39 @@ export default function BuildPCPage() {
               ) : filteredProducts.length === 0 ? (
                 <div className="p-8 text-center text-gray-400 text-sm">Không tìm thấy sản phẩm phù hợp</div>
               ) : (
-                filteredProducts.map(p => (
-                  <button key={p.id} onClick={() => selectProduct(p)}
-                    className="w-full flex items-center gap-3 p-3 hover:bg-blue-50 rounded-xl transition-colors text-left">
-                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      {p.imageUrl ? <img src={p.imageUrl} alt="" className="w-full h-full object-contain rounded-lg" /> : <Cpu className="w-5 h-5 text-gray-400" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-900 font-medium truncate">{p.name}</p>
-                      <p className="text-xs text-gray-500">{p.brandName || ""}</p>
-                    </div>
-                    <span className="text-sm font-bold text-[#E31837] whitespace-nowrap">{formatPrice(p.sellingPrice)} đ</span>
-                  </button>
-                ))
+                filteredProducts.map(p => {
+                  const primaryImg = p.images?.find(i => i.isPrimary) || p.images?.[0];
+                  const inStock = p.status === "ACTIVE";
+                  const discount = p.originalPrice > p.sellingPrice ? Math.round((1 - p.sellingPrice / p.originalPrice) * 100) : 0;
+                  return (
+                    <button key={p.id} onClick={() => inStock && selectProduct(p)} disabled={!inStock}
+                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors text-left ${inStock ? "hover:bg-blue-50 cursor-pointer" : "opacity-50 cursor-not-allowed bg-gray-50"}`}>
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        {primaryImg?.imageUrl ? <img src={primaryImg.imageUrl} alt="" className="w-full h-full object-contain rounded-lg" /> : <Cpu className="w-5 h-5 text-gray-400" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-900 font-medium truncate">{p.name}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500">{p.brandName || ""}</span>
+                          {inStock ? (
+                            <span className="text-xs text-green-600 font-medium">✓ Còn hàng</span>
+                          ) : (
+                            <span className="text-xs text-red-500 font-medium">✗ Hết hàng</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <span className="text-sm font-bold text-[#E31837] whitespace-nowrap">{formatPrice(p.sellingPrice)} đ</span>
+                        {discount > 0 && (
+                          <div className="flex items-center gap-1 justify-end">
+                            <span className="text-xs text-gray-400 line-through">{formatPrice(p.originalPrice)} đ</span>
+                            <span className="text-xs bg-red-100 text-red-600 px-1 rounded">-{discount}%</span>
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })
               )}
             </div>
           </div>

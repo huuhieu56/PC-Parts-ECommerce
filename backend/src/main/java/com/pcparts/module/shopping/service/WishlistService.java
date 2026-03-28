@@ -25,32 +25,42 @@ public class WishlistService {
     private final ProductRepository productRepository;
     private final UserProfileRepository userProfileRepository;
 
+    /**
+     * Resolves accountId (from JWT) to UserProfile.id (used by Wishlist entity).
+     * The Wishlist entity references user_profile.id, not account.id.
+     */
+    private UserProfile getUserProfile(Long accountId) {
+        return userProfileRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", accountId));
+    }
+
     @Transactional(readOnly = true)
-    public List<WishlistItemDto> getWishlist(Long userId) {
-        return wishlistRepository.findByUserId(userId).stream().map(this::toDto).collect(Collectors.toList());
+    public List<WishlistItemDto> getWishlist(Long accountId) {
+        UserProfile profile = getUserProfile(accountId);
+        return wishlistRepository.findByUserId(profile.getId()).stream().map(this::toDto).collect(Collectors.toList());
     }
 
     /**
      * Adds product to wishlist, or removes it if already exists (toggle behavior — BUG-16 fix).
      */
     @Transactional
-    public void addToWishlist(Long userId, Long productId) {
+    public void addToWishlist(Long accountId, Long productId) {
+        UserProfile profile = getUserProfile(accountId);
         // BUG-16 fix: toggle instead of throw
-        Optional<Wishlist> existing = wishlistRepository.findByUserIdAndProductId(userId, productId);
+        Optional<Wishlist> existing = wishlistRepository.findByUserIdAndProductId(profile.getId(), productId);
         if (existing.isPresent()) {
             wishlistRepository.delete(existing.get());
             return;
         }
-        UserProfile user = userProfileRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "id", userId));
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
-        wishlistRepository.save(Wishlist.builder().user(user).product(product).build());
+        wishlistRepository.save(Wishlist.builder().user(profile).product(product).build());
     }
 
     @Transactional
-    public void removeFromWishlist(Long userId, Long productId) {
-        Wishlist w = wishlistRepository.findByUserIdAndProductId(userId, productId)
+    public void removeFromWishlist(Long accountId, Long productId) {
+        UserProfile profile = getUserProfile(accountId);
+        Wishlist w = wishlistRepository.findByUserIdAndProductId(profile.getId(), productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wishlist", "productId", productId));
         wishlistRepository.delete(w);
     }

@@ -8,6 +8,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Review entity — DB: user_id, order_id, content (not comment). No status column.
@@ -37,7 +39,7 @@ public class Review {
     private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "order_id", nullable = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Order order;
@@ -47,6 +49,12 @@ public class Review {
 
     @Column(columnDefinition = "TEXT")
     private String content;
+
+    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @Builder.Default
+    private List<ReviewImage> images = new ArrayList<>();
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

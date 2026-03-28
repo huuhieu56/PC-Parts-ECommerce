@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Search, AlertTriangle } from "lucide-react";
 import api from "@/lib/api";
+import Pagination from "@/components/Pagination";
 
 interface InventoryItem { id: number; productName: string; productSku: string; quantity: number; lowStockThreshold: number; }
 
@@ -10,6 +11,8 @@ export default function AdminInventoryPage() {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const pageSize = 15;
 
   useEffect(() => {
     async function fetchInventory() {
@@ -50,6 +53,8 @@ export default function AdminInventoryPage() {
   }, []);
 
   const filtered = items.filter(i => i.productName.toLowerCase().includes(search.toLowerCase()) || i.productSku.toLowerCase().includes(search.toLowerCase()));
+  const totalPages = Math.ceil(filtered.length / pageSize);
+  const paged = filtered.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
 
   return (
     <div>
@@ -62,7 +67,7 @@ export default function AdminInventoryPage() {
           <table className="w-full text-sm">
             <thead><tr className="text-left text-gray-500 bg-gray-50 border-b border-gray-200"><th className="px-4 py-3 font-medium">Sản phẩm</th><th className="px-4 py-3 font-medium">SKU</th><th className="px-4 py-3 font-medium">Tồn kho</th><th className="px-4 py-3 font-medium">Ngưỡng cảnh báo</th><th className="px-4 py-3 font-medium">Trạng thái</th></tr></thead>
             <tbody>
-              {filtered.map(i => {
+              {paged.map(i => {
                 const low = i.quantity <= i.lowStockThreshold;
                 return (
                   <tr key={i.id} className="border-b border-gray-50 hover:bg-gray-50">
@@ -79,6 +84,7 @@ export default function AdminInventoryPage() {
             </tbody>
           </table>
         )}
+        <Pagination page={currentPage} totalPages={totalPages} totalElements={filtered.length} hasNext={currentPage < totalPages - 1} hasPrevious={currentPage > 0} onPageChange={setCurrentPage} size={pageSize} />
       </div>
     </div>
   );

@@ -77,7 +77,7 @@ public class ProductController {
      * Gets product by ID (admin).
      */
     @GetMapping("/admin/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SALES')")
+    @PreAuthorize("hasAuthority('product.view')")
     public ResponseEntity<ApiResponse<ProductDto>> getById(@PathVariable Long id) {
         ProductDto product = productService.getById(id);
         return ResponseEntity.ok(ApiResponse.success("Chi tiết sản phẩm", product));
@@ -87,7 +87,7 @@ public class ProductController {
      * Creates a new product (admin/sales).
      */
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'SALES')")
+    @PreAuthorize("hasAuthority('product.create')")
     public ResponseEntity<ApiResponse<ProductDto>> createProduct(@Valid @RequestBody ProductRequest request) {
         ProductDto product = productService.createProduct(request);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -98,7 +98,7 @@ public class ProductController {
      * Updates an existing product (admin/sales).
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SALES')")
+    @PreAuthorize("hasAuthority('product.update')")
     public ResponseEntity<ApiResponse<ProductDto>> updateProduct(
             @PathVariable Long id, @Valid @RequestBody ProductRequest request) {
         ProductDto product = productService.updateProduct(id, request);
@@ -109,7 +109,7 @@ public class ProductController {
      * Soft-deletes a product (admin only).
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('product.delete')")
     public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.ok(ApiResponse.success("Xóa sản phẩm thành công", null));
@@ -119,7 +119,7 @@ public class ProductController {
      * Uploads images for a product (admin/sales).
      */
     @PostMapping("/{id}/images")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SALES')")
+    @PreAuthorize("hasAuthority('product.create')")
     public ResponseEntity<ApiResponse<List<ProductImageDto>>> uploadImages(
             @PathVariable Long id,
             @RequestParam("files") List<MultipartFile> files,
@@ -132,7 +132,7 @@ public class ProductController {
      * Deletes a product image (admin/sales).
      */
     @DeleteMapping("/images/{imageId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SALES')")
+    @PreAuthorize("hasAuthority('product.update')")
     public ResponseEntity<ApiResponse<Void>> deleteImage(@PathVariable Long imageId) {
         productService.deleteImage(imageId);
         return ResponseEntity.ok(ApiResponse.success("Xóa ảnh thành công", null));

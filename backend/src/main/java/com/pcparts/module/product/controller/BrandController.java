@@ -44,7 +44,7 @@ public class BrandController {
      * Creates a new brand (admin).
      */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('brand.create')")
     public ResponseEntity<ApiResponse<BrandDto>> createBrand(@Valid @RequestBody BrandDto dto) {
         BrandDto created = brandService.createBrand(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -55,7 +55,7 @@ public class BrandController {
      * Updates a brand (admin).
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('brand.update')")
     public ResponseEntity<ApiResponse<BrandDto>> updateBrand(
             @PathVariable Long id, @Valid @RequestBody BrandDto dto) {
         BrandDto updated = brandService.updateBrand(id, dto);
@@ -66,7 +66,7 @@ public class BrandController {
      * Deletes a brand (admin).
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('brand.delete')")
     public ResponseEntity<ApiResponse<Void>> deleteBrand(@PathVariable Long id) {
         brandService.deleteBrand(id);
         return ResponseEntity.ok(ApiResponse.success("Xóa thương hiệu thành công", null));

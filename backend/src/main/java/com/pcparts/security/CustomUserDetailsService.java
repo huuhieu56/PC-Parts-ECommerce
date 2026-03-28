@@ -1,6 +1,7 @@
 package com.pcparts.security;
 
 import com.pcparts.module.auth.entity.Account;
+import com.pcparts.module.auth.entity.Permission;
 import com.pcparts.module.auth.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -11,12 +12,18 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Custom UserDetailsService that loads user from database.
  * Uses account ID (as String) as the principal name so controllers
  * can parse it with Long.parseLong(auth.getName()).
+ *
+ * Loads BOTH:
+ * - Role authority: ROLE_ADMIN, ROLE_SALES, etc.
+ * - Permission authorities: product.create, order.update, etc.
+ * This enables granular permission-based RBAC via @PreAuthorize.
  */
 @Service
 @RequiredArgsConstructor
@@ -40,18 +47,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() ->
                     new UsernameNotFoundException("Không tìm thấy tài khoản với email: " + email));
 
-        List<SimpleGrantedAuthority> authorities = List.of(
-                new SimpleGrantedAuthority("ROLE_" + account.getRole().getName().toUpperCase())
-        );
-
-        // Use account ID as username so auth.getName() returns numeric ID
-        return new User(
-                account.getId().toString(),
-                account.getPasswordHash(),
-                account.getIsActive(),
-                true, true, true,
-                authorities
-        );
+        return buildUserDetails(account);
     }
 
     /**
@@ -67,9 +63,25 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() ->
                     new UsernameNotFoundException("Không tìm thấy tài khoản với ID: " + accountId));
 
-        List<SimpleGrantedAuthority> authorities = List.of(
-                new SimpleGrantedAuthority("ROLE_" + account.getRole().getName().toUpperCase())
-        );
+        return buildUserDetails(account);
+    }
+
+    /**
+     * Builds UserDetails with role + permission authorities.
+     *
+     * @param account the account entity
+     * @return UserDetails with all authorities
+     */
+    private UserDetails buildUserDetails(Account account) {
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+
+        // Add role authority (e.g. ROLE_ADMIN)
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + account.getRole().getName().toUpperCase()));
+
+        // Add permission authorities from role_permission join table
+        for (Permission perm : account.getRole().getPermissions()) {
+            authorities.add(new SimpleGrantedAuthority(perm.getCode()));
+        }
 
         return new User(
                 account.getId().toString(),

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Search, Edit2, Trash2, Factory } from "lucide-react";
 import api from "@/lib/api";
+import Pagination from "@/components/Pagination";
 
 interface Supplier { id: number; name: string; contactPerson: string; phone: string; email: string; address: string; }
 
@@ -14,6 +15,8 @@ export default function AdminSuppliersPage() {
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState({ name: "", contactPerson: "", phone: "", email: "", address: "" });
   const [msg, setMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const pageSize = 15;
 
   const fetchData = async () => {
     try { const res = await api.get("/suppliers"); setSuppliers(res.data.data || res.data || []); } catch { /* empty */ } finally { setLoading(false); }
@@ -21,6 +24,8 @@ export default function AdminSuppliersPage() {
   useEffect(() => { fetchData(); }, []);
 
   const filtered = suppliers.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.contactPerson?.toLowerCase().includes(search.toLowerCase()));
+  const totalPages = Math.ceil(filtered.length / pageSize);
+  const paged = filtered.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
   const openCreate = () => { setEditId(null); setForm({ name: "", contactPerson: "", phone: "", email: "", address: "" }); setShowForm(true); };
   const openEdit = (s: Supplier) => { setEditId(s.id); setForm({ name: s.name, contactPerson: s.contactPerson || "", phone: s.phone || "", email: s.email || "", address: s.address || "" }); setShowForm(true); };
 
@@ -75,7 +80,7 @@ export default function AdminSuppliersPage() {
         ) : (
           <table className="w-full text-sm">
             <thead><tr className="text-left text-gray-500 bg-gray-50 border-b border-gray-200"><th className="px-4 py-3 font-medium">Tên</th><th className="px-4 py-3 font-medium">Liên hệ</th><th className="px-4 py-3 font-medium">SĐT</th><th className="px-4 py-3 font-medium">Email</th><th className="px-4 py-3 font-medium">Thao tác</th></tr></thead>
-            <tbody>{filtered.map(s => (
+            <tbody>{paged.map(s => (
               <tr key={s.id} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="px-4 py-3 font-medium text-gray-900">{s.name}</td>
                 <td className="px-4 py-3 text-gray-500">{s.contactPerson || "—"}</td>
@@ -89,6 +94,7 @@ export default function AdminSuppliersPage() {
             ))}</tbody>
           </table>
         )}
+        <Pagination page={currentPage} totalPages={totalPages} totalElements={filtered.length} hasNext={currentPage < totalPages - 1} hasPrevious={currentPage > 0} onPageChange={setCurrentPage} size={pageSize} />
       </div>
     </div>
   );

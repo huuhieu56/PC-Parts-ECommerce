@@ -44,7 +44,7 @@ public class CategoryController {
      * Creates a new category (admin).
      */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('category.create')")
     public ResponseEntity<ApiResponse<CategoryDto>> createCategory(@Valid @RequestBody CategoryDto dto) {
         CategoryDto created = categoryService.createCategory(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -55,7 +55,7 @@ public class CategoryController {
      * Updates a category (admin).
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('category.update')")
     public ResponseEntity<ApiResponse<CategoryDto>> updateCategory(
             @PathVariable Long id, @Valid @RequestBody CategoryDto dto) {
         CategoryDto updated = categoryService.updateCategory(id, dto);
@@ -66,7 +66,7 @@ public class CategoryController {
      * Deletes a category (admin).
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('category.delete')")
     public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.ok(ApiResponse.success("Xóa danh mục thành công", null));

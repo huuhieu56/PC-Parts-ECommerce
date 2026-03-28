@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Search, Users, Shield } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Search, Users } from "lucide-react";
 import api from "@/lib/api";
+import Pagination from "@/components/Pagination";
 
-interface Account { id: number; email: string; fullName: string; phone: string; roleName: string; isActive: boolean; lastLoginAt?: string; createdAt: string; }
+interface Account { id: number; email: string; fullName: string; phone: string; roleName: string; active: boolean; lastLoginAt?: string; createdAt: string; }
+interface PageData { content: Account[]; page: number; totalPages: number; totalElements: number; hasNext: boolean; hasPrevious: boolean; size: number; }
 
 const roleBadge: Record<string, string> = {
   ADMIN: "bg-red-100 text-red-700", SALES: "bg-blue-100 text-blue-700",
@@ -12,25 +14,28 @@ const roleBadge: Record<string, string> = {
 };
 
 export default function AdminAccountsPage() {
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [pageData, setPageData] = useState<PageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
   const [msg, setMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const pageSize = 20;
 
-  useEffect(() => {
-    async function fetch() {
-      try {
-        const res = await api.get("/admin/accounts?page=0&size=50");
-        const data = res.data.data || res.data;
-        setAccounts(data.content || data || []);
-      } catch { /* empty */ } finally { setLoading(false); }
-    }
-    fetch();
+  const fetchAccounts = useCallback(async (page: number) => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/admin/accounts?page=${page}&size=${pageSize}`);
+      const data = res.data.data || res.data;
+      setPageData(data);
+    } catch { /* empty */ } finally { setLoading(false); }
   }, []);
 
+  useEffect(() => { fetchAccounts(currentPage); }, [currentPage, fetchAccounts]);
+
+  const accounts = pageData?.content || [];
   const filtered = accounts.filter(a => {
-    const matchSearch = a.email.toLowerCase().includes(search.toLowerCase()) || a.fullName?.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = !search.trim() || a.email.toLowerCase().includes(search.toLowerCase()) || a.fullName?.toLowerCase().includes(search.toLowerCase());
     const matchRole = !roleFilter || a.roleName === roleFilter;
     return matchSearch && matchRole;
   });
@@ -38,7 +43,7 @@ export default function AdminAccountsPage() {
   const toggleStatus = async (id: number, currentActive: boolean) => {
     try {
       await api.put(`/admin/accounts/${id}/status`, { isActive: !currentActive });
-      setAccounts(prev => prev.map(a => a.id === id ? { ...a, isActive: !currentActive } : a));
+      setPageData(prev => prev ? { ...prev, content: prev.content.map(a => a.id === id ? { ...a, active: !currentActive } : a) } : prev);
       setMsg({ type: "success", text: "Cập nhật thành công!" });
     } catch { setMsg({ type: "error", text: "Cập nhật thất bại." }); }
     setTimeout(() => setMsg(null), 3000);
@@ -47,7 +52,7 @@ export default function AdminAccountsPage() {
   const updateRole = async (id: number, newRole: string) => {
     try {
       await api.put(`/admin/accounts/${id}/role`, { roleName: newRole });
-      setAccounts(prev => prev.map(a => a.id === id ? { ...a, roleName: newRole } : a));
+      setPageData(prev => prev ? { ...prev, content: prev.content.map(a => a.id === id ? { ...a, roleName: newRole } : a) } : prev);
       setMsg({ type: "success", text: "Cập nhật role thành công!" });
     } catch { setMsg({ type: "error", text: "Cập nhật role thất bại." }); }
     setTimeout(() => setMsg(null), 3000);
@@ -58,7 +63,7 @@ export default function AdminAccountsPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-gray-900">Quản lý tài khoản</h1>
         <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Users className="w-4 h-4" /> {accounts.length} tài khoản
+          <Users className="w-4 h-4" /> {pageData?.totalElements ?? 0} tài khoản
         </div>
       </div>
       {msg && <div className={`mb-4 rounded-lg px-4 py-3 text-sm font-medium ${msg.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>{msg.text}</div>}
@@ -90,24 +95,27 @@ export default function AdminAccountsPage() {
                 <td className="px-4 py-3 text-gray-700">{a.fullName || "—"}</td>
                 <td className="px-4 py-3 text-gray-500">{a.phone || "—"}</td>
                 <td className="px-4 py-3">
-                  <select value={a.roleName} onChange={e => updateRole(a.id, e.target.value)} className="text-xs px-2 py-1 rounded-full font-medium border-0 cursor-pointer" style={{ backgroundColor: "transparent" }}>
+                  <select value={a.roleName} onChange={e => updateRole(a.id, e.target.value)} className={`text-xs px-2 py-1 rounded-full font-medium border-0 cursor-pointer ${roleBadge[a.roleName] || "bg-gray-100 text-gray-700"}`}>
                     <option value="ADMIN">ADMIN</option><option value="SALES">SALES</option><option value="WAREHOUSE">WAREHOUSE</option><option value="CUSTOMER">CUSTOMER</option>
                   </select>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${a.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                    {a.isActive ? "Hoạt động" : "Vô hiệu"}
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${a.active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                    {a.active ? "Hoạt động" : "Vô hiệu"}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-gray-500">{new Date(a.createdAt).toLocaleDateString("vi-VN")}</td>
                 <td className="px-4 py-3">
-                  <button onClick={() => toggleStatus(a.id, a.isActive)} className={`text-xs px-2 py-1 rounded-lg font-medium ${a.isActive ? "text-red-600 hover:bg-red-50" : "text-green-600 hover:bg-green-50"}`}>
-                    {a.isActive ? "Vô hiệu hóa" : "Kích hoạt"}
+                  <button onClick={() => toggleStatus(a.id, a.active)} className={`text-xs px-2 py-1 rounded-lg font-medium ${a.active ? "text-red-600 hover:bg-red-50" : "text-green-600 hover:bg-green-50"}`}>
+                    {a.active ? "Vô hiệu hóa" : "Kích hoạt"}
                   </button>
                 </td>
               </tr>
             ))}</tbody>
           </table>
+        )}
+        {pageData && (
+          <Pagination page={pageData.page} totalPages={pageData.totalPages} totalElements={pageData.totalElements} hasNext={pageData.hasNext} hasPrevious={pageData.hasPrevious} onPageChange={setCurrentPage} size={pageSize} />
         )}
       </div>
     </div>

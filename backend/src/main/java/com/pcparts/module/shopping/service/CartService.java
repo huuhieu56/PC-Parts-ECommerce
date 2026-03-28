@@ -43,7 +43,7 @@ public class CartService {
     private final UserProfileRepository userProfileRepository;
     private final InventoryRepository inventoryRepository;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public CartDto getCart(Long userId, String sessionId) {
         Cart cart = findOrCreateCart(userId, sessionId);
         return toDto(cart);
