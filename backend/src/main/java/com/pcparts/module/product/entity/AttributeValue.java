@@ -20,6 +20,8 @@ public class AttributeValue {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attribute_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Attribute attribute;
 
     @Column(nullable = false)

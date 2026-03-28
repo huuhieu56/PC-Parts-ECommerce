@@ -25,13 +25,35 @@
 - Quản lý process: `ps aux`, `kill`, `htop`
 - Tìm kiếm: `find`, `grep -r`, `fd`, `rg`
 
-## Chạy Server: BẮT BUỘC dùng Docker
-- KHÔNG chạy server trực tiếp bằng `java -jar`, `npm run dev`, `mvn spring-boot:run`
-- Mọi service (backend, frontend, PostgreSQL, Redis, MinIO...) phải chạy qua Docker Compose
-- Lệnh khởi động: `docker compose up -d`
-- Lệnh dừng: `docker compose down`
+## Chạy Server (Dev Mode)
+
+### Infrastructure — chạy qua Docker Compose
+- Chỉ chạy **PostgreSQL, Redis, MinIO** qua Docker:
+  ```bash
+  docker compose up -d
+  ```
+- Dừng: `docker compose down`
 - Xem log: `docker compose logs -f [service-name]`
-- Nếu chưa có `docker-compose.yml` → tạo trước khi chạy bất kỳ service nào
+- Nginx, Backend, Frontend đã được comment out trong `docker-compose.yml`
+
+### Backend — chạy trực tiếp trên host
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+- Backend chạy trên `http://localhost:8080`
+- Yêu cầu: Java 21+ trên host
+- File `.env` ở thư mục root sẽ được Spring Boot đọc qua `application.yml` (hoặc set env trước khi chạy)
+
+### Frontend — chạy trực tiếp trên host
+```bash
+cd frontend
+npm run dev
+```
+- Frontend chạy trên `http://localhost:3000`
+- API calls trong dev nên trỏ thẳng đến `http://localhost:8080` (set `NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1`)
+
+> **Lưu ý:** Không dùng Nginx reverse proxy trong dev mode. Frontend và Backend được truy cập trực tiếp qua port riêng.
 
 ## Quản lý Database (QUAN TRỌNG)
 - **Flyway checksum lỗi?** KHÔNG sửa checksum. Xóa volume rồi tạo lại:
@@ -85,8 +107,8 @@ Script gọi REST API để đăng ký tài khoản, sau đó update role và th
 - Một task chỉ được coi là HOÀN THÀNH khi tất cả test liên quan PASS
 - KHÔNG commit code khi test đang FAIL
 - Thứ tự bắt buộc: Viết test → Implement → Chạy test → Pass → Commit
-- Frontend test: `npm run test`
-- Backend test: `docker compose exec backend ./mvnw test`
+- Frontend test: `cd frontend && npm run test`
+- Backend test: `cd backend && ./mvnw test`
 - Nếu test fail sau 3 lần retry → dừng task đó, ghi vào HANDOFF.md, sang task tiếp theo
 
 ## Quy tắc Commit

@@ -45,10 +45,14 @@ public class Product {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Category category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "brand_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Brand brand;
 
     @Column(name = "condition", nullable = false, length = 20)
@@ -61,6 +65,8 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<ProductImage> images = new ArrayList<>();
 
     @CreationTimestamp

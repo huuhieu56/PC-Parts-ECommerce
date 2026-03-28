@@ -24,6 +24,8 @@ public class OrderStatusHistory {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Order order;
 
     @Column(name = "old_status", length = 20)
@@ -34,6 +36,8 @@ public class OrderStatusHistory {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "changed_by")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Account changedBy;
 
     @Column(columnDefinition = "TEXT")

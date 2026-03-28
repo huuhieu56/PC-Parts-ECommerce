@@ -26,6 +26,8 @@ public class Shipping {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", unique = true, nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Order order;
 
     @Column(length = 50)

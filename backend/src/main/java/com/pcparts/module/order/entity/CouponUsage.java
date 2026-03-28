@@ -27,14 +27,20 @@ public class CouponUsage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coupon_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Coupon coupon;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private UserProfile user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Order order;
 
     @CreationTimestamp

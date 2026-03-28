@@ -29,10 +29,14 @@ public class Order {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private UserProfile user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Address address;
 
     @Column(name = "subtotal", nullable = false, precision = 15, scale = 2)
@@ -54,10 +58,14 @@ public class Order {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coupon_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Coupon coupon;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<OrderDetail> details = new ArrayList<>();
 
     @CreationTimestamp

@@ -1,79 +1,87 @@
 services:
-  # --- Nginx Reverse Proxy ---
-  nginx:
-    image: nginx:alpine
-    container_name: pcparts-nginx
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-    depends_on:
-      frontend:
-        condition: service_started
-      backend:
-        condition: service_healthy
-    networks:
-      - pcparts-net
-    restart: unless-stopped
+  # ==========================================================================
+  # NOTE: Nginx, Frontend, Backend đã được comment out.
+  # Trong quá trình dev, chỉ chạy infrastructure (PostgreSQL, Redis, MinIO)
+  # qua Docker. Backend và Frontend chạy trực tiếp trên host:
+  #   - Backend: cd backend && ./mvnw spring-boot:run
+  #   - Frontend: cd frontend && npm run dev
+  # ==========================================================================
 
-  # --- Frontend (Next.js) ---
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: pcparts-frontend
-    expose:
-      - "3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-      - NEXT_PUBLIC_MINIO_URL=${NEXT_PUBLIC_MINIO_URL}
-    depends_on:
-      backend:
-        condition: service_healthy
-    networks:
-      - pcparts-net
-    restart: unless-stopped
+  # # --- Nginx Reverse Proxy ---
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: pcparts-nginx
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./nginx/conf.d:/etc/nginx/conf.d:ro
+  #   depends_on:
+  #     frontend:
+  #       condition: service_started
+  #     backend:
+  #       condition: service_healthy
+  #   networks:
+  #     - pcparts-net
+  #   restart: unless-stopped
 
-  # --- Backend (Spring Boot) ---
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: pcparts-backend
-    expose:
-      - "8080"
-    env_file:
-      - .env
-    environment:
-      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
-      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
-      - SPRING_DATA_REDIS_HOST=${SPRING_REDIS_HOST}
-      - SPRING_DATA_REDIS_PORT=${SPRING_REDIS_PORT}
-      - SPRING_DATA_REDIS_PASSWORD=${SPRING_REDIS_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION}
-      - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
-      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
-      - MINIO_BUCKET=${MINIO_BUCKET}
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      minio:
-        condition: service_started
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-    networks:
-      - pcparts-net
-    restart: unless-stopped
+  # # --- Frontend (Next.js) ---
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: pcparts-frontend
+  #   expose:
+  #     - "3000"
+  #   environment:
+  #     - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+  #     - NEXT_PUBLIC_MINIO_URL=${NEXT_PUBLIC_MINIO_URL}
+  #   depends_on:
+  #     backend:
+  #       condition: service_healthy
+  #   networks:
+  #     - pcparts-net
+  #   restart: unless-stopped
+
+  # # --- Backend (Spring Boot) ---
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: pcparts-backend
+  #   expose:
+  #     - "8080"
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+  #     - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+  #     - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+  #     - SPRING_DATA_REDIS_HOST=${SPRING_REDIS_HOST}
+  #     - SPRING_DATA_REDIS_PORT=${SPRING_REDIS_PORT}
+  #     - SPRING_DATA_REDIS_PASSWORD=${SPRING_REDIS_PASSWORD}
+  #     - JWT_SECRET=${JWT_SECRET}
+  #     - JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION}
+  #     - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
+  #     - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+  #     - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+  #     - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+  #     - MINIO_BUCKET=${MINIO_BUCKET}
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #     minio:
+  #       condition: service_started
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 60s
+  #   networks:
+  #     - pcparts-net
+  #   restart: unless-stopped
 
   # --- PostgreSQL ---
   postgres:

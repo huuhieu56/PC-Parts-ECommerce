@@ -23,6 +23,8 @@ public class Token {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Account account;
 
     @Column(name = "token_type", nullable = false, length = 20)

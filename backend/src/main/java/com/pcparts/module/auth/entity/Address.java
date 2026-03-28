@@ -24,6 +24,8 @@ public class Address {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private UserProfile user;
 
     @Column(length = 50)

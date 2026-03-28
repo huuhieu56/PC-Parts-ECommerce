@@ -20,15 +20,21 @@ public class ProductAttribute {
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Product product;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attribute_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Attribute attribute;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attribute_value_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private AttributeValue attributeValue;
 
     @Data

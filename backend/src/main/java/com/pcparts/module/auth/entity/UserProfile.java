@@ -25,6 +25,8 @@ public class UserProfile {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", unique = true, nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Account account;
 
     @Column(name = "full_name", nullable = false)

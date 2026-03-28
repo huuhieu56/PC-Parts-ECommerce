@@ -24,6 +24,8 @@ public class Payment {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Order order;
 
     @Column(name = "method", nullable = false, length = 20)

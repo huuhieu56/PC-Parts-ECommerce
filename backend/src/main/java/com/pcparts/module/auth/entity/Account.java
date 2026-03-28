@@ -38,6 +38,8 @@ public class Account {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Role role;
 
     @Column(name = "last_login_at")
@@ -52,5 +54,7 @@ public class Account {
     private LocalDateTime updatedAt;
 
     @OneToOne(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private UserProfile userProfile;
 }

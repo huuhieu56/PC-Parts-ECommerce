@@ -28,6 +28,8 @@ public class Cart {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private UserProfile user;
 
     @Column(name = "session_id")
@@ -35,6 +37,8 @@ public class Cart {
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<CartItem> items = new ArrayList<>();
 
     @CreationTimestamp
