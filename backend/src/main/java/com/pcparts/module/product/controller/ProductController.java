@@ -3,6 +3,7 @@ package com.pcparts.module.product.controller;
 import com.pcparts.common.dto.ApiResponse;
 import com.pcparts.common.dto.PageResponse;
 import com.pcparts.module.product.dto.ProductDto;
+import com.pcparts.module.product.dto.ProductFilterDto;
 import com.pcparts.module.product.dto.ProductImageDto;
 import com.pcparts.module.product.dto.ProductRequest;
 import com.pcparts.module.product.service.ProductService;
@@ -14,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -30,6 +32,7 @@ public class ProductController {
 
     /**
      * Lists active products with pagination, filtering, and search.
+     * Supports dynamic attribute filtering via attributeValueIds.
      */
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<ProductDto>>> listProducts(
@@ -38,10 +41,25 @@ public class ProductController {
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Long brandId,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) List<Long> attributeValueIds) {
 
-        PageResponse<ProductDto> result = productService.listProducts(page, size, sort, categoryId, brandId, keyword);
+        PageResponse<ProductDto> result = productService.listProducts(
+                page, size, sort, categoryId, brandId, keyword, minPrice, maxPrice, attributeValueIds);
         return ResponseEntity.ok(ApiResponse.success("Danh sách sản phẩm", result));
+    }
+
+    /**
+     * Gets available filter options (attributes, brands, price range) for a category.
+     * Used by the frontend to render dynamic filter sidebar.
+     */
+    @GetMapping("/filters")
+    public ResponseEntity<ApiResponse<ProductFilterDto>> getFilters(
+            @RequestParam Long categoryId) {
+        ProductFilterDto filters = productService.getFiltersForCategory(categoryId);
+        return ResponseEntity.ok(ApiResponse.success("Bộ lọc sản phẩm", filters));
     }
 
     /**

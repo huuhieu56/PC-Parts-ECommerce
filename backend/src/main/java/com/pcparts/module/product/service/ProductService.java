@@ -6,22 +6,25 @@ import com.pcparts.common.exception.ResourceNotFoundException;
 import com.pcparts.module.product.dto.*;
 import com.pcparts.module.product.entity.*;
 import com.pcparts.module.product.repository.*;
+import com.pcparts.module.product.specification.ProductSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.text.Normalizer;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Service for product CRUD, search, and image management.
+ * Service for product CRUD, search, filtering, and image management.
  */
 @Service
 @RequiredArgsConstructor
@@ -37,23 +40,20 @@ public class ProductService {
     private final FileService fileService;
 
     /**
-     * Lists products with pagination and optional filtering.
+     * Lists products with pagination and dynamic filtering.
+     * Supports category, brand, keyword, price range, and attribute value filtering.
      */
     @Transactional(readOnly = true)
     public PageResponse<ProductDto> listProducts(int page, int size, String sort,
-                                                  Long categoryId, Long brandId, String keyword) {
+                                                  Long categoryId, Long brandId, String keyword,
+                                                  BigDecimal minPrice, BigDecimal maxPrice,
+                                                  List<Long> attributeValueIds) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, sort != null ? sort : "createdAt"));
-        Page<Product> productPage;
 
-        if (keyword != null && !keyword.isBlank()) {
-            productPage = productRepository.searchByKeyword(keyword, "ACTIVE", pageable);
-        } else if (categoryId != null) {
-            productPage = productRepository.findByCategoryIdAndStatus(categoryId, "ACTIVE", pageable);
-        } else if (brandId != null) {
-            productPage = productRepository.findByBrandIdAndStatus(brandId, "ACTIVE", pageable);
-        } else {
-            productPage = productRepository.findByStatus("ACTIVE", pageable);
-        }
+        Specification<Product> spec = ProductSpecification.buildFilter(
+                categoryId, brandId, keyword, minPrice, maxPrice, attributeValueIds);
+
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
 
         List<ProductDto> dtos = productPage.getContent().stream()
                 .map(this::toDto)
@@ -68,6 +68,87 @@ public class ProductService {
                 .last(productPage.isLast())
                 .build();
     }
+
+    /**
+     * Gets available filter options for a given category.
+     * Returns attribute groups with values (and product counts), brands, and price range.
+     */
+    @Transactional(readOnly = true)
+    public ProductFilterDto getFiltersForCategory(Long categoryId) {
+        // Get all active products in this category
+        List<Product> products = productRepository.findAll(
+                ProductSpecification.buildFilter(categoryId, null, null, null, null, null));
+
+        Set<Long> productIds = products.stream().map(Product::getId).collect(Collectors.toSet());
+
+        // Build attribute filter groups
+        List<Attribute> attributes = attributeRepository.findByCategoryId(categoryId);
+        List<ProductFilterDto.AttributeFilterGroup> attrGroups = new ArrayList<>();
+
+        for (Attribute attr : attributes) {
+            List<AttributeValue> values = attributeValueRepository.findByAttributeId(attr.getId());
+            List<ProductFilterDto.AttributeValueOption> valueOptions = new ArrayList<>();
+
+            for (AttributeValue val : values) {
+                // Count products that have this attribute value
+                long count = productAttributeRepository.findAll().stream()
+                        .filter(pa -> productIds.contains(pa.getProduct().getId())
+                                && pa.getAttributeValue().getId().equals(val.getId()))
+                        .count();
+                if (count > 0) {
+                    valueOptions.add(ProductFilterDto.AttributeValueOption.builder()
+                            .valueId(val.getId())
+                            .value(val.getValue())
+                            .count(count)
+                            .build());
+                }
+            }
+
+            if (!valueOptions.isEmpty()) {
+                attrGroups.add(ProductFilterDto.AttributeFilterGroup.builder()
+                        .attributeId(attr.getId())
+                        .attributeName(attr.getName())
+                        .values(valueOptions)
+                        .build());
+            }
+        }
+
+        // Build brand filter options
+        Map<Long, String> brandMap = new LinkedHashMap<>();
+        Map<Long, Long> brandCount = new LinkedHashMap<>();
+        for (Product p : products) {
+            Long bId = p.getBrand().getId();
+            brandMap.put(bId, p.getBrand().getName());
+            brandCount.merge(bId, 1L, Long::sum);
+        }
+        List<ProductFilterDto.BrandFilterOption> brandOptions = brandMap.entrySet().stream()
+                .map(e -> ProductFilterDto.BrandFilterOption.builder()
+                        .brandId(e.getKey())
+                        .brandName(e.getValue())
+                        .count(brandCount.get(e.getKey()))
+                        .build())
+                .collect(Collectors.toList());
+
+        // Price range
+        BigDecimal minPrice = products.stream()
+                .map(Product::getSellingPrice)
+                .min(BigDecimal::compareTo)
+                .orElse(BigDecimal.ZERO);
+        BigDecimal maxPrice = products.stream()
+                .map(Product::getSellingPrice)
+                .max(BigDecimal::compareTo)
+                .orElse(BigDecimal.ZERO);
+
+        return ProductFilterDto.builder()
+                .attributes(attrGroups)
+                .brands(brandOptions)
+                .priceRange(ProductFilterDto.PriceRangeDto.builder()
+                        .minPrice(minPrice)
+                        .maxPrice(maxPrice)
+                        .build())
+                .build();
+    }
+
 
     /**
      * Gets a product by slug (for public detail page).

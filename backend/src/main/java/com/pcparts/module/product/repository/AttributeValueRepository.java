@@ -13,4 +13,6 @@ import java.util.List;
 public interface AttributeValueRepository extends JpaRepository<AttributeValue, Long> {
 
     List<AttributeValue> findByAttributeId(Long attributeId);
+
+    List<AttributeValue> findByAttributeCategoryId(Long categoryId);
 }

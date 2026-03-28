@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Cpu, ShoppingCart, Filter, X, ChevronRight, SlidersHorizontal, Check, Loader2 } from "lucide-react";
+import { Cpu, ShoppingCart, Filter, X, ChevronRight, SlidersHorizontal, Check, Loader2, ChevronDown } from "lucide-react";
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useCartStore } from "@/stores/cart-store";
 
@@ -43,6 +43,30 @@ interface CategoryDto {
   name: string;
   slug: string;
   children?: CategoryDto[];
+}
+
+interface AttributeValueOption {
+  valueId: number;
+  value: string;
+  count: number;
+}
+
+interface AttributeFilterGroup {
+  attributeId: number;
+  attributeName: string;
+  values: AttributeValueOption[];
+}
+
+interface BrandFilterOption {
+  brandId: number;
+  brandName: string;
+  count: number;
+}
+
+interface ProductFilterData {
+  attributes: AttributeFilterGroup[];
+  brands: BrandFilterOption[];
+  priceRange: { minPrice: number; maxPrice: number };
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
@@ -153,9 +177,7 @@ function ProductsContent() {
 
   // Filters state
   const [products, setProducts] = useState<DisplayProduct[]>([]);
-  const [allProducts, setAllProducts] = useState<DisplayProduct[]>([]);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
-  const [brands, setBrands] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -163,13 +185,22 @@ function ProductsContent() {
   const [totalElements, setTotalElements] = useState(0);
   const PAGE_SIZE = 20;
 
+  // Dynamic filter data from API
+  const [filterData, setFilterData] = useState<ProductFilterData | null>(null);
+  const [loadingFilters, setLoadingFilters] = useState(false);
+
+  // Selected attribute value IDs (across all attribute groups)
+  const [selectedAttrValues, setSelectedAttrValues] = useState<Set<number>>(new Set());
+  // Expanded accordion state for attribute groups
+  const [expandedAttrs, setExpandedAttrs] = useState<Set<number>>(new Set());
+
   // Filter values from URL
   const selectedCategoryId = searchParams.get("categoryId") ? Number(searchParams.get("categoryId")) : null;
   const selectedBrandId = searchParams.get("brandId") ? Number(searchParams.get("brandId")) : null;
   const keyword = searchParams.get("keyword") || "";
   const categorySlug = searchParams.get("category") || "";
 
-  // Client-side filters
+  // Client-side price filter
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<number[]>([]);
   const [sortBy, setSortBy] = useState("default");
 
@@ -192,6 +223,32 @@ function ProductsContent() {
     fetchCategories();
   }, []);
 
+  // Fetch dynamic filters when category changes
+  useEffect(() => {
+    const effectiveCategoryId = selectedCategoryId || (categorySlug ? findCategoryBySlug(categories, categorySlug)?.id : null);
+    if (!effectiveCategoryId) {
+      setFilterData(null);
+      return;
+    }
+    async function fetchFilters() {
+      setLoadingFilters(true);
+      try {
+        const res = await fetch(`${API_URL}/products/filters?categoryId=${effectiveCategoryId}`);
+        if (res.ok) {
+          const json = await res.json();
+          const data: ProductFilterData = json.data || json;
+          setFilterData(data);
+          // Auto-expand all attribute groups
+          setExpandedAttrs(new Set(data.attributes.map((a: AttributeFilterGroup) => a.attributeId)));
+        }
+      } catch { /* empty */ }
+      setLoadingFilters(false);
+    }
+    fetchFilters();
+    // Reset selected attribute values when category changes
+    setSelectedAttrValues(new Set());
+  }, [selectedCategoryId, categorySlug, categories]);
+
   // Fetch products with server-side filters
   useEffect(() => {
     async function fetchProducts() {
@@ -204,6 +261,11 @@ function ProductsContent() {
         params.set("page", String(currentPage));
         params.set("size", String(PAGE_SIZE));
 
+        // Sort
+        if (sortBy === "price-asc") params.set("sort", "sellingPrice,asc");
+        else if (sortBy === "price-desc") params.set("sort", "sellingPrice,desc");
+        else if (sortBy === "name-asc") params.set("sort", "name,asc");
+
         // If category slug is provided but no categoryId, try to find the ID
         if (categorySlug && !selectedCategoryId) {
           const matchedCat = findCategoryBySlug(categories, categorySlug);
@@ -212,23 +274,30 @@ function ProductsContent() {
           }
         }
 
+        // Dynamic attribute value IDs (server-side filter)
+        if (selectedAttrValues.size > 0) {
+          const ids = Array.from(selectedAttrValues);
+          ids.forEach(id => params.append("attributeValueIds", String(id)));
+        }
+
+        // Price range (server-side filter)
+        if (selectedPriceRanges.length > 0) {
+          const selectedRanges = selectedPriceRanges.map(idx => priceRanges[idx]);
+          const minPrice = Math.min(...selectedRanges.map(r => r.min));
+          const maxPrice = Math.max(...selectedRanges.map(r => r.max));
+          params.set("minPrice", String(minPrice));
+          if (maxPrice !== Infinity) params.set("maxPrice", String(maxPrice));
+        }
+
         const res = await fetch(`${API_URL}/products?${params.toString()}`);
         if (res.ok) {
           const json = await res.json();
           const pageData = json.data || json;
           const items: ProductDto[] = pageData.content || [];
           const mapped = items.map(mapProduct);
-          setAllProducts(mapped);
           setProducts(mapped);
           setTotalPages(pageData.totalPages || 0);
           setTotalElements(pageData.totalElements || items.length);
-
-          // Extract unique brands from products
-          const uniqueBrands = new Map<number, string>();
-          mapped.forEach(p => {
-            if (p.brandId && p.brandName) uniqueBrands.set(p.brandId, p.brandName);
-          });
-          setBrands(Array.from(uniqueBrands.entries()).map(([id, name]) => ({ id, name })));
         }
       } catch {
         console.error("Failed to fetch products");
@@ -237,33 +306,7 @@ function ProductsContent() {
       }
     }
     fetchProducts();
-  }, [selectedCategoryId, selectedBrandId, keyword, categorySlug, categories, currentPage]);
-
-  // Apply client-side price filter
-  useEffect(() => {
-    if (selectedPriceRanges.length === 0) {
-      setProducts(sortProducts(allProducts, sortBy));
-      return;
-    }
-    const filtered = allProducts.filter(p => {
-      return selectedPriceRanges.some(idx => {
-        const range = priceRanges[idx];
-        return p.price >= range.min && p.price < range.max;
-      });
-    });
-    setProducts(sortProducts(filtered, sortBy));
-  }, [selectedPriceRanges, allProducts, sortBy]);
-
-  function sortProducts(items: DisplayProduct[], sort: string): DisplayProduct[] {
-    const sorted = [...items];
-    switch (sort) {
-      case "price-asc": return sorted.sort((a, b) => a.price - b.price);
-      case "price-desc": return sorted.sort((a, b) => b.price - a.price);
-      case "name-asc": return sorted.sort((a, b) => a.name.localeCompare(b.name));
-      case "discount": return sorted.sort((a, b) => b.discountPercent - a.discountPercent);
-      default: return sorted;
-    }
-  }
+  }, [selectedCategoryId, selectedBrandId, keyword, categorySlug, categories, currentPage, selectedAttrValues, selectedPriceRanges, sortBy]);
 
   function findCategoryBySlug(cats: CategoryDto[], slug: string): CategoryDto | null {
     for (const cat of cats) {
@@ -276,10 +319,30 @@ function ProductsContent() {
     return null;
   }
 
+  function toggleAttrValue(valueId: number) {
+    setSelectedAttrValues(prev => {
+      const next = new Set(prev);
+      if (next.has(valueId)) next.delete(valueId);
+      else next.add(valueId);
+      return next;
+    });
+    setCurrentPage(0);
+  }
+
+  function toggleExpandAttr(attrId: number) {
+    setExpandedAttrs(prev => {
+      const next = new Set(prev);
+      if (next.has(attrId)) next.delete(attrId);
+      else next.add(attrId);
+      return next;
+    });
+  }
+
   function togglePriceRange(idx: number) {
     setSelectedPriceRanges(prev =>
       prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]
     );
+    setCurrentPage(0);
   }
 
   function navigateFilter(params: Record<string, string | null>) {
@@ -288,16 +351,18 @@ function ProductsContent() {
       if (val === null) current.delete(key);
       else current.set(key, val);
     });
+    setCurrentPage(0);
     router.push(`/products?${current.toString()}`);
   }
 
   function clearAllFilters() {
     setSelectedPriceRanges([]);
+    setSelectedAttrValues(new Set());
     setSortBy("default");
     router.push("/products");
   }
 
-  const hasActiveFilters = selectedCategoryId || selectedBrandId || keyword || categorySlug || selectedPriceRanges.length > 0;
+  const hasActiveFilters = selectedCategoryId || selectedBrandId || keyword || categorySlug || selectedPriceRanges.length > 0 || selectedAttrValues.size > 0;
 
   // Flatten categories for sidebar display
   function flattenCategories(cats: CategoryDto[]): CategoryDto[] {
@@ -309,6 +374,16 @@ function ProductsContent() {
     return result;
   }
   const flatCats = flattenCategories(categories);
+
+  // Get selected attribute value labels for active filter tags
+  function getAttrValueLabel(valueId: number): string {
+    if (!filterData) return String(valueId);
+    for (const group of filterData.attributes) {
+      const val = group.values.find(v => v.valueId === valueId);
+      if (val) return `${group.attributeName}: ${val.value}`;
+    }
+    return String(valueId);
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -371,23 +446,61 @@ function ProductsContent() {
                 </div>
               </div>
 
-              {/* Brand filter */}
-              {brands.length > 0 && (
+              {/* Brand filter (from filter API or all brands) */}
+              {(filterData?.brands || []).length > 0 && (
                 <div className="mb-5">
                   <h4 className="text-sm font-medium text-gray-700 mb-2">Thương hiệu</h4>
-                  <div className="space-y-0.5">
-                    {brands.map((brand) => (
-                      <button
-                        key={brand.id}
-                        onClick={() => navigateFilter({ brandId: selectedBrandId === brand.id ? null : String(brand.id) })}
-                        className={`block w-full text-left text-sm px-2 py-1.5 rounded cursor-pointer transition-colors ${selectedBrandId === brand.id ? "bg-blue-50 text-blue-600 font-medium" : "text-gray-600 hover:bg-gray-50"}`}
-                      >
-                        {brand.name}
-                      </button>
+                  <div className="space-y-1">
+                    {filterData!.brands.map((brand) => (
+                      <label key={brand.brandId} className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-gray-900 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={selectedBrandId === brand.brandId}
+                          onChange={() => navigateFilter({ brandId: selectedBrandId === brand.brandId ? null : String(brand.brandId) })}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        />
+                        {brand.brandName}
+                        <span className="text-xs text-gray-400 ml-auto">({brand.count})</span>
+                      </label>
                     ))}
                   </div>
                 </div>
               )}
+
+              {/* Dynamic Attribute Filters */}
+              {loadingFilters && selectedCategoryId && (
+                <div className="mb-5 text-center py-3">
+                  <Loader2 className="w-5 h-5 animate-spin text-blue-500 mx-auto" />
+                  <p className="text-xs text-gray-400 mt-1">Đang tải bộ lọc...</p>
+                </div>
+              )}
+              {filterData && filterData.attributes.map((attrGroup) => (
+                <div key={attrGroup.attributeId} className="mb-4">
+                  <button
+                    onClick={() => toggleExpandAttr(attrGroup.attributeId)}
+                    className="flex items-center justify-between w-full text-sm font-medium text-gray-700 mb-1.5 cursor-pointer hover:text-gray-900 transition-colors"
+                  >
+                    <span>{attrGroup.attributeName}</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${expandedAttrs.has(attrGroup.attributeId) ? "rotate-180" : ""}`} />
+                  </button>
+                  {expandedAttrs.has(attrGroup.attributeId) && (
+                    <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
+                      {attrGroup.values.map((val) => (
+                        <label key={val.valueId} className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-gray-900 transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={selectedAttrValues.has(val.valueId)}
+                            onChange={() => toggleAttrValue(val.valueId)}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          />
+                          <span className="truncate">{val.value}</span>
+                          <span className="text-xs text-gray-400 ml-auto shrink-0">({val.count})</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
 
               {/* Price filter */}
               <div className="mb-5">
@@ -413,7 +526,7 @@ function ProductsContent() {
           <div className="flex-1">
             <div className="flex items-center justify-between mb-4 gap-3">
               <h1 className="text-xl font-bold text-gray-900">
-                {keyword ? `Tìm kiếm: "${keyword}"` : categorySlug || "Tất cả sản phẩm"}
+                {keyword ? `Tìm kiếm: "${keyword}"` : flatCats.find(c => c.id === selectedCategoryId)?.name || categorySlug || "Tất cả sản phẩm"}
                 {!loading && <span className="text-sm font-normal text-gray-500 ml-2">({totalElements} sản phẩm)</span>}
               </h1>
               <div className="flex items-center gap-2">
@@ -448,14 +561,20 @@ function ProductsContent() {
                 )}
                 {selectedBrandId && (
                   <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs px-2.5 py-1 rounded-full">
-                    Thương hiệu: {brands.find(b => b.id === selectedBrandId)?.name}
+                    Thương hiệu: {filterData?.brands.find(b => b.brandId === selectedBrandId)?.brandName || selectedBrandId}
                     <button onClick={() => navigateFilter({ brandId: null })} className="hover:text-blue-900 cursor-pointer"><X className="w-3 h-3" /></button>
                   </span>
                 )}
+                {Array.from(selectedAttrValues).map(valueId => (
+                  <span key={valueId} className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs px-2.5 py-1 rounded-full">
+                    {getAttrValueLabel(valueId)}
+                    <button onClick={() => toggleAttrValue(valueId)} className="hover:text-green-900 cursor-pointer"><X className="w-3 h-3" /></button>
+                  </span>
+                ))}
                 {selectedPriceRanges.map(idx => (
-                  <span key={idx} className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs px-2.5 py-1 rounded-full">
+                  <span key={idx} className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 text-xs px-2.5 py-1 rounded-full">
                     {priceRanges[idx].label}
-                    <button onClick={() => togglePriceRange(idx)} className="hover:text-blue-900 cursor-pointer"><X className="w-3 h-3" /></button>
+                    <button onClick={() => togglePriceRange(idx)} className="hover:text-amber-900 cursor-pointer"><X className="w-3 h-3" /></button>
                   </span>
                 ))}
               </div>
