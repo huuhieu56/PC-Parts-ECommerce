@@ -71,7 +71,7 @@ export default function BuildPCPage() {
 
   const addAllToCart = () => {
     selected.forEach(item => {
-      addItem({ id: item.productId, name: item.name, price: item.price, image: item.imageUrl || "", quantity: 1 });
+      addItem(item.productId, 1);
     });
   };
 
