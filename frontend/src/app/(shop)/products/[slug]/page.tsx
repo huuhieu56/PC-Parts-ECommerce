@@ -33,15 +33,30 @@ interface ProductDetail {
   description: string;
   price: number;
   originalPrice: number | null;
+  categoryId: number;
   categoryName: string;
   brandName: string;
-  averageRating: number;
-  reviewCount: number;
   images: string[];
-  quantity: number;
-  warranty: number;
+  warranty: string;
   attributes: Record<string, string>;
   discountPercent: number;
+}
+
+interface ReviewDto {
+  id: number;
+  rating: number;
+  comment: string;
+  customerName: string;
+  createdAt: string;
+}
+
+interface RelatedProduct {
+  id: number;
+  name: string;
+  slug: string;
+  sellingPrice: number;
+  originalPrice: number;
+  images: { id: number; imageUrl: string; isPrimary: boolean; sortOrder: number }[];
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
@@ -54,6 +69,7 @@ function mapProductDto(dto: ProductDto): ProductDetail {
   (dto.attributes || []).forEach((a) => {
     attrs[a.attributeName] = a.value;
   });
+  const warrantyAttr = attrs["Bảo hành"] || attrs["Warranty"] || attrs["bảo hành"];
   return {
     id: dto.id,
     name: dto.name,
@@ -62,13 +78,11 @@ function mapProductDto(dto: ProductDto): ProductDetail {
     description: dto.description || '',
     price: dto.sellingPrice,
     originalPrice: dto.originalPrice > dto.sellingPrice ? dto.originalPrice : null,
+    categoryId: dto.categoryId,
     categoryName: dto.categoryName,
     brandName: dto.brandName,
-    averageRating: 0,
-    reviewCount: 0,
-    images: (dto.images || []).map((img) => img.imageUrl),
-    quantity: 1,
-    warranty: 12,
+    images: (dto.images || []).sort((a, b) => a.sortOrder - b.sortOrder).map((img) => img.imageUrl),
+    warranty: warrantyAttr || "12 tháng",
     attributes: attrs,
     discountPercent: discount,
   };
@@ -87,6 +101,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
   const [qty, setQty] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
   const [cartMsg, setCartMsg] = useState("");
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [activeTab, setActiveTab] = useState<"specs" | "desc" | "reviews">("specs");
+  const [reviews, setReviews] = useState<ReviewDto[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [avgRating, setAvgRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
+  const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([]);
 
   const handleAddToCart = async () => {
     if (!product) return;
@@ -129,6 +150,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
     }
   };
 
+  // Fetch product
   useEffect(() => {
     async function fetchProduct() {
       setLoading(true);
@@ -136,9 +158,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
         const res = await fetch(`${API_URL}/products/${resolvedParams.slug}`);
         if (res.ok) {
           const json = await res.json();
-          // API returns ApiResponse<ProductDto>
           const dto: ProductDto = json.data || json;
-          setProduct(mapProductDto(dto));
+          const mapped = mapProductDto(dto);
+          setProduct(mapped);
+
+          // Fetch reviews for this product
+          fetchReviews(dto.id);
+          // Fetch related products (same category)
+          fetchRelatedProducts(dto.categoryId, dto.id);
         }
       } catch {
         console.error("Failed to fetch product");
@@ -148,6 +175,38 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
     }
     fetchProduct();
   }, [resolvedParams.slug]);
+
+  async function fetchReviews(productId: number) {
+    setReviewsLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/reviews/product/${productId}?page=0&size=10`);
+      if (res.ok) {
+        const json = await res.json();
+        const page = json.data || json;
+        const items: ReviewDto[] = page.content || [];
+        setReviews(items);
+        setReviewCount(page.totalElements || items.length);
+        if (items.length > 0) {
+          const avg = items.reduce((sum, r) => sum + r.rating, 0) / items.length;
+          setAvgRating(Math.round(avg * 10) / 10);
+        }
+      }
+    } catch { /* reviews may not exist yet */ } finally {
+      setReviewsLoading(false);
+    }
+  }
+
+  async function fetchRelatedProducts(categoryId: number, excludeId: number) {
+    try {
+      const res = await fetch(`${API_URL}/products?categoryId=${categoryId}&size=5`);
+      if (res.ok) {
+        const json = await res.json();
+        const page = json.data || json;
+        const items: RelatedProduct[] = (page.content || []).filter((p: RelatedProduct) => p.id !== excludeId);
+        setRelatedProducts(items.slice(0, 5));
+      }
+    } catch { /* empty */ }
+  }
 
   if (loading) {
     return (
@@ -183,6 +242,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
 
   const attrs = product.attributes || {};
   const attrEntries = Object.entries(attrs);
+  const hasImages = product.images.length > 0;
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -206,17 +266,27 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
           {/* Column 1: Product Image */}
           <div className="lg:col-span-5">
             <div className="bg-white rounded-xl shadow-sm p-6 sticky top-32">
-              <div className="aspect-square bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100">
-                <Cpu className="w-24 h-24 text-gray-300" />
+              <div className="aspect-square bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100 overflow-hidden">
+                {hasImages ? (
+                  <img src={product.images[selectedImage]} alt={product.name} className="w-full h-full object-contain" />
+                ) : (
+                  <Cpu className="w-24 h-24 text-gray-300" />
+                )}
               </div>
               {/* Thumbnails */}
-              <div className="flex gap-2 mt-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="w-16 h-16 bg-gray-50 rounded-md border-2 border-gray-200 hover:border-blue-500 cursor-pointer flex items-center justify-center transition-colors">
-                    <Cpu className="w-6 h-6 text-gray-400" />
-                  </div>
-                ))}
-              </div>
+              {hasImages && product.images.length > 1 && (
+                <div className="flex gap-2 mt-4 overflow-x-auto">
+                  {product.images.map((img, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedImage(idx)}
+                      className={`w-16 h-16 rounded-md border-2 overflow-hidden shrink-0 transition-colors ${selectedImage === idx ? "border-blue-500" : "border-gray-200 hover:border-gray-400"}`}
+                    >
+                      <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-contain" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -234,10 +304,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex">
                   {[1, 2, 3, 4, 5].map((s) => (
-                    <Star key={s} className={`w-4 h-4 ${s <= Math.round(product.averageRating || 0) ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
+                    <Star key={s} className={`w-4 h-4 ${s <= Math.round(avgRating) ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
                   ))}
                 </div>
-                <span className="text-sm text-gray-500">{product.reviewCount || 0} đánh giá</span>
+                <span className="text-sm text-gray-500">{avgRating > 0 ? avgRating.toFixed(1) : "Chưa có"} ({reviewCount} đánh giá)</span>
               </div>
 
               {/* Key Specs */}
@@ -251,7 +321,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                       </li>
                     ))}
                     {attrEntries.length > 5 && (
-                      <li className="text-sm text-blue-600 cursor-pointer hover:text-blue-700">Xem thêm &gt;</li>
+                      <li className="text-sm text-blue-600 cursor-pointer hover:text-blue-700" onClick={() => setActiveTab("specs")}>Xem thêm &gt;</li>
                     )}
                   </ul>
                 </div>
@@ -279,10 +349,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
               <div className="flex items-center gap-4 mb-5 text-sm">
                 <span className="flex items-center gap-1 text-gray-600">
                   <Shield className="w-4 h-4 text-blue-600" />
-                  BH: {product.warranty || 12} tháng
+                  BH: {product.warranty}
                 </span>
-                <span className={`flex items-center gap-1 ${product.quantity > 0 ? "text-green-600" : "text-red-500"}`}>
-                  {product.quantity > 0 ? "✓ Còn hàng" : "✗ Hết hàng"}
+                <span className="flex items-center gap-1 text-green-600">
+                  ✓ Còn hàng
                 </span>
               </div>
 
@@ -317,8 +387,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                   {addingToCart ? "Đang xử lý..." : "ĐẶT MUA NGAY"}
                 </button>
                 <div className="grid grid-cols-2 gap-2">
-                  <button className="border border-gray-300 text-gray-700 hover:bg-gray-50 py-2.5 rounded-lg text-sm font-medium transition-colors">
+                  <button disabled className="border border-gray-300 text-gray-400 py-2.5 rounded-lg text-sm font-medium cursor-not-allowed relative group">
                     MUA TRẢ GÓP
+                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Sắp ra mắt</span>
                   </button>
                   <button onClick={handleAddToCart} disabled={addingToCart} className="bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1 disabled:opacity-50">
                     <ShoppingCart className="w-4 h-4" /> {addingToCart ? "Đang thêm..." : "CHO VÀO GIỎ"}
@@ -339,20 +410,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                 <h3 className="font-bold text-gray-900 text-sm mb-3 uppercase">Mua hàng Online toàn quốc</h3>
                 <div className="flex items-center gap-2 mb-3">
                   <Phone className="w-4 h-4 text-amber-500" />
-                  <span className="text-sm text-gray-900 font-semibold">1900.XXXX</span>
+                  <span className="text-sm text-gray-900 font-semibold">1900.6868</span>
                 </div>
                 <hr className="border-gray-100 mb-3" />
-                <p className="text-xs font-semibold text-gray-700 mb-2 uppercase">Hiện đang có tại Showroom:</p>
+                <p className="text-xs font-semibold text-gray-700 mb-2 uppercase">Hỗ trợ khách hàng:</p>
                 <div className="space-y-2">
-                  {[
-                    { address: "49 Thái Hà, Hà Nội", phone: "0918.557.006" },
-                    { address: "63 Trần Thái Tông, HN", phone: "0862.136.488" },
-                  ].map((store) => (
-                    <div key={store.address} className="text-xs text-gray-500 space-y-0.5">
-                      <p className="flex items-center gap-1"><MapPin className="w-3 h-3 text-blue-500" />{store.address}</p>
-                      <p className="flex items-center gap-1 ml-4"><Phone className="w-3 h-3 text-green-500" />{store.phone}</p>
-                    </div>
-                  ))}
+                  <div className="text-xs text-gray-500 space-y-0.5">
+                    <p className="flex items-center gap-1"><MapPin className="w-3 h-3 text-blue-500" />Giao hàng toàn quốc</p>
+                    <p className="flex items-center gap-1 ml-4"><Phone className="w-3 h-3 text-green-500" />Hotline: 1900.6868</p>
+                  </div>
                 </div>
               </div>
 
@@ -360,14 +426,20 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
               <div className="bg-white rounded-xl shadow-sm p-5">
                 <h3 className="font-bold text-gray-900 text-sm mb-3 uppercase">Trợ giúp</h3>
                 <ul className="space-y-2.5 text-sm text-gray-600">
-                  <li className="flex items-center gap-2 hover:text-blue-600 cursor-pointer transition-colors">
-                    <Truck className="w-4 h-4 text-blue-500" /> Hướng dẫn mua hàng
+                  <li>
+                    <Link href="/products" className="flex items-center gap-2 hover:text-blue-600 transition-colors">
+                      <Truck className="w-4 h-4 text-blue-500" /> Hướng dẫn mua hàng
+                    </Link>
                   </li>
-                  <li className="flex items-center gap-2 hover:text-blue-600 cursor-pointer transition-colors">
-                    <Shield className="w-4 h-4 text-green-500" /> Chính sách bảo hành
+                  <li>
+                    <Link href="/warranty" className="flex items-center gap-2 hover:text-blue-600 transition-colors">
+                      <Shield className="w-4 h-4 text-green-500" /> Chính sách bảo hành
+                    </Link>
                   </li>
-                  <li className="flex items-center gap-2 hover:text-blue-600 cursor-pointer transition-colors">
-                    <RotateCcw className="w-4 h-4 text-amber-500" /> Chính sách đổi trả
+                  <li>
+                    <Link href="/warranty" className="flex items-center gap-2 hover:text-blue-600 transition-colors">
+                      <RotateCcw className="w-4 h-4 text-amber-500" /> Chính sách đổi trả
+                    </Link>
                   </li>
                 </ul>
               </div>
@@ -378,24 +450,77 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
         {/* Specs & Reviews Tabs */}
         <div className="mt-6 bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="flex border-b border-gray-200">
-            <button className="px-6 py-4 text-sm font-semibold text-[#1A4B9C] border-b-2 border-[#1A4B9C]">Thông số kỹ thuật</button>
-            <button className="px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent">Mô tả</button>
-            <button className="px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent">Đánh giá ({product.reviewCount || 0})</button>
+            <button
+              onClick={() => setActiveTab("specs")}
+              className={`px-6 py-4 text-sm font-semibold border-b-2 transition-colors ${activeTab === "specs" ? "text-[#1A4B9C] border-[#1A4B9C]" : "text-gray-500 hover:text-gray-700 border-transparent"}`}
+            >
+              Thông số kỹ thuật
+            </button>
+            <button
+              onClick={() => setActiveTab("desc")}
+              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === "desc" ? "text-[#1A4B9C] border-[#1A4B9C]" : "text-gray-500 hover:text-gray-700 border-transparent"}`}
+            >
+              Mô tả
+            </button>
+            <button
+              onClick={() => setActiveTab("reviews")}
+              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === "reviews" ? "text-[#1A4B9C] border-[#1A4B9C]" : "text-gray-500 hover:text-gray-700 border-transparent"}`}
+            >
+              Đánh giá ({reviewCount})
+            </button>
           </div>
           <div className="p-6">
-            {attrEntries.length > 0 ? (
-              <table className="w-full text-sm">
-                <tbody>
-                  {attrEntries.map(([key, value], i) => (
-                    <tr key={key} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                      <td className="py-2.5 px-4 text-gray-500 w-1/3 font-medium">{key}</td>
-                      <td className="py-2.5 px-4 text-gray-900">{value}</td>
-                    </tr>
+            {activeTab === "specs" && (
+              attrEntries.length > 0 ? (
+                <table className="w-full text-sm">
+                  <tbody>
+                    {attrEntries.map(([key, value], i) => (
+                      <tr key={key} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+                        <td className="py-2.5 px-4 text-gray-500 w-1/3 font-medium">{key}</td>
+                        <td className="py-2.5 px-4 text-gray-900">{value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="text-gray-500 text-sm">Chưa có thông số kỹ thuật.</p>
+              )
+            )}
+
+            {activeTab === "desc" && (
+              product.description ? (
+                <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: product.description }} />
+              ) : (
+                <p className="text-gray-500 text-sm">Chưa có mô tả sản phẩm.</p>
+              )
+            )}
+
+            {activeTab === "reviews" && (
+              reviewsLoading ? (
+                <div className="text-gray-400 text-sm">Đang tải đánh giá...</div>
+              ) : reviews.length === 0 ? (
+                <div className="text-center py-8">
+                  <Star className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">Chưa có đánh giá cho sản phẩm này.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reviews.map((r) => (
+                    <div key={r.id} className="border-b border-gray-100 pb-4 last:border-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="flex">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star key={s} className={`w-3.5 h-3.5 ${s <= r.rating ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
+                          ))}
+                        </div>
+                        <span className="text-sm font-medium text-gray-900">{r.customerName || "Khách hàng"}</span>
+                        <span className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleDateString("vi-VN")}</span>
+                      </div>
+                      <p className="text-sm text-gray-600">{r.comment}</p>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            ) : (
-              <p className="text-gray-500 text-sm">Chưa có thông số kỹ thuật.</p>
+                </div>
+              )
             )}
           </div>
         </div>
@@ -403,15 +528,41 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
         {/* Related Products */}
         <div className="mt-6 bg-white rounded-xl shadow-sm p-6 mb-10">
           <h2 className="text-lg font-bold text-gray-900 mb-4">Sản phẩm liên quan</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="bg-gray-50 rounded-lg p-4 text-center border border-gray-200 animate-pulse">
-                <div className="aspect-square bg-gray-200 rounded-md mb-3" />
-                <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto mb-2" />
-                <div className="h-5 bg-gray-200 rounded w-1/2 mx-auto" />
-              </div>
-            ))}
-          </div>
+          {relatedProducts.length === 0 ? (
+            <p className="text-gray-400 text-sm">Không có sản phẩm liên quan.</p>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {relatedProducts.map((p) => {
+                const img = p.images?.find((i) => i.isPrimary) || p.images?.[0];
+                const discount = p.originalPrice > p.sellingPrice
+                  ? Math.round((1 - p.sellingPrice / p.originalPrice) * 100)
+                  : 0;
+                return (
+                  <Link key={p.id} href={`/products/${p.slug}`} className="group">
+                    <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                      <div className="aspect-square p-3 relative">
+                        {img ? (
+                          <img src={img.imageUrl} alt={p.name} className="w-full h-full object-contain" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center"><Cpu className="w-8 h-8 text-gray-300" /></div>
+                        )}
+                        {discount > 0 && (
+                          <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded">-{discount}%</span>
+                        )}
+                      </div>
+                      <div className="p-3">
+                        <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">{p.name}</p>
+                        {p.originalPrice > p.sellingPrice && (
+                          <p className="text-xs text-gray-400 line-through">{formatPrice(p.originalPrice)}</p>
+                        )}
+                        <p className="text-[#E31837] font-bold">{formatPrice(p.sellingPrice)}</p>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>

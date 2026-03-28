@@ -393,44 +393,13 @@ INSERT INTO coupon (code, discount_type, discount_value, min_order_value, max_di
     ('VIP20', 'FIXED', 2000000.00, 20000000, NULL, 100, 0, '2026-01-01 00:00:00', '2026-06-30 23:59:59');
 
 -- =============================================
--- 9. SAMPLE CUSTOMER ACCOUNT
+-- 9. ACCOUNT CREATION — VIA SCRIPT
 -- =============================================
--- Password: Customer@123
-INSERT INTO account (email, password_hash, is_active, is_verified, role_id)
-SELECT 'customer@test.com', '$2a$12$BKUaW3EgQHe6jH9/ut6fJeEUTaB6b9bagM2Yfk8uXYG2A2NmEcxhS', true, true, r.id
-FROM role r WHERE r.name = 'CUSTOMER';
-
-INSERT INTO user_profile (account_id, full_name, phone)
-SELECT a.id, 'Nguyễn Văn Khách', '0909123456'
-FROM account a WHERE a.email = 'customer@test.com';
-
--- Address for customer
-INSERT INTO address (user_id, label, receiver_name, receiver_phone, province, district, ward, street, is_default)
-SELECT up.id, 'Nhà', 'Nguyễn Văn Khách', '0909123456', 'TP. Hồ Chí Minh', 'Quận 1', 'Phường Bến Nghé', '123 Nguyễn Huệ', true
-FROM user_profile up
-JOIN account a ON up.account_id = a.id
-WHERE a.email = 'customer@test.com';
-
--- =============================================
--- 10. SAMPLE SALES STAFF ACCOUNT
--- =============================================
--- Password: Sales@123
-INSERT INTO account (email, password_hash, is_active, is_verified, role_id)
-SELECT 'sales@pcparts.vn', '$2a$12$BKUaW3EgQHe6jH9/ut6fJeEUTaB6b9bagM2Yfk8uXYG2A2NmEcxhS', true, true, r.id
-FROM role r WHERE r.name = 'SALES';
-
-INSERT INTO user_profile (account_id, full_name, phone)
-SELECT a.id, 'Trần Thị Bán Hàng', '0909987654'
-FROM account a WHERE a.email = 'sales@pcparts.vn';
-
--- =============================================
--- 11. SAMPLE WAREHOUSE STAFF ACCOUNT
--- =============================================
--- Password: Warehouse@123
-INSERT INTO account (email, password_hash, is_active, is_verified, role_id)
-SELECT 'warehouse@pcparts.vn', '$2a$12$BKUaW3EgQHe6jH9/ut6fJeEUTaB6b9bagM2Yfk8uXYG2A2NmEcxhS', true, true, r.id
-FROM role r WHERE r.name = 'WAREHOUSE';
-
-INSERT INTO user_profile (account_id, full_name, phone)
-SELECT a.id, 'Lê Văn Kho', '0909654321'
-FROM account a WHERE a.email = 'warehouse@pcparts.vn';
+-- NOTE: All test accounts (ADMIN, SALES, WAREHOUSE, CUSTOMER) are created
+-- via the bin/seed-data script instead of SQL migration.
+--
+-- Lý do: Password hash phụ thuộc vào BCryptPasswordEncoder config và .env.
+-- Mỗi môi trường (dev/staging/prod) sẽ có hash khác nhau.
+-- Hardcode hash trong SQL sẽ dẫn đến không đăng nhập được.
+--
+-- Xem: bin/seed-data

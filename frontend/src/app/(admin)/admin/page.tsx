@@ -65,7 +65,6 @@ export default function AdminDashboardPage() {
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${c.color}`}><c.icon className="w-5 h-5" /></div>
                 </div>
                 <p className="text-2xl font-bold text-gray-900">{c.value}</p>
-                <p className="text-xs text-green-600 mt-1 flex items-center gap-0.5"><TrendingUp className="w-3 h-3" /> +12% so với tháng trước</p>
               </div>
             ))}
           </div>

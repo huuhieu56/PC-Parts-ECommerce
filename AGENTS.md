@@ -18,11 +18,12 @@
 - CI/CD: GitHub Actions + Docker + Docker Compose + Nginx
 - Monitoring: Prometheus + Grafana + ELK Stack
 
-## Môi trường: Windows
-- Shell: PowerShell
-- Đường dẫn dùng dấu `\` (hoặc `/` trong một số trường hợp)
-- Dùng các lệnh PowerShell tiêu chuẩn: `Remove-Item -Recurse -Force`, `New-Item`, `mkdir`, `Copy-Item -Recurse`, `Get-ChildItem`, `Get-Content`, v.v.
-- Tương đương nhanh: `rm -r -fo` (alias), `ni` (New-Item), `cp -r`, `ls`, `cat`
+## Môi trường: Linux
+- Shell: bash / zsh
+- Đường dẫn dùng dấu `/`
+- Dùng các lệnh Linux tiêu chuẩn: `rm -rf`, `mkdir -p`, `cp -r`, `ls`, `cat`, `mv`, `chmod`, `chown`, v.v.
+- Quản lý process: `ps aux`, `kill`, `htop`
+- Tìm kiếm: `find`, `grep -r`, `fd`, `rg`
 
 ## Chạy Server: BẮT BUỘC dùng Docker
 - KHÔNG chạy server trực tiếp bằng `java -jar`, `npm run dev`, `mvn spring-boot:run`
@@ -34,7 +35,7 @@
 
 ## Quản lý Database (QUAN TRỌNG)
 - **Flyway checksum lỗi?** KHÔNG sửa checksum. Xóa volume rồi tạo lại:
-  ```powershell
+  ```bash
   docker compose down
   docker volume rm pc-parts-ecommerce_postgres_data  # hoặc tên volume tương ứng
   docker compose up -d
@@ -42,32 +43,42 @@
   Migration sẽ tự chạy lại từ đầu. Dữ liệu dev không quan trọng.
 - **Sửa migration file?** Luôn xóa volume và chạy lại, KHÔNG bao giờ sửa checksum trong DB.
 
-## Tạo Tài Khoản Test (QUAN TRỌNG)
-- **KHÔNG hardcode bcrypt hash trong SQL migration.** Dễ sai, khó debug.
-- **Cách đúng:**
-  1. Đăng ký tài khoản qua REST API: `POST /api/v1/auth/register`
-  2. Nếu cần role đặc biệt (ADMIN, SALES, WAREHOUSE): update trực tiếp trong DB:
-     ```sql
-     -- Table: account (email, password_hash, role_id), role (id, name)
-     -- role_id: 1=ADMIN, 2=SALES, 3=WAREHOUSE, 4=CUSTOMER
-     UPDATE account SET role_id = 1 WHERE email = 'admin@pcparts.com';
-     ```
-  3. Lưu thông tin tài khoản test vào bảng bên dưới để không phải đoán mò.
+## Seed Data & Tạo Tài Khoản Test (QUAN TRỌNG)
+
+### Nguyên tắc seed data
+- **Dữ liệu tĩnh** (roles, categories, products, brands, attributes, inventory, coupons, suppliers, v.v.) → dùng file `.sql` trong Flyway migration.
+- **Tài khoản test** (ADMIN, SALES, WAREHOUSE, CUSTOMER) → **BẮT BUỘC dùng script `bin/seed-data`**, KHÔNG hardcode bcrypt hash trong SQL.
+  - **Lý do:** Password hash phụ thuộc vào `BCryptPasswordEncoder` strength config và môi trường runtime. Mỗi lần `.env` thay đổi hoặc môi trường khác nhau (dev/staging/prod), hash sẽ khác → hardcode hash trong SQL sẽ sai, không đăng nhập được.
+
+### Script `bin/seed-data`
+
+Script gọi REST API để đăng ký tài khoản, sau đó update role và thêm dữ liệu mẫu trong DB. Flow:
+1. Đợi backend healthy (timeout 120s)
+2. Gọi `POST /api/v1/auth/register` cho từng tài khoản
+3. Update `role_id` trong DB cho các tài khoản cần role đặc biệt (ADMIN, SALES, WAREHOUSE)
+4. Thêm địa chỉ mẫu cho customer
+
+### Cách dùng
+```bash
+# Sau khi docker compose up -d và đợi backend healthy:
+./bin/seed-data
+```
 
 ### Tài khoản test hiện tại
 
 | Role | Email | Password | Ghi chú |
 |------|-------|----------|---------|
-| ADMIN | admin@pcparts.com | Admin@123 | Đăng ký qua API → update role_id = 1 |
-| CUSTOMER | customer@pcparts.com | Customer@123 | Đăng ký qua API |
+| ADMIN | admin@pcparts.com | Admin@123 | Script → update role ADMIN |
+| SALES | sales@pcparts.com | Sales@123 | Script → update role SALES |
+| WAREHOUSE | warehouse@pcparts.com | Warehouse@123 | Script → update role WAREHOUSE |
+| CUSTOMER | customer@pcparts.com | Customer@123 | Script (mặc định role CUSTOMER) |
 
 > **DB Schema:** `account` (id, email, password_hash, role_id) + `user_profile` (id, account_id, full_name, phone) + `role` (id, name)
 >
-> **Quy trình tạo tài khoản test sau khi reset DB:**
+> **Quy trình sau khi reset DB:**
 > 1. `docker compose up -d` (đợi backend healthy)
-> 2. `Invoke-RestMethod -Uri "http://localhost/api/v1/auth/register" -Method POST -ContentType "application/json" -Body '{"fullName":"Admin User","email":"admin@pcparts.com","password":"Admin@123","phone":"0901234567"}'`
-> 3. Update role: `docker compose exec postgres psql -U pcparts -d pcparts -c "UPDATE account SET role_id = 1 WHERE email = 'admin@pcparts.com';"`
-> 4. Cập nhật bảng tài khoản test ở trên
+> 2. `./bin/seed-data`
+> 3. Xác nhận đăng nhập thành công với từng tài khoản
 
 ## Quy tắc Test (QUAN TRỌNG)
 - Test phải được viết DỰA THEO tài liệu trong docs/, không tự suy luận
@@ -89,7 +100,7 @@
 - KHÔNG git push — chỉ commit local
 
 ## Quy tắc Overnight
-- Đọc GEMINI.md và toàn bộ docs/ trước khi bắt đầu
+- Đọc AGENTS.md và toàn bộ docs/ trước khi bắt đầu
 - Ghi tiến độ vào PROGRESS.md mỗi 30 phút (thời gian, task đang làm, % hoàn thành)
 - Nếu bị block >15 phút → skip, ghi rõ lý do vào HANDOFF.md, chuyển task tiếp theo
 - Khi xong toàn bộ: tạo HANDOFF.md gồm:

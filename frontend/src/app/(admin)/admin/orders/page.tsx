@@ -12,6 +12,7 @@ interface Order { id: number; orderNumber: string; totalAmount: number; status: 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     async function fetchOrders() {
@@ -24,18 +25,22 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, []);
 
+  const filteredOrders = orders.filter(o =>
+    !search.trim() || o.orderNumber.toLowerCase().includes(search.toLowerCase()) || o.status.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div>
       <h1 className="text-xl font-bold text-gray-900 mb-6">Quản lý đơn hàng</h1>
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-4 border-b border-gray-200">
-          <div className="relative max-w-sm"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" /><input placeholder="Tìm đơn hàng..." className="w-full h-9 pl-9 pr-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" /></div>
+          <div className="relative max-w-sm"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm đơn hàng..." className="w-full h-9 pl-9 pr-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" /></div>
         </div>
         {loading ? <div className="p-8 text-center text-gray-400">Đang tải...</div> : (
           <table className="w-full text-sm">
             <thead><tr className="text-left text-gray-500 bg-gray-50 border-b border-gray-200"><th className="px-4 py-3 font-medium">Mã đơn</th><th className="px-4 py-3 font-medium">Ngày tạo</th><th className="px-4 py-3 font-medium">Tổng tiền</th><th className="px-4 py-3 font-medium">Trạng thái</th><th className="px-4 py-3 font-medium">Thao tác</th></tr></thead>
             <tbody>
-              {orders.map(o => (
+              {filteredOrders.map(o => (
                 <tr key={o.id} className="border-b border-gray-50 hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium text-gray-900">#{o.orderNumber}</td>
                   <td className="px-4 py-3 text-gray-500">{new Date(o.createdAt).toLocaleDateString("vi-VN")}</td>
@@ -44,6 +49,7 @@ export default function AdminOrdersPage() {
                   <td className="px-4 py-3"><button className="text-blue-600 hover:text-blue-700 text-xs font-medium">Chi tiết</button></td>
                 </tr>
               ))}
+              {filteredOrders.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">Không tìm thấy đơn hàng</td></tr>}
             </tbody>
           </table>
         )}

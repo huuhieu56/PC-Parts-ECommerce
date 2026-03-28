@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Cpu, Monitor, MemoryStick, HardDrive, Zap, ShoppingCart, ArrowRight, ChevronRight, Truck, Shield, Headphones, Check, Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useCartStore } from "@/stores/cart-store";
+import api from "@/lib/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 
@@ -32,18 +33,36 @@ interface DisplayProduct {
   brandName: string;
 }
 
-const categories = [
-  { name: "CPU", icon: Cpu, href: "/products?category=cpu", color: "bg-blue-50 text-blue-600 border-blue-200" },
-  { name: "Mainboard", icon: Monitor, href: "/products?category=mainboard", color: "bg-emerald-50 text-emerald-600 border-emerald-200" },
-  { name: "RAM", icon: MemoryStick, href: "/products?category=ram", color: "bg-purple-50 text-purple-600 border-purple-200" },
-  { name: "SSD/HDD", icon: HardDrive, href: "/products?category=ssd", color: "bg-amber-50 text-amber-600 border-amber-200" },
-  { name: "VGA", icon: Zap, href: "/products?category=vga", color: "bg-red-50 text-red-600 border-red-200" },
-  { name: "Nguồn", icon: Zap, href: "/products?category=psu", color: "bg-cyan-50 text-cyan-600 border-cyan-200" },
-  { name: "Case", icon: Monitor, href: "/products?category=case", color: "bg-orange-50 text-orange-600 border-orange-200" },
-  { name: "Tản nhiệt", icon: Zap, href: "/products?category=cooling", color: "bg-indigo-50 text-indigo-600 border-indigo-200" },
+const categoryColors = [
+  "bg-blue-50 text-blue-600 border-blue-200",
+  "bg-emerald-50 text-emerald-600 border-emerald-200",
+  "bg-purple-50 text-purple-600 border-purple-200",
+  "bg-amber-50 text-amber-600 border-amber-200",
+  "bg-red-50 text-red-600 border-red-200",
+  "bg-cyan-50 text-cyan-600 border-cyan-200",
+  "bg-orange-50 text-orange-600 border-orange-200",
+  "bg-indigo-50 text-indigo-600 border-indigo-200",
+];
+const categoryIcons = [Cpu, Monitor, MemoryStick, HardDrive, Zap, Zap, Monitor, Zap];
+
+const defaultCategories = [
+  { name: "CPU", icon: Cpu, href: "/products?category=cpu", color: categoryColors[0] },
+  { name: "Mainboard", icon: Monitor, href: "/products?category=mainboard", color: categoryColors[1] },
+  { name: "RAM", icon: MemoryStick, href: "/products?category=ram", color: categoryColors[2] },
+  { name: "SSD/HDD", icon: HardDrive, href: "/products?category=ssd", color: categoryColors[3] },
+  { name: "VGA", icon: Zap, href: "/products?category=vga", color: categoryColors[4] },
+  { name: "Nguồn", icon: Zap, href: "/products?category=psu", color: categoryColors[5] },
+  { name: "Case", icon: Monitor, href: "/products?category=case", color: categoryColors[6] },
+  { name: "Tản nhiệt", icon: Zap, href: "/products?category=cooling", color: categoryColors[7] },
 ];
 
-const brands = ["Intel", "AMD", "ASUS", "GIGABYTE", "MSI", "CORSAIR", "Kingston", "Samsung", "WD", "NZXT", "Noctua", "Seasonic"];
+interface CategoryDisplay {
+  name: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon: any;
+  href: string;
+  color: string;
+}
 
 const promoBanners = [
   { title: "TBVP", sub: "Giảm tới 32%", gradient: "from-red-500 to-orange-400" },
@@ -91,10 +110,10 @@ function ProductCard({ product, onAddToCart }: { product: DisplayProduct; onAddT
         )}
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center pb-3 gap-2">
-          <button className="bg-white/90 backdrop-blur-sm text-gray-700 text-xs px-3 py-1.5 rounded-md shadow-sm hover:bg-white transition-all cursor-pointer active:scale-95">
-            So sánh
-          </button>
-          <button className="bg-white/90 backdrop-blur-sm text-gray-700 text-xs px-3 py-1.5 rounded-md shadow-sm hover:bg-white transition-all cursor-pointer active:scale-95">
+          <Link href={`/products/${product.slug}`} className="bg-white/90 backdrop-blur-sm text-gray-700 text-xs px-3 py-1.5 rounded-md shadow-sm hover:bg-white transition-all cursor-pointer active:scale-95">
+            Xem chi tiết
+          </Link>
+          <button onClick={async (e) => { e.preventDefault(); e.stopPropagation(); try { await api.post(`/wishlist/${product.id}`); } catch { /* need login */ } }} className="bg-white/90 backdrop-blur-sm text-gray-700 text-xs px-3 py-1.5 rounded-md shadow-sm hover:bg-white transition-all cursor-pointer active:scale-95">
             ❤️ Thích
           </button>
         </div>
@@ -162,6 +181,8 @@ function mapApiProduct(dto: ProductDto): DisplayProduct {
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<DisplayProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<CategoryDisplay[]>(defaultCategories);
+  const [brands, setBrands] = useState<string[]>([]);
   const addItem = useCartStore((s) => s.addItem);
 
   const handleAddToCart = useCallback(async (productId: number) => {
@@ -184,7 +205,43 @@ export default function HomePage() {
         setLoading(false);
       }
     }
+
+    async function fetchCategories() {
+      try {
+        const res = await fetch(`${API_URL}/categories`);
+        if (res.ok) {
+          const json = await res.json();
+          const data = json.data || json;
+          const items = Array.isArray(data) ? data : (data.content || []);
+          if (items.length > 0) {
+            setCategories(items.map((c: { id: number; name: string; slug?: string }, idx: number) => ({
+              name: c.name,
+              icon: categoryIcons[idx % categoryIcons.length],
+              href: `/products?categoryId=${c.id}`,
+              color: categoryColors[idx % categoryColors.length],
+            })));
+          }
+        }
+      } catch { /* fallback to defaults */ }
+    }
+
+    async function fetchBrands() {
+      try {
+        const res = await fetch(`${API_URL}/brands`);
+        if (res.ok) {
+          const json = await res.json();
+          const data = json.data || json;
+          const items = Array.isArray(data) ? data : (data.content || []);
+          if (items.length > 0) {
+            setBrands(items.map((b: { name: string }) => b.name));
+          }
+        }
+      } catch { /* fallback */ }
+    }
+
     fetchProducts();
+    fetchCategories();
+    fetchBrands();
   }, []);
 
   return (

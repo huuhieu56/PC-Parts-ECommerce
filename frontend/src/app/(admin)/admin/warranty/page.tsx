@@ -11,6 +11,7 @@ interface WarrantyReq { id: number; productName: string; customerName: string; i
 export default function AdminWarrantyPage() {
   const [requests, setRequests] = useState<WarrantyReq[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     async function fetchWarranty() {
@@ -27,14 +28,16 @@ export default function AdminWarrantyPage() {
     <div>
       <h1 className="text-xl font-bold text-gray-900 mb-6">Quản lý bảo hành</h1>
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-4 border-b border-gray-200"><div className="relative max-w-sm"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" /><input placeholder="Tìm yêu cầu bảo hành..." className="w-full h-9 pl-9 pr-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" /></div></div>
-        {loading ? <div className="p-8 text-center text-gray-400">Đang tải...</div> : requests.length === 0 ? (
+        <div className="p-4 border-b border-gray-200"><div className="relative max-w-sm"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm yêu cầu bảo hành..." className="w-full h-9 pl-9 pr-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" /></div></div>
+        {loading ? <div className="p-8 text-center text-gray-400">Đang tải...</div> : (() => {
+          const filtered = requests.filter(r => !search.trim() || r.productName?.toLowerCase().includes(search.toLowerCase()) || r.customerName?.toLowerCase().includes(search.toLowerCase()) || r.issueDescription?.toLowerCase().includes(search.toLowerCase()));
+          return filtered.length === 0 ? (
           <div className="p-8 text-center"><Shield className="w-12 h-12 text-gray-300 mx-auto mb-3" /><p className="text-gray-500 text-sm">Chưa có yêu cầu bảo hành.</p></div>
         ) : (
           <table className="w-full text-sm">
             <thead><tr className="text-left text-gray-500 bg-gray-50 border-b border-gray-200"><th className="px-4 py-3 font-medium">Sản phẩm</th><th className="px-4 py-3 font-medium">Khách hàng</th><th className="px-4 py-3 font-medium">Vấn đề</th><th className="px-4 py-3 font-medium">Ngày tạo</th><th className="px-4 py-3 font-medium">Trạng thái</th><th className="px-4 py-3 font-medium">Thao tác</th></tr></thead>
             <tbody>
-              {requests.map(r => (
+              {filtered.map(r => (
                 <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
                   <td className="px-4 py-3 text-gray-900 font-medium">{r.productName}</td>
                   <td className="px-4 py-3 text-gray-500">{r.customerName}</td>
@@ -46,7 +49,8 @@ export default function AdminWarrantyPage() {
               ))}
             </tbody>
           </table>
-        )}
+        );
+        })()}
       </div>
     </div>
   );

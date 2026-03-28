@@ -84,12 +84,7 @@ WHERE r.name = 'WAREHOUSE'
     'inventory.view', 'inventory.import', 'inventory.adjust'
   );
 
--- Create default admin account (password: Admin@123)
--- BCrypt hash for "Admin@123" with cost 12
-INSERT INTO account (email, password_hash, is_active, is_verified, role_id)
-SELECT 'admin@pcparts.vn', '$2a$12$LJ3m4yst.VBJvGQHvke/PeXHBNMj6JfOLSpiPPuROBb0BNfMbx6Lq', true, true, r.id
-FROM role r WHERE r.name = 'ADMIN';
-
-INSERT INTO user_profile (account_id, full_name, phone)
-SELECT a.id, 'System Admin', '0900000000'
-FROM account a WHERE a.email = 'admin@pcparts.vn';
+-- NOTE: Account creation moved to bin/seed-data script.
+-- Accounts are created via REST API to ensure correct password hashing
+-- regardless of BCrypt configuration or environment (.env).
+-- See: bin/seed-data

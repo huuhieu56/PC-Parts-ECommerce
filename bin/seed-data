@@ -1,0 +1,161 @@
+#!/usr/bin/env bash
+# ============================================
+# bin/seed-data
+# Seed test accounts after Docker Compose is up.
+#
+# Tại sao dùng script thay vì SQL migration?
+#   - Password hash phụ thuộc vào BCryptPasswordEncoder strength config
+#   - Mỗi môi trường (.env) khác nhau → hash khác nhau
+#   - Hardcode hash trong SQL → không đăng nhập được
+#
+# Usage:
+#   chmod +x bin/seed-data
+#   ./bin/seed-data
+# ============================================
+
+set -euo pipefail
+
+# ── Config ──────────────────────────────────────────────
+BASE_URL="${BASE_URL:-http://localhost/api/v1/auth}"
+HEALTH_URL="${HEALTH_URL:-http://localhost/api/v1/actuator/health}"
+DB_USER="${DB_USER:-pcparts}"
+DB_NAME="${DB_NAME:-pcparts}"
+MAX_WAIT="${MAX_WAIT:-120}"  # seconds
+
+# ── Colors ──────────────────────────────────────────────
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+log_info()  { echo -e "${BLUE}ℹ️  $*${NC}"; }
+log_ok()    { echo -e "${GREEN}✅ $*${NC}"; }
+log_warn()  { echo -e "${YELLOW}⚠️  $*${NC}"; }
+log_error() { echo -e "${RED}❌ $*${NC}"; }
+
+# ── 1. Wait for backend to be healthy ──────────────────
+wait_for_backend() {
+  log_info "Đợi backend healthy (tối đa ${MAX_WAIT}s)..."
+  local elapsed=0
+  until curl -sf "${HEALTH_URL}" > /dev/null 2>&1; do
+    if (( elapsed >= MAX_WAIT )); then
+      log_error "Backend không healthy sau ${MAX_WAIT}s. Hãy kiểm tra: docker compose logs backend"
+      exit 1
+    fi
+    sleep 2
+    elapsed=$((elapsed + 2))
+  done
+  log_ok "Backend ready! (${elapsed}s)"
+}
+
+# ── 2. Register account via REST API ───────────────────
+register() {
+  local full_name="$1"
+  local email="$2"
+  local password="$3"
+  local phone="$4"
+
+  log_info "Đăng ký: ${email}"
+  
+  local http_code
+  http_code=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${BASE_URL}/register" \
+    -H "Content-Type: application/json" \
+    -d "{
+      \"fullName\": \"${full_name}\",
+      \"email\": \"${email}\",
+      \"password\": \"${password}\",
+      \"phone\": \"${phone}\"
+    }")
+
+  case "${http_code}" in
+    200|201)
+      log_ok "${email} → Đăng ký thành công"
+      ;;
+    409|400)
+      log_warn "${email} → Đã tồn tại hoặc dữ liệu không hợp lệ (HTTP ${http_code})"
+      ;;
+    *)
+      log_error "${email} → Lỗi không xác định (HTTP ${http_code})"
+      ;;
+  esac
+}
+
+# ── 3. Run SQL via Docker psql ─────────────────────────
+run_sql() {
+  docker compose exec -T postgres psql -U "${DB_USER}" -d "${DB_NAME}" -c "$1" 2>/dev/null
+}
+
+# ── Main ───────────────────────────────────────────────
+main() {
+  echo ""
+  echo "╔══════════════════════════════════════════╗"
+  echo "║     PC Parts E-Commerce — Seed Data      ║"
+  echo "╚══════════════════════════════════════════╝"
+  echo ""
+
+  # Step 1: Wait for backend
+  wait_for_backend
+
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "📝 Tạo tài khoản test"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+  # Step 2: Register accounts via API
+  register "System Admin"      "admin@pcparts.com"       "Admin@123"       "0901234567"
+  register "Customer User"     "customer@pcparts.com"    "Customer@123"    "0901234568"
+  register "Sales Staff"       "sales@pcparts.com"       "Sales@123"       "0901234569"
+  register "Warehouse Staff"   "warehouse@pcparts.com"   "Warehouse@123"   "0901234570"
+
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "🔑 Cập nhật roles"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+  # Step 3: Update roles (mặc định register tạo CUSTOMER)
+  # role_id: 1=ADMIN, 2=SALES, 3=WAREHOUSE, 4=CUSTOMER
+  log_info "Gán role ADMIN cho admin@pcparts.com"
+  run_sql "UPDATE account SET role_id = (SELECT id FROM role WHERE name = 'ADMIN') WHERE email = 'admin@pcparts.com';"
+
+  log_info "Gán role SALES cho sales@pcparts.com"
+  run_sql "UPDATE account SET role_id = (SELECT id FROM role WHERE name = 'SALES') WHERE email = 'sales@pcparts.com';"
+
+  log_info "Gán role WAREHOUSE cho warehouse@pcparts.com"
+  run_sql "UPDATE account SET role_id = (SELECT id FROM role WHERE name = 'WAREHOUSE') WHERE email = 'warehouse@pcparts.com';"
+
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "🏠 Thêm địa chỉ mẫu cho customer"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+  # Step 4: Add sample address for customer (replaces V11 address data)
+  log_info "Thêm địa chỉ mẫu cho customer@pcparts.com"
+  run_sql "
+    INSERT INTO address (user_id, label, receiver_name, receiver_phone, province, district, ward, street, is_default)
+    SELECT up.id, 'Nhà', 'Customer User', '0901234568', 'TP. Hồ Chí Minh', 'Quận 1', 'Phường Bến Nghé', '123 Nguyễn Huệ', true
+    FROM user_profile up
+    JOIN account a ON up.account_id = a.id
+    WHERE a.email = 'customer@pcparts.com'
+    AND NOT EXISTS (
+      SELECT 1 FROM address addr WHERE addr.user_id = up.id
+    );
+  "
+
+  echo ""
+  echo "╔══════════════════════════════════════════╗"
+  echo "║          ✅ Seed data hoàn tất!          ║"
+  echo "╚══════════════════════════════════════════╝"
+  echo ""
+  echo "┌──────────────┬───────────────────────────┬───────────────┐"
+  echo "│ Role         │ Email                     │ Password      │"
+  echo "├──────────────┼───────────────────────────┼───────────────┤"
+  echo "│ ADMIN        │ admin@pcparts.com         │ Admin@123     │"
+  echo "│ SALES        │ sales@pcparts.com         │ Sales@123     │"
+  echo "│ WAREHOUSE    │ warehouse@pcparts.com     │ Warehouse@123 │"
+  echo "│ CUSTOMER     │ customer@pcparts.com      │ Customer@123  │"
+  echo "└──────────────┴───────────────────────────┴───────────────┘"
+  echo ""
+}
+
+main "$@"

@@ -35,9 +35,9 @@ export function Footer() {
             <h4 className="font-semibold text-white mb-4 text-sm uppercase tracking-wider">Hỗ trợ</h4>
             <ul className="space-y-2.5 text-sm text-slate-400">
               <li><Link href="/orders" className="hover:text-amber-400 transition-colors">Tra cứu đơn hàng</Link></li>
-              <li><span className="cursor-default">Chính sách bảo hành</span></li>
-              <li><span className="cursor-default">Chính sách đổi trả</span></li>
-              <li><span className="cursor-default">Hướng dẫn mua hàng</span></li>
+              <li><Link href="/warranty" className="hover:text-amber-400 transition-colors">Chính sách bảo hành</Link></li>
+              <li><Link href="/warranty" className="hover:text-amber-400 transition-colors">Chính sách đổi trả</Link></li>
+              <li><Link href="/products" className="hover:text-amber-400 transition-colors">Hướng dẫn mua hàng</Link></li>
             </ul>
           </div>
 
@@ -47,7 +47,7 @@ export function Footer() {
             <ul className="space-y-2.5 text-sm text-slate-400">
               <li className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-amber-400" />
-                <span className="text-white font-medium">1900.XXXX</span>
+                <span className="text-white font-medium">1900.6868</span>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-amber-400" />

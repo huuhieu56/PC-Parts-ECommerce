@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ShoppingCart, Trash2, Minus, Plus, ChevronRight, Tag, Cpu } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCartStore } from "@/stores/cart-store";
+import api from "@/lib/api";
 
 function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
@@ -11,6 +12,10 @@ export default function CartPage() {
   const { items, totalPrice, totalItems, loading, fetchCart, updateItem, removeItem } = useCartStore();
   const [couponCode, setCouponCode] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [discount, setDiscount] = useState(0);
+  const [couponMsg, setCouponMsg] = useState("");
+  const [couponError, setCouponError] = useState(false);
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -20,8 +25,33 @@ export default function CartPage() {
   if (!mounted) return null;
 
   const shipping = 0;
-  const discount = 0;
   const total = totalPrice - discount + shipping;
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setApplyingCoupon(true);
+    setCouponMsg("");
+    setCouponError(false);
+    try {
+      const res = await api.get(`/coupons/validate?code=${couponCode.trim()}&orderAmount=${totalPrice}`);
+      const coupon = res.data.data || res.data;
+      let discountAmount = 0;
+      if (coupon.discountType === "PERCENTAGE") {
+        discountAmount = Math.round(totalPrice * coupon.discountValue / 100);
+      } else {
+        discountAmount = coupon.discountValue;
+      }
+      setDiscount(discountAmount);
+      setCouponMsg(`Giảm ${formatPrice(discountAmount)}`);
+      setCouponError(false);
+    } catch {
+      setDiscount(0);
+      setCouponMsg("Mã giảm giá không hợp lệ hoặc đã hết hạn");
+      setCouponError(true);
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -89,8 +119,9 @@ export default function CartPage() {
                 <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-1"><Tag className="w-4 h-4 text-blue-600" /> Mã giảm giá</h3>
                 <div className="flex gap-2">
                   <input value={couponCode} onChange={e => setCouponCode(e.target.value)} placeholder="Nhập mã giảm giá" className="flex-1 h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                  <button className="bg-blue-600 text-white px-4 h-10 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">Áp dụng</button>
+                  <button onClick={handleApplyCoupon} disabled={applyingCoupon} className="bg-blue-600 text-white px-4 h-10 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50">{applyingCoupon ? "Đang kiểm tra..." : "Áp dụng"}</button>
                 </div>
+                {couponMsg && <p className={`text-xs mt-2 ${couponError ? "text-red-500" : "text-green-600"}`}>{couponMsg}</p>}
               </div>
               <div className="bg-white rounded-xl shadow-sm p-5">
                 <div className="space-y-2 text-sm">
