@@ -2,15 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, ShoppingCart, Warehouse, Tag, Shield, Cpu, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Warehouse, Tag, Shield, Cpu, LogOut, FolderTree, Bookmark, Factory, Users, RotateCcw, BarChart3 } from "lucide-react";
 
 const adminNav = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/products", label: "Sản phẩm", icon: Package },
+  { href: "/admin/categories", label: "Danh mục", icon: FolderTree },
+  { href: "/admin/brands", label: "Thương hiệu", icon: Bookmark },
   { href: "/admin/orders", label: "Đơn hàng", icon: ShoppingCart },
   { href: "/admin/inventory", label: "Kho hàng", icon: Warehouse },
+  { href: "/admin/suppliers", label: "Nhà cung cấp", icon: Factory },
   { href: "/admin/coupons", label: "Mã giảm giá", icon: Tag },
   { href: "/admin/warranty", label: "Bảo hành", icon: Shield },
+  { href: "/admin/returns", label: "Đổi trả", icon: RotateCcw },
+  { href: "/admin/accounts", label: "Tài khoản", icon: Users },
+  { href: "/admin/statistics", label: "Thống kê", icon: BarChart3 },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

@@ -25,6 +25,7 @@ export default function CheckoutPage() {
   const [province, setProvince] = useState("TP. Hồ Chí Minh");
   const [district, setDistrict] = useState("Quận 1");
   const [note, setNote] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("COD");
 
   useEffect(() => {
     setMounted(true);
@@ -57,7 +58,7 @@ export default function CheckoutPage() {
 
     try {
       const orderRequest = {
-        paymentMethod: "COD",
+        paymentMethod,
         note: note || undefined,
         shippingAddress: {
           receiverName: fullName,
@@ -75,8 +76,14 @@ export default function CheckoutPage() {
       // Clear cart after successful order
       await clearCart();
 
-      // Redirect to order detail
-      router.push(`/orders/${order.id}`);
+      // If VNPay/MoMo, redirect to payment URL if provided
+      if (order.paymentUrl) {
+        window.location.href = order.paymentUrl;
+        return;
+      }
+
+      // Redirect to success page
+      router.push(`/checkout/success?orderNumber=${order.orderNumber || order.id}`);
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string } } };
       setError(axiosErr.response?.data?.message || "Đặt hàng thất bại. Vui lòng thử lại.");
@@ -146,18 +153,26 @@ export default function CheckoutPage() {
               <div className="mt-4"><label className="block text-sm text-gray-600 mb-1">Ghi chú</label><textarea value={note} onChange={e => setNote(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" rows={3} placeholder="Ghi chú cho đơn hàng (tùy chọn)" /></div>
             </div>
 
-            {/* Payment: COD Only */}
+            {/* Payment Methods */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h2 className="font-semibold text-gray-900 flex items-center gap-2 mb-4"><Truck className="w-5 h-5 text-blue-600" /> 2. Phương thức thanh toán</h2>
-              <label className="flex items-center gap-3 p-3 rounded-lg border border-blue-500 bg-blue-50 cursor-pointer">
-                <input type="radio" name="payment" value="COD" checked readOnly className="text-blue-600 focus:ring-blue-500" />
-                <Truck className="w-5 h-5 text-gray-600" />
-                <div>
-                  <span className="text-sm text-gray-700 font-medium">Thanh toán khi nhận hàng (COD)</span>
-                  <p className="text-xs text-gray-500 mt-0.5">Thanh toán bằng tiền mặt khi nhận hàng</p>
-                </div>
-              </label>
-              <p className="text-xs text-gray-400 mt-3">* Thanh toán VNPay, MoMo sẽ được hỗ trợ trong phiên bản tiếp theo.</p>
+              <div className="space-y-2">
+                {[
+                  { value: "COD", label: "Thanh toán khi nhận hàng (COD)", desc: "Thanh toán bằng tiền mặt khi nhận hàng", emoji: "📦" },
+                  { value: "VNPAY", label: "VNPay", desc: "Thanh toán qua ví VNPay, ATM, Visa/Master", emoji: "💳" },
+                  { value: "MOMO", label: "MoMo", desc: "Thanh toán qua ví MoMo", emoji: "📱" },
+                ].map(pm => (
+                  <label key={pm.value} onClick={() => setPaymentMethod(pm.value)}
+                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${paymentMethod === pm.value ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}>
+                    <input type="radio" name="payment" value={pm.value} checked={paymentMethod === pm.value} onChange={() => setPaymentMethod(pm.value)} className="text-blue-600 focus:ring-blue-500" />
+                    <span className="text-lg">{pm.emoji}</span>
+                    <div>
+                      <span className="text-sm text-gray-700 font-medium">{pm.label}</span>
+                      <p className="text-xs text-gray-500 mt-0.5">{pm.desc}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
 

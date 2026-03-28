@@ -92,6 +92,72 @@ function formatPrice(price: number): string {
   return price.toLocaleString("vi-VN") + " đ";
 }
 
+function ReviewForm({ productId, onSubmitted }: { productId: number; onSubmitted: () => void }) {
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [msgError, setMsgError] = useState(false);
+
+  const handleSubmit = async () => {
+    if (rating === 0) { setMsg("Vui lòng chọn số sao"); setMsgError(true); return; }
+    if (!comment.trim()) { setMsg("Vui lòng nhập nội dung đánh giá"); setMsgError(true); return; }
+    setSubmitting(true);
+    setMsg("");
+    try {
+      await api.post("/reviews", { productId, rating, comment: comment.trim() });
+      setMsg("Đánh giá đã được gửi thành công!");
+      setMsgError(false);
+      setRating(0);
+      setComment("");
+      onSubmitted();
+    } catch {
+      setMsg("Bạn cần đăng nhập để đánh giá, hoặc đã đánh giá sản phẩm này rồi.");
+      setMsgError(true);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="border-t border-gray-200 pt-6">
+      <h3 className="text-sm font-semibold text-gray-900 mb-3">Viết đánh giá</h3>
+      <div className="flex items-center gap-1 mb-3">
+        <span className="text-sm text-gray-500 mr-2">Đánh giá:</span>
+        {[1, 2, 3, 4, 5].map((s) => (
+          <button
+            key={s}
+            type="button"
+            onMouseEnter={() => setHoverRating(s)}
+            onMouseLeave={() => setHoverRating(0)}
+            onClick={() => setRating(s)}
+            className="focus:outline-none transition-transform hover:scale-110"
+          >
+            <Star className={`w-6 h-6 cursor-pointer transition-colors ${s <= (hoverRating || rating) ? "fill-amber-400 text-amber-400" : "text-gray-300 hover:text-amber-200"}`} />
+          </button>
+        ))}
+        {rating > 0 && <span className="text-sm text-amber-600 ml-2 font-medium">{rating}/5</span>}
+      </div>
+      <textarea
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        placeholder="Chia sẻ trải nghiệm của bạn với sản phẩm này..."
+        rows={3}
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+      />
+      {msg && <p className={`text-xs mt-1 ${msgError ? "text-red-500" : "text-green-600"}`}>{msg}</p>}
+      <button
+        onClick={handleSubmit}
+        disabled={submitting}
+        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+      >
+        {submitting ? "Đang gửi..." : "Gửi đánh giá"}
+      </button>
+    </div>
+  );
+}
+
 export default function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
@@ -498,27 +564,33 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
             {activeTab === "reviews" && (
               reviewsLoading ? (
                 <div className="text-gray-400 text-sm">Đang tải đánh giá...</div>
-              ) : reviews.length === 0 ? (
-                <div className="text-center py-8">
-                  <Star className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 text-sm">Chưa có đánh giá cho sản phẩm này.</p>
-                </div>
               ) : (
-                <div className="space-y-4">
-                  {reviews.map((r) => (
-                    <div key={r.id} className="border-b border-gray-100 pb-4 last:border-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="flex">
-                          {[1, 2, 3, 4, 5].map((s) => (
-                            <Star key={s} className={`w-3.5 h-3.5 ${s <= r.rating ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
-                          ))}
-                        </div>
-                        <span className="text-sm font-medium text-gray-900">{r.customerName || "Khách hàng"}</span>
-                        <span className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleDateString("vi-VN")}</span>
-                      </div>
-                      <p className="text-sm text-gray-600">{r.comment}</p>
+                <div className="space-y-6">
+                  {reviews.length === 0 ? (
+                    <div className="text-center py-6">
+                      <Star className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500 text-sm">Chưa có đánh giá cho sản phẩm này.</p>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="space-y-4">
+                      {reviews.map((r) => (
+                        <div key={r.id} className="border-b border-gray-100 pb-4 last:border-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="flex">
+                              {[1, 2, 3, 4, 5].map((s) => (
+                                <Star key={s} className={`w-3.5 h-3.5 ${s <= r.rating ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
+                              ))}
+                            </div>
+                            <span className="text-sm font-medium text-gray-900">{r.customerName || "Khách hàng"}</span>
+                            <span className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleDateString("vi-VN")}</span>
+                          </div>
+                          <p className="text-sm text-gray-600">{r.comment}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* Review Form */}
+                  <ReviewForm productId={product.id} onSubmitted={() => fetchReviews(product.id)} />
                 </div>
               )
             )}

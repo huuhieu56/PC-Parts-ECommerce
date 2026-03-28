@@ -13,7 +13,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import api from "@/lib/api";
+
+interface SearchResult { id: number; name: string; slug?: string; sellingPrice?: number; imageUrl?: string; }
 
 const navLinks = [
   { href: "/", label: "Trang chủ" },
@@ -31,8 +34,36 @@ export function Header() {
   const prevTotalItems = useRef(totalItems);
   const isAdmin = user?.role === "ADMIN" || user?.role === "SALES" || user?.role === "WAREHOUSE";
 
+  // Search autocomplete
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const searchRef = useRef<HTMLFormElement>(null);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // Debounced search (300ms)
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (searchQuery.trim().length < 2) { setSearchResults([]); setShowResults(false); return; }
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await api.get(`/products?keyword=${encodeURIComponent(searchQuery.trim())}&page=0&size=5`);
+        const data = res.data.data || res.data;
+        setSearchResults(data.content || []);
+        setShowResults(true);
+      } catch { setSearchResults([]); }
+    }, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [searchQuery]);
+
+  // Click outside to close
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (searchRef.current && !searchRef.current.contains(e.target as Node)) setShowResults(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   // Shake cart icon when items count increases
@@ -47,6 +78,7 @@ export function Header() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setShowResults(false);
     if (searchQuery.trim()) {
       window.location.href = `/products?keyword=${encodeURIComponent(searchQuery.trim())}`;
     }
@@ -89,20 +121,41 @@ export function Header() {
             </span>
           </Link>
 
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} className="flex-1 max-w-xl mx-4">
+          {/* Search Bar with Autocomplete */}
+          <form onSubmit={handleSearch} className="flex-1 max-w-xl mx-4 relative" ref={searchRef}>
             <div className="relative">
               <input
                 type="text"
                 placeholder="Tìm kiếm sản phẩm..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => { setSearchQuery(e.target.value); }}
+                onFocus={() => searchResults.length > 0 && setShowResults(true)}
                 className="w-full h-10 pl-4 pr-10 rounded-md bg-white text-gray-900 text-sm placeholder:text-gray-400 border-0 focus:outline-none focus:ring-2 focus:ring-amber-400"
               />
               <button type="submit" className="absolute right-0 top-0 h-10 w-10 flex items-center justify-center bg-amber-500 hover:bg-amber-600 rounded-r-md transition-colors">
                 <Search className="w-4 h-4 text-white" />
               </button>
             </div>
+            {showResults && searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-50 max-h-80 overflow-y-auto">
+                {searchResults.map((p) => (
+                  <Link key={p.id} href={`/products/${p.slug || p.id}`} onClick={() => { setShowResults(false); setSearchQuery(""); }}
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0">
+                    <div className="w-10 h-10 bg-gray-100 rounded flex-shrink-0 flex items-center justify-center">
+                      {p.imageUrl ? <img src={p.imageUrl} alt="" className="w-full h-full object-contain rounded" /> : <Cpu className="w-4 h-4 text-gray-400" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-900 truncate">{p.name}</p>
+                      <p className="text-xs font-bold text-[#E31837]">{p.sellingPrice?.toLocaleString("vi-VN")} đ</p>
+                    </div>
+                  </Link>
+                ))}
+                <Link href={`/products?keyword=${encodeURIComponent(searchQuery)}`} onClick={() => setShowResults(false)}
+                  className="block text-center text-sm text-blue-600 font-medium py-2.5 hover:bg-blue-50 transition-colors">
+                  Xem tất cả kết quả →
+                </Link>
+              </div>
+            )}
           </form>
 
           {/* Desktop Actions */}

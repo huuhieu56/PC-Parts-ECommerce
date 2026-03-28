@@ -158,6 +158,10 @@ function ProductsContent() {
   const [brands, setBrands] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const PAGE_SIZE = 20;
 
   // Filter values from URL
   const selectedCategoryId = searchParams.get("categoryId") ? Number(searchParams.get("categoryId")) : null;
@@ -197,8 +201,8 @@ function ProductsContent() {
         if (keyword) params.set("keyword", keyword);
         if (selectedCategoryId) params.set("categoryId", String(selectedCategoryId));
         if (selectedBrandId) params.set("brandId", String(selectedBrandId));
-        params.set("page", "0");
-        params.set("size", "50");
+        params.set("page", String(currentPage));
+        params.set("size", String(PAGE_SIZE));
 
         // If category slug is provided but no categoryId, try to find the ID
         if (categorySlug && !selectedCategoryId) {
@@ -216,6 +220,8 @@ function ProductsContent() {
           const mapped = items.map(mapProduct);
           setAllProducts(mapped);
           setProducts(mapped);
+          setTotalPages(pageData.totalPages || 0);
+          setTotalElements(pageData.totalElements || items.length);
 
           // Extract unique brands from products
           const uniqueBrands = new Map<number, string>();
@@ -231,7 +237,7 @@ function ProductsContent() {
       }
     }
     fetchProducts();
-  }, [selectedCategoryId, selectedBrandId, keyword, categorySlug, categories]);
+  }, [selectedCategoryId, selectedBrandId, keyword, categorySlug, categories, currentPage]);
 
   // Apply client-side price filter
   useEffect(() => {
@@ -408,7 +414,7 @@ function ProductsContent() {
             <div className="flex items-center justify-between mb-4 gap-3">
               <h1 className="text-xl font-bold text-gray-900">
                 {keyword ? `Tìm kiếm: "${keyword}"` : categorySlug || "Tất cả sản phẩm"}
-                {!loading && <span className="text-sm font-normal text-gray-500 ml-2">({products.length} sản phẩm)</span>}
+                {!loading && <span className="text-sm font-normal text-gray-500 ml-2">({totalElements} sản phẩm)</span>}
               </h1>
               <div className="flex items-center gap-2">
                 <select
@@ -481,11 +487,45 @@ function ProductsContent() {
                 </button>
               </div>
             ) : (
+              <>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
                 ))}
               </div>
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                  <button
+                    onClick={() => { setCurrentPage(p => Math.max(0, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    disabled={currentPage === 0}
+                    className="px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    ← Trước
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i)
+                    .filter(p => p === 0 || p === totalPages - 1 || Math.abs(p - currentPage) <= 2)
+                    .map((p, idx, arr) => (
+                      <span key={p}>
+                        {idx > 0 && arr[idx - 1] !== p - 1 && <span className="text-gray-400 px-1">…</span>}
+                        <button
+                          onClick={() => { setCurrentPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                          className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${p === currentPage ? "bg-blue-600 text-white shadow-sm" : "border border-gray-200 hover:bg-gray-50 text-gray-700"}`}
+                        >
+                          {p + 1}
+                        </button>
+                      </span>
+                    ))}
+                  <button
+                    onClick={() => { setCurrentPage(p => Math.min(totalPages - 1, p + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    disabled={currentPage >= totalPages - 1}
+                    className="px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Sau →
+                  </button>
+                </div>
+              )}
+              </>
             )}
           </div>
         </div>
