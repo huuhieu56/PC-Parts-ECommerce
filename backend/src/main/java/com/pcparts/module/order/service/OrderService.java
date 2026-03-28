@@ -81,11 +81,33 @@ public class OrderService {
         UserProfile user = userProfileRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", accountId));
 
-        // BUG-05 fix: validate Address belongs to this user
-        Address address = addressRepository.findById(request.getAddressId())
-                .orElseThrow(() -> new ResourceNotFoundException("Address", "id", request.getAddressId()));
-        if (!address.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("Địa chỉ không thuộc về tài khoản của bạn", HttpStatus.FORBIDDEN);
+        // Resolve address: either from addressId or inline shippingAddress
+        Address address;
+        if (request.getAddressId() != null) {
+            // Use existing address
+            address = addressRepository.findById(request.getAddressId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Address", "id", request.getAddressId()));
+            // BUG-05 fix: validate Address belongs to this user
+            if (!address.getUser().getId().equals(user.getId())) {
+                throw new BusinessException("Địa chỉ không thuộc về tài khoản của bạn", HttpStatus.FORBIDDEN);
+            }
+        } else if (request.getShippingAddress() != null) {
+            // Create new address from inline shipping info
+            ShippingAddressRequest sa = request.getShippingAddress();
+            address = Address.builder()
+                    .user(user)
+                    .label("Checkout")
+                    .receiverName(sa.getReceiverName())
+                    .receiverPhone(sa.getReceiverPhone())
+                    .province(sa.getProvince() != null ? sa.getProvince() : "")
+                    .district(sa.getDistrict() != null ? sa.getDistrict() : "")
+                    .ward(sa.getWard() != null ? sa.getWard() : "")
+                    .street(sa.getStreet() != null ? sa.getStreet() : "")
+                    .isDefault(false)
+                    .build();
+            address = addressRepository.save(address);
+        } else {
+            throw new BusinessException("Vui lòng cung cấp địa chỉ giao hàng", HttpStatus.BAD_REQUEST);
         }
 
         var cart = cartRepository.findByUserId(user.getId())
@@ -319,9 +341,20 @@ public class OrderService {
     @Data @Builder @NoArgsConstructor @AllArgsConstructor
     public static class CreateOrderRequest {
         private Long addressId;
+        private ShippingAddressRequest shippingAddress;
         private String note;
         private String couponCode;
         private String paymentMethod;
+    }
+
+    @Data @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class ShippingAddressRequest {
+        private String receiverName;
+        private String receiverPhone;
+        private String province;
+        private String district;
+        private String ward;
+        private String street;
     }
 
     @Data @Builder @NoArgsConstructor @AllArgsConstructor

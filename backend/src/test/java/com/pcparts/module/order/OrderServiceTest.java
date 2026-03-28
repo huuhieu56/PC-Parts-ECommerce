@@ -87,7 +87,7 @@ class OrderServiceTest {
     @Test
     @DisplayName("Create order — success without coupon")
     void createOrder_success() {
-        CreateOrderRequest req = new CreateOrderRequest(10L, "Ship nhanh", null, "COD");
+        CreateOrderRequest req = CreateOrderRequest.builder().addressId(10L).note("Ship nhanh").paymentMethod("COD").build();
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.of(testCart));
@@ -114,7 +114,7 @@ class OrderServiceTest {
     @Test
     @DisplayName("Create order — empty cart throws")
     void createOrder_emptyCart() {
-        CreateOrderRequest req = new CreateOrderRequest(10L, null, null, "COD");
+        CreateOrderRequest req = CreateOrderRequest.builder().addressId(10L).paymentMethod("COD").build();
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.of(testCart));
@@ -128,7 +128,7 @@ class OrderServiceTest {
     @Test
     @DisplayName("Create order — no cart throws")
     void createOrder_noCart() {
-        CreateOrderRequest req = new CreateOrderRequest(10L, null, null, "COD");
+        CreateOrderRequest req = CreateOrderRequest.builder().addressId(10L).paymentMethod("COD").build();
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.empty());
@@ -144,7 +144,7 @@ class OrderServiceTest {
                 .discountValue(new BigDecimal("10")).minOrderValue(new BigDecimal("100000"))
                 .maxDiscount(new BigDecimal("2000000")).maxUses(100).usedCount(0)
                 .startDate(LocalDateTime.now().minusDays(1)).endDate(LocalDateTime.now().plusDays(30)).build();
-        CreateOrderRequest req = new CreateOrderRequest(10L, null, "SAVE10", "COD");
+        CreateOrderRequest req = CreateOrderRequest.builder().addressId(10L).couponCode("SAVE10").paymentMethod("COD").build();
 
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
@@ -168,7 +168,7 @@ class OrderServiceTest {
     @Test
     @DisplayName("Create order — invalid coupon code throws")
     void createOrder_invalidCoupon() {
-        CreateOrderRequest req = new CreateOrderRequest(10L, null, "FAKE", "COD");
+        CreateOrderRequest req = CreateOrderRequest.builder().addressId(10L).couponCode("FAKE").paymentMethod("COD").build();
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.of(testCart));
