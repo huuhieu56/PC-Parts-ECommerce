@@ -100,6 +100,15 @@ export const useCartStore = create<CartState>()(
       },
 
       updateItem: async (productId: number, quantity: number) => {
+        // Optimistic update for instant UI feedback
+        const prevItems = useCartStore.getState().items;
+        const optimisticItems = prevItems.map(i =>
+          i.productId === productId ? { ...i, quantity } : i
+        );
+        const computedTotalOpt = optimisticItems.reduce((sum: number, i: CartItemData) => sum + (i.sellingPrice || 0) * (i.quantity || 0), 0);
+        const computedCountOpt = optimisticItems.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
+        set({ items: optimisticItems, totalPrice: computedTotalOpt, totalItems: computedCountOpt });
+
         try {
           const res = await api.put(`/cart/items/${productId}?quantity=${quantity}`, null, { headers: getHeaders() });
           const cart = res.data.data || res.data;
@@ -112,12 +121,22 @@ export const useCartStore = create<CartState>()(
             totalItems: computedCount,
           });
         } catch (err) {
+          // Rollback to previous state and re-fetch from API to sync
+          set({ items: prevItems, totalPrice: prevItems.reduce((s: number, i: CartItemData) => s + (i.sellingPrice || 0) * (i.quantity || 0), 0), totalItems: prevItems.reduce((s: number, i: CartItemData) => s + (i.quantity || 0), 0) });
+          // Re-fetch cart from API to get correct state
+          try { await useCartStore.getState().fetchCart(); } catch { /* ignore */ }
           console.error("Failed to update cart item", err);
-          throw err;
         }
       },
 
       removeItem: async (productId: number) => {
+        const prevItems = useCartStore.getState().items;
+        // Optimistic removal
+        const optimisticItems = prevItems.filter(i => i.productId !== productId);
+        const computedTotalOpt = optimisticItems.reduce((sum: number, i: CartItemData) => sum + (i.sellingPrice || 0) * (i.quantity || 0), 0);
+        const computedCountOpt = optimisticItems.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
+        set({ items: optimisticItems, totalPrice: computedTotalOpt, totalItems: computedCountOpt });
+
         try {
           const res = await api.delete(`/cart/items/${productId}`, { headers: getHeaders() });
           const cart = res.data.data || res.data;
@@ -130,8 +149,10 @@ export const useCartStore = create<CartState>()(
             totalItems: computedCount,
           });
         } catch (err) {
+          // Rollback and re-fetch
+          set({ items: prevItems, totalPrice: prevItems.reduce((s: number, i: CartItemData) => s + (i.sellingPrice || 0) * (i.quantity || 0), 0), totalItems: prevItems.reduce((s: number, i: CartItemData) => s + (i.quantity || 0), 0) });
+          try { await useCartStore.getState().fetchCart(); } catch { /* ignore */ }
           console.error("Failed to remove cart item", err);
-          throw err;
         }
       },
 
