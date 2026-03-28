@@ -90,6 +90,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             <p>Ngày đặt: <span className="text-gray-900 font-medium">{order.createdAt ? new Date(order.createdAt as string).toLocaleString("vi-VN") : "—"}</span></p>
           </div>
         </div>
+      </div>
     </div>
   );
 }
