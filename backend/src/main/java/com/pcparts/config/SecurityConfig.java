@@ -53,8 +53,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/brands/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/build-pc/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/v1/build-pc/export-quote").permitAll()
+
                 // Cart — guests use session-based cart (X-Session-Id header)
                 .requestMatchers(HttpMethod.GET, "/api/v1/cart/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/cart/items").permitAll()

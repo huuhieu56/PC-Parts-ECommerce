@@ -38,20 +38,18 @@
 
 ### Backend — chạy trực tiếp trên host
 ```bash
-cd backend
-./mvnw spring-boot:run
+./bin/run-backend-dev
 ```
+- Script tự load `.env`, init SDKMAN (Java 21), chạy `./mvnw spring-boot:run -DskipTests`
 - Backend chạy trên `http://localhost:8080`
-- Yêu cầu: Java 21+ trên host
-- File `.env` ở thư mục root sẽ được Spring Boot đọc qua `application.yml` (hoặc set env trước khi chạy)
 
 ### Frontend — chạy trực tiếp trên host
 ```bash
-cd frontend
-npm run dev
+./bin/run-frontend-dev
 ```
+- Script tự load `.env`, chạy `npm run dev`
 - Frontend chạy trên `http://localhost:3000`
-- API calls trong dev nên trỏ thẳng đến `http://localhost:8080` (set `NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1`)
+- API calls trỏ thẳng đến `http://localhost:8080` (set `NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1`)
 
 > **Lưu ý:** Không dùng Nginx reverse proxy trong dev mode. Frontend và Backend được truy cập trực tiếp qua port riêng.
 
