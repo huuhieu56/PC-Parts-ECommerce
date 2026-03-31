@@ -234,6 +234,6 @@ export interface WarrantyTicket {
   orderId: number;
   productName: string;
   issueDescription: string;
-  status: "PENDING" | "PROCESSING" | "RESOLVED" | "REJECTED";
+  status: "RECEIVED" | "INSPECTING" | "RESOLVED" | "REJECTED";
   createdAt: string;
 }
