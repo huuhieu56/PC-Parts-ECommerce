@@ -27,7 +27,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   if (!order) return <div className="bg-gray-50 min-h-screen flex items-center justify-center"><div className="text-center"><Package className="w-16 h-16 text-gray-300 mx-auto mb-4" /><h1 className="text-lg font-semibold text-gray-900">Không tìm thấy đơn hàng</h1><Link href="/orders" className="text-blue-600 text-sm mt-2 inline-block">← Quay lại</Link></div></div>;
 
   const status = (order.status as string) || "PENDING";
-  const steps = ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"];
+  const steps = ["PENDING", "CONFIRMED", "SHIPPING", "COMPLETED"];
   const currentStep = steps.indexOf(status);
   const items = (order.items as Array<{ productName: string; quantity: number; unitPrice: number; lineTotal: number }>) || [];
 
@@ -53,7 +53,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                   {i <= currentStep ? <CheckCircle className="w-5 h-5" /> : i + 1}
                 </div>
                 <span className={`text-xs mt-1 ${i <= currentStep ? "text-green-600 font-medium" : "text-gray-400"}`}>
-                  {["Chờ xác nhận", "Xác nhận", "Xử lý", "Giao hàng", "Hoàn thành"][i]}
+                  {["Chờ xác nhận", "Đã xác nhận", "Đang giao", "Hoàn thành"][i]}
                 </span>
                 {i < steps.length - 1 && <div className={`absolute top-4 left-1/2 w-full h-0.5 ${i < currentStep ? "bg-green-500" : "bg-gray-200"}`} />}
               </div>

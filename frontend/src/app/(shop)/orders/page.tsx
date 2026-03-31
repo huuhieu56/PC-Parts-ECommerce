@@ -13,14 +13,13 @@ function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " �
 const statusColors: Record<string, string> = {
   PENDING: "bg-amber-100 text-amber-700",
   CONFIRMED: "bg-blue-100 text-blue-700",
-  PROCESSING: "bg-blue-100 text-blue-700",
-  SHIPPED: "bg-purple-100 text-purple-700",
-  DELIVERED: "bg-green-100 text-green-700",
+  SHIPPING: "bg-purple-100 text-purple-700",
+  COMPLETED: "bg-green-100 text-green-700",
   CANCELLED: "bg-red-100 text-red-700",
 };
 const statusLabels: Record<string, string> = {
-  PENDING: "Chờ xác nhận", CONFIRMED: "Đã xác nhận", PROCESSING: "Đang xử lý",
-  SHIPPED: "Đang giao", DELIVERED: "Đã giao", CANCELLED: "Đã hủy",
+  PENDING: "Chờ xác nhận", CONFIRMED: "Đã xác nhận",
+  SHIPPING: "Đang giao", COMPLETED: "Hoàn thành", CANCELLED: "Đã hủy",
 };
 
 export default function OrdersPage() {

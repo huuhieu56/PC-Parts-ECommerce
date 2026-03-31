@@ -147,7 +147,7 @@ export interface Order {
   subtotal: number;
   discountAmount: number;
   totalAmount: number;
-  status: "PENDING" | "CONFIRMED" | "DELIVERING" | "COMPLETED" | "CANCELLED";
+  status: "PENDING" | "CONFIRMED" | "SHIPPING" | "COMPLETED" | "CANCELLED";
   note: string | null;
   createdAt: string;
   items: OrderDetail[];
@@ -234,6 +234,6 @@ export interface WarrantyTicket {
   orderId: number;
   productName: string;
   issueDescription: string;
-  status: "PENDING" | "PROCESSING" | "RESOLVED" | "REJECTED";
+  status: "RECEIVED" | "INSPECTING" | "RESOLVED" | "REJECTED";
   createdAt: string;
 }

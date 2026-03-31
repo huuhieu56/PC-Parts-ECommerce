@@ -7,16 +7,15 @@ import api from "@/lib/api";
 
 function formatPrice(p: number | undefined | null): string { return (p ?? 0).toLocaleString("vi-VN") + " đ"; }
 
-const statusLabels: Record<string, string> = { PENDING: "Chờ xác nhận", CONFIRMED: "Đã xác nhận", PROCESSING: "Đang xử lý", SHIPPED: "Đang giao", DELIVERED: "Đã giao", CANCELLED: "Đã hủy" };
-const statusColors: Record<string, string> = { PENDING: "bg-amber-100 text-amber-700", CONFIRMED: "bg-blue-100 text-blue-700", PROCESSING: "bg-blue-100 text-blue-700", SHIPPED: "bg-purple-100 text-purple-700", DELIVERED: "bg-green-100 text-green-700", CANCELLED: "bg-red-100 text-red-700" };
+const statusLabels: Record<string, string> = { PENDING: "Chờ xác nhận", CONFIRMED: "Đã xác nhận", SHIPPING: "Đang giao", COMPLETED: "Hoàn thành", CANCELLED: "Đã hủy" };
+const statusColors: Record<string, string> = { PENDING: "bg-amber-100 text-amber-700", CONFIRMED: "bg-blue-100 text-blue-700", SHIPPING: "bg-purple-100 text-purple-700", COMPLETED: "bg-green-100 text-green-700", CANCELLED: "bg-red-100 text-red-700" };
 
 // Valid status transitions
 const nextStatuses: Record<string, string[]> = {
   PENDING: ["CONFIRMED", "CANCELLED"],
-  CONFIRMED: ["PROCESSING", "CANCELLED"],
-  PROCESSING: ["SHIPPED", "CANCELLED"],
-  SHIPPED: ["DELIVERED"],
-  DELIVERED: [],
+  CONFIRMED: ["SHIPPING", "CANCELLED"],
+  SHIPPING: ["COMPLETED", "CANCELLED"],
+  COMPLETED: [],
   CANCELLED: [],
 };
 
@@ -58,7 +57,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
   if (loading) return <div className="flex items-center justify-center min-h-[400px]"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>;
   if (!order) return <div className="text-center py-12"><Package className="w-16 h-16 text-gray-300 mx-auto mb-4" /><h1 className="text-lg font-semibold text-gray-900">Không tìm thấy đơn hàng</h1><Link href="/admin/orders" className="text-blue-600 text-sm mt-2 inline-block">← Quay lại</Link></div>;
 
-  const steps = ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"];
+  const steps = ["PENDING", "CONFIRMED", "SHIPPING", "COMPLETED"];
   const currentStep = steps.indexOf(order.status);
   const available = nextStatuses[order.status] || [];
 

@@ -19,14 +19,13 @@ interface ReturnRequest {
 function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 const statusColors: Record<string, string> = {
-  PENDING: "bg-amber-100 text-amber-700",
+  PENDING_APPROVAL: "bg-amber-100 text-amber-700",
   APPROVED: "bg-blue-100 text-blue-700",
-  PROCESSING: "bg-purple-100 text-purple-700",
   COMPLETED: "bg-green-100 text-green-700",
   REJECTED: "bg-red-100 text-red-700",
 };
 const statusLabels: Record<string, string> = {
-  PENDING: "Chờ duyệt", APPROVED: "Đã duyệt", PROCESSING: "Đang xử lý",
+  PENDING_APPROVAL: "Chờ duyệt", APPROVED: "Đã duyệt",
   COMPLETED: "Hoàn thành", REJECTED: "Từ chối",
 };
 
