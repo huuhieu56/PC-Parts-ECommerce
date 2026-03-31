@@ -147,7 +147,7 @@ export interface Order {
   subtotal: number;
   discountAmount: number;
   totalAmount: number;
-  status: "PENDING" | "CONFIRMED" | "DELIVERING" | "COMPLETED" | "CANCELLED";
+  status: "PENDING" | "CONFIRMED" | "SHIPPING" | "COMPLETED" | "CANCELLED";
   note: string | null;
   createdAt: string;
   items: OrderDetail[];

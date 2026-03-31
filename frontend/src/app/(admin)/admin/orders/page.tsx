@@ -7,8 +7,8 @@ import api from "@/lib/api";
 import Pagination from "@/components/Pagination";
 
 function formatPrice(p: number | undefined | null): string { return (p ?? 0).toLocaleString("vi-VN") + " đ"; }
-const statusColors: Record<string, string> = { PENDING: "bg-amber-100 text-amber-700", CONFIRMED: "bg-blue-100 text-blue-700", PROCESSING: "bg-blue-100 text-blue-700", SHIPPED: "bg-purple-100 text-purple-700", DELIVERED: "bg-green-100 text-green-700", CANCELLED: "bg-red-100 text-red-700" };
-const statusLabels: Record<string, string> = { PENDING: "Chờ xác nhận", CONFIRMED: "Đã xác nhận", PROCESSING: "Đang xử lý", SHIPPED: "Đang giao", DELIVERED: "Đã giao", CANCELLED: "Đã hủy" };
+const statusColors: Record<string, string> = { PENDING: "bg-amber-100 text-amber-700", CONFIRMED: "bg-blue-100 text-blue-700", SHIPPING: "bg-purple-100 text-purple-700", COMPLETED: "bg-green-100 text-green-700", CANCELLED: "bg-red-100 text-red-700" };
+const statusLabels: Record<string, string> = { PENDING: "Chờ xác nhận", CONFIRMED: "Đã xác nhận", SHIPPING: "Đang giao", COMPLETED: "Hoàn thành", CANCELLED: "Đã hủy" };
 
 interface Order { id: number; orderNumber: string; totalAmount: number; status: string; createdAt: string; recipientName: string; itemCount: number; }
 interface PageData { content: Order[]; page: number; totalPages: number; totalElements: number; hasNext: boolean; hasPrevious: boolean; size: number; }
@@ -45,9 +45,8 @@ export default function AdminOrdersPage() {
             <option value="">Tất cả trạng thái</option>
             <option value="PENDING">Chờ xác nhận</option>
             <option value="CONFIRMED">Đã xác nhận</option>
-            <option value="PROCESSING">Đang xử lý</option>
-            <option value="SHIPPED">Đang giao</option>
-            <option value="DELIVERED">Đã giao</option>
+            <option value="SHIPPING">Đang giao</option>
+            <option value="COMPLETED">Hoàn thành</option>
             <option value="CANCELLED">Đã hủy</option>
           </select>
         </div>
