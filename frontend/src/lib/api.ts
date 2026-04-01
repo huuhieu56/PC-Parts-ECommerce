@@ -73,3 +73,41 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+// --- Product Image API ---
+
+import type { ProductImage } from "@/types";
+
+/**
+ * Upload images to a product.
+ * @param productId - The product ID
+ * @param files - Array of File objects to upload
+ * @param primaryFirst - If true, first image becomes primary (default: true)
+ * @returns Array of uploaded images
+ */
+export async function uploadProductImages(
+  productId: number,
+  files: File[],
+  primaryFirst: boolean = true
+): Promise<ProductImage[]> {
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append("files", file);
+  });
+  formData.append("primaryFirst", String(primaryFirst));
+
+  const response = await api.post(`/products/${productId}/images`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data.data;
+}
+
+/**
+ * Delete a product image by ID.
+ * @param imageId - The image ID to delete
+ */
+export async function deleteProductImage(imageId: number): Promise<void> {
+  await api.delete(`/products/images/${imageId}`);
+}

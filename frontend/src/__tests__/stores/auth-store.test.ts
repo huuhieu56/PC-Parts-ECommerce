@@ -11,6 +11,7 @@ const mockUser: UserProfile = {
   dateOfBirth: null,
   gender: null,
   role: "CUSTOMER",
+  permissions: [],
 };
 
 describe("useAuthStore", () => {

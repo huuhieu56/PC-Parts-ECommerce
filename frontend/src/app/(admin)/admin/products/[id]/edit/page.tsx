@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { ArrowLeft, Save } from "lucide-react";
-import api from "@/lib/api";
+import api, { uploadProductImages } from "@/lib/api";
+import { ImageUpload } from "@/components/admin/ImageUpload";
+import type { ProductImage } from "@/types";
 
 interface Category { id: number; name: string; }
 interface Brand { id: number; name: string; }
@@ -21,6 +23,9 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [images, setImages] = useState<ProductImage[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [imageUploading, setImageUploading] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -42,6 +47,7 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
             brandId: p.brandId?.toString() || "",
             condition: p.condition || "NEW",
           });
+          setImages(p.images || []);
         }
       } catch { /* empty */ } finally { setLoading(false); }
     }
@@ -63,7 +69,27 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
         condition: form.condition,
       };
       if (isNew) {
-        await api.post("/products", payload);
+        const res = await api.post("/products", payload);
+        const productId = res.data.data?.id;
+
+        // Upload pending images if any
+        if (pendingFiles.length > 0 && productId) {
+          setImageUploading(true);
+          try {
+            const uploadedImages = await uploadProductImages(productId, pendingFiles, true);
+            setImages(uploadedImages);
+            setPendingFiles([]);
+          } catch {
+            // Image upload failed but product was created
+            setMsg({ type: "success", text: "Tạo sản phẩm thành công! Lưu ý: Upload ảnh thất bại." });
+            setSaving(false);
+            setImageUploading(false);
+            setTimeout(() => setMsg(null), 4000);
+            return;
+          }
+          setImageUploading(false);
+        }
+
         setMsg({ type: "success", text: "Tạo sản phẩm thành công!" });
       } else {
         await api.put(`/products/${id}`, payload);
@@ -77,6 +103,18 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
   };
 
   const set = (key: keyof ProductForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setForm(prev => ({ ...prev, [key]: e.target.value }));
+
+  const handleImagesUploaded = (newImages: ProductImage[]) => {
+    setImages(newImages);
+  };
+
+  const handleImageDeleted = (imageId: number) => {
+    setImages((prev) => prev.filter((img) => img.id !== imageId));
+  };
+
+  const handlePendingFilesChange = (files: File[]) => {
+    setPendingFiles(files);
+  };
 
   if (loading) return <div className="flex items-center justify-center min-h-[400px]"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>;
 
@@ -141,6 +179,26 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
           <textarea value={form.description} onChange={set("description")} rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none" placeholder="Mô tả chi tiết sản phẩm..." />
+        </div>
+
+        {/* Image Upload Section */}
+        <div className="border-t border-gray-200 pt-5">
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Hình ảnh sản phẩm
+          </label>
+          <ImageUpload
+            images={images}
+            productId={isNew ? null : parseInt(id)}
+            onImagesUploaded={handleImagesUploaded}
+            onImageDeleted={handleImageDeleted}
+            onPendingFilesChange={handlePendingFilesChange}
+            disabled={saving || imageUploading}
+          />
+          {isNew && pendingFiles.length > 0 && (
+            <p className="text-xs text-amber-600 mt-2">
+              * Hình ảnh sẽ được upload sau khi tạo sản phẩm
+            </p>
+          )}
         </div>
 
         <div className="flex justify-end gap-3 pt-2">
