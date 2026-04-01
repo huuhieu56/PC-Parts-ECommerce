@@ -47,6 +47,7 @@ describe("Type definitions", () => {
       dateOfBirth: null,
       gender: null,
       role: "CUSTOMER",
+      permissions: [],
     };
     expect(user.role).toBe("CUSTOMER");
     expect(user.phone).toBe("0901234567");
@@ -142,9 +143,9 @@ describe("Type definitions", () => {
       orderId: 10,
       productName: "RTX 4090",
       issueDescription: "Fan noise",
-      status: "PENDING",
+      status: "RECEIVED",
       createdAt: "2026-01-01",
     };
-    expect(ticket.status).toBe("PENDING");
+    expect(ticket.status).toBe("RECEIVED");
   });
 });

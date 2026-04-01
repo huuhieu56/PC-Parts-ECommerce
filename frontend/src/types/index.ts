@@ -48,6 +48,7 @@ export interface UserProfile {
   dateOfBirth: string | null;
   gender: string | null;
   role: "ADMIN" | "SALES" | "WAREHOUSE" | "CUSTOMER";
+  permissions: string[];
 }
 
 // --- Address ---

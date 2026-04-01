@@ -11,6 +11,11 @@ interface AuthState {
   setAuth: (user: UserProfile, accessToken: string, refreshToken: string) => void;
   clearAuth: () => void;
   updateUser: (user: Partial<UserProfile>) => void;
+
+  // Permission helpers
+  hasPermission: (permission: string) => boolean;
+  hasAnyPermission: (permissions: string[]) => boolean;
+  isStaff: () => boolean;
 }
 
 /**
@@ -18,7 +23,7 @@ interface AuthState {
  */
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       accessToken: null,
       refreshToken: null,
@@ -45,6 +50,35 @@ export const useAuthStore = create<AuthState>()(
         set((state) => ({
           user: state.user ? { ...state.user, ...updates } : null,
         }));
+      },
+
+      /**
+       * Check if user has a specific permission.
+       * ADMIN role has all permissions.
+       */
+      hasPermission: (permission: string) => {
+        const { user } = get();
+        if (!user) return false;
+        if (user.role === "ADMIN") return true;
+        return user.permissions?.includes(permission) ?? false;
+      },
+
+      /**
+       * Check if user has ANY of the given permissions.
+       */
+      hasAnyPermission: (permissions: string[]) => {
+        const { user, hasPermission } = get();
+        if (!user) return false;
+        if (user.role === "ADMIN") return true;
+        return permissions.some((p) => hasPermission(p));
+      },
+
+      /**
+       * Check if user is a staff member (non-CUSTOMER).
+       */
+      isStaff: () => {
+        const { user } = get();
+        return !!user && user.role !== "CUSTOMER";
       },
     }),
     {

@@ -4,6 +4,7 @@ import com.pcparts.common.exception.BusinessException;
 import com.pcparts.common.exception.ResourceNotFoundException;
 import com.pcparts.module.auth.dto.*;
 import com.pcparts.module.auth.entity.Account;
+import com.pcparts.module.auth.entity.Permission;
 import com.pcparts.module.auth.entity.Role;
 import com.pcparts.module.auth.entity.Token;
 import com.pcparts.module.auth.entity.UserProfile;
@@ -22,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Service handling authentication: register, login, logout, refresh token.
@@ -219,6 +222,11 @@ public class AuthService {
      * Maps Account + UserProfile to DTO.
      */
     private UserProfileDto toUserProfileDto(Account account, UserProfile profile) {
+        Set<String> permissionCodes = account.getRole().getPermissions()
+                .stream()
+                .map(Permission::getCode)
+                .collect(Collectors.toSet());
+
         return UserProfileDto.builder()
                 .id(profile.getId())
                 .email(account.getEmail())
@@ -228,6 +236,7 @@ public class AuthService {
                 .dateOfBirth(profile.getDateOfBirth())
                 .gender(profile.getGender())
                 .role(account.getRole().getName())
+                .permissions(permissionCodes)
                 .build();
     }
 }

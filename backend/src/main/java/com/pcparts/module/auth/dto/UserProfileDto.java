@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 /**
  * DTO for user profile information.
@@ -24,4 +25,5 @@ public class UserProfileDto {
     private LocalDate dateOfBirth;
     private String gender;
     private String role;
+    private Set<String> permissions;
 }

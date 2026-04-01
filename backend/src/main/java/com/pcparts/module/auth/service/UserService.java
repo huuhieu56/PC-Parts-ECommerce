@@ -3,6 +3,7 @@ package com.pcparts.module.auth.service;
 import com.pcparts.common.exception.ResourceNotFoundException;
 import com.pcparts.module.auth.dto.UserProfileDto;
 import com.pcparts.module.auth.entity.Account;
+import com.pcparts.module.auth.entity.Permission;
 import com.pcparts.module.auth.entity.UserProfile;
 import com.pcparts.module.auth.repository.AccountRepository;
 import com.pcparts.module.auth.repository.UserProfileRepository;
@@ -10,6 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Service for user profile and password management.
@@ -83,6 +87,11 @@ public class UserService {
     }
 
     private UserProfileDto toDto(Account account, UserProfile profile) {
+        Set<String> permissionCodes = account.getRole().getPermissions()
+                .stream()
+                .map(Permission::getCode)
+                .collect(Collectors.toSet());
+
         return UserProfileDto.builder()
                 .id(profile.getId())
                 .email(account.getEmail())
@@ -92,6 +101,7 @@ public class UserService {
                 .dateOfBirth(profile.getDateOfBirth())
                 .gender(profile.getGender())
                 .role(account.getRole().getName())
+                .permissions(permissionCodes)
                 .build();
     }
 }
