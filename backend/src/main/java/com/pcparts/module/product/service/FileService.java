@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.annotation.PostConstruct;
 import java.util.UUID;
 
 /**
@@ -25,6 +26,20 @@ public class FileService {
 
     @Value("${minio.endpoint}")
     private String endpoint;
+
+    /**
+     * Initialize MinIO bucket with public read policy on startup.
+     */
+    @PostConstruct
+    public void init() {
+        try {
+            ensureBucketExists();
+            applyPublicReadPolicy();
+            log.info("MinIO initialized successfully with public read access for bucket '{}'", bucket);
+        } catch (Exception e) {
+            log.error("Failed to initialize MinIO: {}", e.getMessage());
+        }
+    }
 
     /**
      * Uploads a file to MinIO and returns the public URL.
@@ -89,6 +104,33 @@ public class FileService {
             minioClient.makeBucket(
                     MakeBucketArgs.builder().bucket(bucket).build()
             );
+            log.info("MinIO bucket '{}' created", bucket);
         }
+    }
+
+    /**
+     * Applies public read policy to the bucket.
+     * Allows anonymous users to read (download) files, but not upload or delete.
+     */
+    private void applyPublicReadPolicy() throws Exception {
+        String policy = String.format(
+            "{\"Version\":\"2012-10-17\"," +
+            "\"Statement\":[{" +
+            "\"Effect\":\"Allow\"," +
+            "\"Principal\":{\"AWS\":[\"*\"]}," +
+            "\"Action\":[\"s3:GetObject\"]," +
+            "\"Resource\":[\"arn:aws:s3:::%s/*\"]" +
+            "}]}",
+            bucket
+        );
+
+        minioClient.setBucketPolicy(
+            SetBucketPolicyArgs.builder()
+                .bucket(bucket)
+                .config(policy)
+                .build()
+        );
+
+        log.info("Applied public read policy to bucket '{}'", bucket);
     }
 }
