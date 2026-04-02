@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { Cpu, Eye, EyeOff } from "lucide-react";
+import { Cpu, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import api from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isRegistered = searchParams.get("registered") === "true";
   const { setAuth } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -55,6 +57,12 @@ export default function LoginPage() {
         </div>
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
           <form className="space-y-4" onSubmit={handleLogin}>
+            {isRegistered && (
+              <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-2.5 rounded-lg flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" />
+                Đăng ký thành công! Vui lòng đăng nhập.
+              </div>
+            )}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-2.5 rounded-lg">
                 {error}

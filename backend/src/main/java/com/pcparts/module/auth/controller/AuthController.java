@@ -4,6 +4,7 @@ import com.pcparts.common.dto.ApiResponse;
 import com.pcparts.module.auth.dto.AuthResponse;
 import com.pcparts.module.auth.dto.LoginRequest;
 import com.pcparts.module.auth.dto.RegisterRequest;
+import com.pcparts.module.auth.dto.RegisterResponse;
 import com.pcparts.module.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,11 +28,12 @@ public class AuthController {
 
     /**
      * POST /api/v1/auth/register — Register a new customer account.
+     * Returns basic user info only. User must login separately after registration.
      */
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AuthResponse>> register(
+    public ResponseEntity<ApiResponse<RegisterResponse>> register(
             @Valid @RequestBody RegisterRequest request) {
-        AuthResponse response = authService.register(request);
+        RegisterResponse response = authService.register(request);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.created(response));

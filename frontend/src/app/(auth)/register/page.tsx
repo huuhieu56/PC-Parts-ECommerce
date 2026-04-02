@@ -4,12 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Cpu, Eye, EyeOff } from "lucide-react";
-import { useAuthStore } from "@/stores/auth-store";
 import api from "@/lib/api";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { setAuth } = useAuthStore();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -33,10 +31,9 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const res = await api.post("/auth/register", { fullName, email, phone, password });
-      const authData = res.data.data;
-      setAuth(authData.user, authData.accessToken, authData.refreshToken);
-      router.push("/");
+      await api.post("/auth/register", { fullName, email, phone, password });
+      // Redirect to login page with success message (no auto-login per UC-CUS-04)
+      router.push("/login?registered=true");
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { message?: string } } };
       setError(axiosError.response?.data?.message || "Đăng ký thất bại. Vui lòng thử lại.");
