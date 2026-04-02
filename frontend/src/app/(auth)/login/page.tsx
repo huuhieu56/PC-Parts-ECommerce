@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Cpu, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
+import { useCartStore } from "@/stores/cart-store";
 import api from "@/lib/api";
 
 export default function LoginPage() {
@@ -27,6 +28,10 @@ export default function LoginPage() {
       const res = await api.post("/auth/login", { email, password });
       const authData = res.data.data; // ApiResponse<AuthResponse>
       setAuth(authData.user, authData.accessToken, authData.refreshToken);
+
+      // UC-CUS-03: Merge guest cart into user cart, then fetch merged cart
+      await useCartStore.getState().mergeCart();
+      await useCartStore.getState().fetchCart();
 
       // Redirect based on role
       if (authData.user.role === "ADMIN" || authData.user.role === "SALES" || authData.user.role === "WAREHOUSE") {
