@@ -23,6 +23,8 @@ interface CartState {
   removeItem: (productId: number) => Promise<void>;
   clearCart: () => Promise<void>;
   setCartFromResponse: (data: { items: CartItemData[]; totalPrice: number; totalItems: number }) => void;
+  mergeCart: () => Promise<void>;
+  clearCartState: () => void;
 }
 
 function getSessionId(): string {
@@ -164,6 +166,23 @@ export const useCartStore = create<CartState>()(
           console.error("Failed to clear cart", err);
           throw err;
         }
+      },
+
+      // UC-CUS-03: Merge guest cart into user cart on login
+      mergeCart: async () => {
+        const sid = localStorage.getItem("cart_session_id");
+        if (!sid) return;
+        try {
+          await api.post("/cart/merge", null, { headers: { "X-Session-Id": sid } });
+          localStorage.removeItem("cart_session_id");
+        } catch {
+          // Best effort - ignore errors (user may not have guest cart)
+        }
+      },
+
+      // UC-CUS-03: Clear local cart state on logout
+      clearCartState: () => {
+        set({ items: [], totalPrice: 0, totalItems: 0 });
       },
     }),
     {

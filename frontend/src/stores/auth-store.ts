@@ -44,6 +44,12 @@ export const useAuthStore = create<AuthState>()(
           refreshToken: null,
           isAuthenticated: false,
         });
+
+        // UC-CUS-03: Clear cart state on logout (DB cart preserved for next login)
+        // Dynamic import to avoid circular dependency
+        import("./cart-store").then(({ useCartStore }) => {
+          useCartStore.getState().clearCartState();
+        });
       },
 
       updateUser: (updates) => {

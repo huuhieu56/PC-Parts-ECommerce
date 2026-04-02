@@ -46,9 +46,10 @@ public class AuthService {
     /**
      * Registers a new customer account.
      * Flow: validate → check duplicate → hash password → create Account + UserProfile.
+     * Note: Does NOT auto-login. User must login separately after registration.
      */
     @Transactional
-    public AuthResponse register(RegisterRequest request) {
+    public RegisterResponse register(RegisterRequest request) {
         // Check duplicate email
         if (accountRepository.existsByEmail(request.getEmail())) {
             throw new BusinessException("Email đã được sử dụng", HttpStatus.CONFLICT);
@@ -81,17 +82,11 @@ public class AuthService {
                 .build();
         userProfileRepository.save(userProfile);
 
-        // Generate tokens
-        String accessToken = jwtTokenProvider.generateAccessToken(account.getId().toString());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(account.getId().toString());
-
-        // Save refresh token
-        saveRefreshToken(account, refreshToken);
-
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .user(toUserProfileDto(account, userProfile))
+        // Return basic user info only (no tokens - user must login separately)
+        return RegisterResponse.builder()
+                .id(account.getId())
+                .email(account.getEmail())
+                .fullName(userProfile.getFullName())
                 .build();
     }
 

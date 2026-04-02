@@ -1,7 +1,7 @@
 package com.pcparts.module.auth;
 
 import com.pcparts.module.auth.dto.RegisterRequest;
-import com.pcparts.module.auth.dto.AuthResponse;
+import com.pcparts.module.auth.dto.RegisterResponse;
 import com.pcparts.module.auth.entity.Account;
 import com.pcparts.module.auth.entity.Role;
 import com.pcparts.module.auth.entity.UserProfile;
@@ -73,23 +73,20 @@ class AuthServiceTest {
             p.setId(1L);
             return p;
         });
-        when(jwtTokenProvider.generateAccessToken(anyString())).thenReturn("access_token");
-        when(jwtTokenProvider.generateRefreshToken(anyString())).thenReturn("refresh_token");
 
         // When
-        AuthResponse response = authService.register(request);
+        RegisterResponse response = authService.register(request);
 
-        // Then
+        // Then - RegisterResponse only contains id, email, fullName (no tokens per UC-CUS-04)
         assertThat(response).isNotNull();
-        assertThat(response.getAccessToken()).isEqualTo("access_token");
-        assertThat(response.getRefreshToken()).isEqualTo("refresh_token");
-        assertThat(response.getUser().getFullName()).isEqualTo("Nguyễn Văn A");
-        assertThat(response.getUser().getEmail()).isEqualTo("test@test.com");
-        assertThat(response.getUser().getRole()).isEqualTo("CUSTOMER");
+        assertThat(response.getId()).isEqualTo(1L);
+        assertThat(response.getEmail()).isEqualTo("test@test.com");
+        assertThat(response.getFullName()).isEqualTo("Nguyễn Văn A");
 
         verify(accountRepository).save(any(Account.class));
         verify(userProfileRepository).save(any(UserProfile.class));
-        verify(tokenRepository).save(any());
+        // No token should be saved (user must login separately)
+        verify(tokenRepository, never()).save(any());
     }
 
     @Test
