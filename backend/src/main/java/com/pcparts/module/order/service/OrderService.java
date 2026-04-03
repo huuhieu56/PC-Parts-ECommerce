@@ -1,5 +1,6 @@
 package com.pcparts.module.order.service;
 
+import com.pcparts.common.constant.ValidationConstants;
 import com.pcparts.common.dto.PageResponse;
 import com.pcparts.common.exception.BusinessException;
 import com.pcparts.common.exception.ResourceNotFoundException;
@@ -100,13 +101,31 @@ public class OrderService {
         } else if (request.getShippingAddress() != null) {
             // Create new address from inline shipping info
             ShippingAddressRequest sa = request.getShippingAddress();
+
+            // Validate shipping area - currently only Hanoi is supported
+            String province = sa.getProvince() != null ? sa.getProvince() : "";
+            String district = sa.getDistrict() != null ? sa.getDistrict() : "";
+
+            if (!ValidationConstants.SUPPORTED_PROVINCE.equals(province)) {
+                throw new BusinessException(
+                    "Hiện tại chỉ hỗ trợ giao hàng tại " + ValidationConstants.SUPPORTED_PROVINCE,
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+            if (!ValidationConstants.HANOI_DISTRICTS.contains(district)) {
+                throw new BusinessException(
+                    "Quận/Huyện không hợp lệ. Vui lòng chọn quận/huyện thuộc " + ValidationConstants.SUPPORTED_PROVINCE,
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+
             address = Address.builder()
                     .user(user)
                     .label("Checkout")
                     .receiverName(sa.getReceiverName())
                     .receiverPhone(sa.getReceiverPhone())
-                    .province(sa.getProvince() != null ? sa.getProvince() : "")
-                    .district(sa.getDistrict() != null ? sa.getDistrict() : "")
+                    .province(province)
+                    .district(district)
                     .ward(sa.getWard() != null ? sa.getWard() : "")
                     .street(sa.getStreet() != null ? sa.getStreet() : "")
                     .isDefault(false)
