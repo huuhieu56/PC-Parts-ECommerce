@@ -10,6 +10,9 @@ import api from "@/lib/api";
 
 function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
+// Vietnamese phone number validation regex
+const VIETNAM_PHONE_REGEX = /^(0|84|\+84)(3|5|7|8|9)[0-9]{8}$/;
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
@@ -50,6 +53,11 @@ export default function CheckoutPage() {
 
     if (!fullName || !phone || !address) {
       setError("Vui lòng điền đầy đủ thông tin giao hàng.");
+      return;
+    }
+
+    if (!VIETNAM_PHONE_REGEX.test(phone)) {
+      setError("Số điện thoại không hợp lệ. Vui lòng nhập SĐT Việt Nam (VD: 0987654321)");
       return;
     }
 
