@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, ShoppingCart, Truck, MapPin, Cpu } from "lucide-react";
+import { ChevronRight, ShoppingCart, Truck, MapPin, Cpu, Tag } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCartStore } from "@/stores/cart-store";
 import { useAuthStore } from "@/stores/auth-store";
@@ -30,6 +30,14 @@ export default function CheckoutPage() {
   const [note, setNote] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("COD");
 
+  // Coupon
+  const [couponCode, setCouponCode] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [couponMsg, setCouponMsg] = useState("");
+  const [couponError, setCouponError] = useState(false);
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [appliedCouponCode, setAppliedCouponCode] = useState("");
+
   useEffect(() => {
     setMounted(true);
     fetchCart();
@@ -43,7 +51,35 @@ export default function CheckoutPage() {
   }, [mounted, user]);
 
   const shipping = 30000;
-  const total = totalPrice + shipping;
+  const total = totalPrice - discount + shipping;
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setApplyingCoupon(true);
+    setCouponMsg("");
+    setCouponError(false);
+    try {
+      const res = await api.get(`/coupons/validate?code=${couponCode.trim()}&orderAmount=${totalPrice}`);
+      const coupon = res.data.data || res.data;
+      let discountAmount = 0;
+      if (coupon.discountType === "PERCENTAGE") {
+        discountAmount = Math.round(totalPrice * coupon.discountValue / 100);
+      } else {
+        discountAmount = coupon.discountValue;
+      }
+      setDiscount(discountAmount);
+      setCouponMsg(`Áp dụng thành công! Giảm ${formatPrice(discountAmount)}`);
+      setCouponError(false);
+      setAppliedCouponCode(couponCode.trim());
+    } catch {
+      setDiscount(0);
+      setCouponMsg("Mã giảm giá không hợp lệ hoặc đã hết hạn");
+      setCouponError(true);
+      setAppliedCouponCode("");
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
 
   const handlePlaceOrder = async () => {
     if (!isAuthenticated) {
@@ -68,6 +104,7 @@ export default function CheckoutPage() {
       const orderRequest = {
         paymentMethod,
         note: note || undefined,
+        couponCode: appliedCouponCode || undefined,
         shippingAddress: {
           receiverName: fullName,
           receiverPhone: phone,
@@ -182,6 +219,27 @@ export default function CheckoutPage() {
                 ))}
               </div>
             </div>
+
+            {/* Coupon */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h2 className="font-semibold text-gray-900 flex items-center gap-2 mb-4"><Tag className="w-5 h-5 text-blue-600" /> 3. Mã giảm giá</h2>
+              <div className="flex gap-2">
+                <input
+                  value={couponCode}
+                  onChange={e => setCouponCode(e.target.value)}
+                  placeholder="Nhập mã giảm giá"
+                  className="flex-1 h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={handleApplyCoupon}
+                  disabled={applyingCoupon || !couponCode.trim()}
+                  className="bg-blue-600 text-white px-4 h-10 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {applyingCoupon ? "Đang kiểm tra..." : "Áp dụng"}
+                </button>
+              </div>
+              {couponMsg && <p className={`text-xs mt-2 ${couponError ? "text-red-500" : "text-green-600"}`}>{couponMsg}</p>}
+            </div>
           </div>
 
           {/* Right: Order Summary */}
@@ -202,6 +260,7 @@ export default function CheckoutPage() {
                 ))}
                 <hr className="border-gray-200" />
                 <div className="flex justify-between text-gray-500"><span>Tạm tính ({totalItems}):</span><span>{formatPrice(totalPrice)}</span></div>
+                {discount > 0 && <div className="flex justify-between text-green-600"><span>Giảm giá:</span><span>-{formatPrice(discount)}</span></div>}
                 <div className="flex justify-between text-gray-500"><span>Phí vận chuyển:</span><span>{formatPrice(shipping)}</span></div>
                 <hr className="border-gray-200" />
                 <div className="flex justify-between font-bold text-lg"><span className="text-gray-900">Tổng cộng:</span><span className="text-[#E31837]">{formatPrice(total)}</span></div>
