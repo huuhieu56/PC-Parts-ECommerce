@@ -2,13 +2,53 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, ShoppingCart, Truck, MapPin, Cpu } from "lucide-react";
+import { ChevronRight, ShoppingCart, Truck, MapPin, Cpu, Tag } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCartStore } from "@/stores/cart-store";
 import { useAuthStore } from "@/stores/auth-store";
 import api from "@/lib/api";
 
 function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
+
+// Vietnamese phone number validation regex
+const VIETNAM_PHONE_REGEX = /^(0|84|\+84)(3|5|7|8|9)[0-9]{8}$/;
+
+// Hanoi districts - 12 quận, 17 huyện, 1 thị xã
+const HANOI_DISTRICTS = [
+  // 12 Quận
+  "Quận Ba Đình",
+  "Quận Cầu Giấy",
+  "Quận Đống Đa",
+  "Quận Hai Bà Trưng",
+  "Quận Hoàn Kiếm",
+  "Quận Thanh Xuân",
+  "Quận Hoàng Mai",
+  "Quận Long Biên",
+  "Quận Hà Đông",
+  "Quận Tây Hồ",
+  "Quận Nam Từ Liêm",
+  "Quận Bắc Từ Liêm",
+  // 17 Huyện
+  "Huyện Thanh Trì",
+  "Huyện Ba Vì",
+  "Huyện Đan Phượng",
+  "Huyện Gia Lâm",
+  "Huyện Đông Anh",
+  "Huyện Thường Tín",
+  "Huyện Thanh Oai",
+  "Huyện Chương Mỹ",
+  "Huyện Hoài Đức",
+  "Huyện Mỹ Đức",
+  "Huyện Phúc Thọ",
+  "Huyện Thạch Thất",
+  "Huyện Quốc Oai",
+  "Huyện Phú Xuyên",
+  "Huyện Ứng Hòa",
+  "Huyện Mê Linh",
+  "Huyện Sóc Sơn",
+  // 1 Thị xã
+  "Thị xã Sơn Tây",
+];
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -22,10 +62,18 @@ export default function CheckoutPage() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
-  const [province, setProvince] = useState("TP. Hồ Chí Minh");
-  const [district, setDistrict] = useState("Quận 1");
+  const [province] = useState("Hà Nội"); // Currently only support Hanoi
+  const [district, setDistrict] = useState("Quận Ba Đình");
   const [note, setNote] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("COD");
+
+  // Coupon
+  const [couponCode, setCouponCode] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [couponMsg, setCouponMsg] = useState("");
+  const [couponError, setCouponError] = useState(false);
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [appliedCouponCode, setAppliedCouponCode] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -40,7 +88,35 @@ export default function CheckoutPage() {
   }, [mounted, user]);
 
   const shipping = 30000;
-  const total = totalPrice + shipping;
+  const total = totalPrice - discount + shipping;
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setApplyingCoupon(true);
+    setCouponMsg("");
+    setCouponError(false);
+    try {
+      const res = await api.get(`/coupons/validate?code=${couponCode.trim()}&orderAmount=${totalPrice}`);
+      const coupon = res.data.data || res.data;
+      let discountAmount = 0;
+      if (coupon.discountType === "PERCENTAGE") {
+        discountAmount = Math.round(totalPrice * coupon.discountValue / 100);
+      } else {
+        discountAmount = coupon.discountValue;
+      }
+      setDiscount(discountAmount);
+      setCouponMsg(`Áp dụng thành công! Giảm ${formatPrice(discountAmount)}`);
+      setCouponError(false);
+      setAppliedCouponCode(couponCode.trim());
+    } catch {
+      setDiscount(0);
+      setCouponMsg("Mã giảm giá không hợp lệ hoặc đã hết hạn");
+      setCouponError(true);
+      setAppliedCouponCode("");
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
 
   const handlePlaceOrder = async () => {
     if (!isAuthenticated) {
@@ -53,6 +129,11 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (!VIETNAM_PHONE_REGEX.test(phone)) {
+      setError("Số điện thoại không hợp lệ. Vui lòng nhập SĐT Việt Nam (VD: 0987654321)");
+      return;
+    }
+
     setPlacing(true);
     setError("");
 
@@ -60,6 +141,7 @@ export default function CheckoutPage() {
       const orderRequest = {
         paymentMethod,
         note: note || undefined,
+        couponCode: appliedCouponCode || undefined,
         shippingAddress: {
           receiverName: fullName,
           receiverPhone: phone,
@@ -147,8 +229,8 @@ export default function CheckoutPage() {
                 <div><label className="block text-sm text-gray-600 mb-1">Họ tên *</label><input value={fullName} onChange={e => setFullName(e.target.value)} className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Nguyễn Văn A" /></div>
                 <div><label className="block text-sm text-gray-600 mb-1">Số điện thoại *</label><input value={phone} onChange={e => setPhone(e.target.value)} className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="0912 345 678" /></div>
                 <div className="md:col-span-2"><label className="block text-sm text-gray-600 mb-1">Địa chỉ *</label><input value={address} onChange={e => setAddress(e.target.value)} className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="123 Đường ABC, Phường XYZ" /></div>
-                <div><label className="block text-sm text-gray-600 mb-1">Tỉnh/Thành phố</label><select value={province} onChange={e => setProvince(e.target.value)} className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"><option>TP. Hồ Chí Minh</option><option>Hà Nội</option><option>Đà Nẵng</option></select></div>
-                <div><label className="block text-sm text-gray-600 mb-1">Quận/Huyện</label><select value={district} onChange={e => setDistrict(e.target.value)} className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"><option>Quận 1</option><option>Quận 7</option><option>Quận Bình Thạnh</option></select></div>
+                <div><label className="block text-sm text-gray-600 mb-1">Tỉnh/Thành phố</label><input value={province} disabled className="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-700 cursor-not-allowed" /><p className="text-xs text-gray-400 mt-1">Hiện tại chỉ hỗ trợ giao hàng tại Hà Nội</p></div>
+                <div><label className="block text-sm text-gray-600 mb-1">Quận/Huyện *</label><select value={district} onChange={e => setDistrict(e.target.value)} className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none">{HANOI_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}</select></div>
               </div>
               <div className="mt-4"><label className="block text-sm text-gray-600 mb-1">Ghi chú</label><textarea value={note} onChange={e => setNote(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" rows={3} placeholder="Ghi chú cho đơn hàng (tùy chọn)" /></div>
             </div>
@@ -174,6 +256,27 @@ export default function CheckoutPage() {
                 ))}
               </div>
             </div>
+
+            {/* Coupon */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h2 className="font-semibold text-gray-900 flex items-center gap-2 mb-4"><Tag className="w-5 h-5 text-blue-600" /> 3. Mã giảm giá</h2>
+              <div className="flex gap-2">
+                <input
+                  value={couponCode}
+                  onChange={e => setCouponCode(e.target.value)}
+                  placeholder="Nhập mã giảm giá"
+                  className="flex-1 h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={handleApplyCoupon}
+                  disabled={applyingCoupon || !couponCode.trim()}
+                  className="bg-blue-600 text-white px-4 h-10 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {applyingCoupon ? "Đang kiểm tra..." : "Áp dụng"}
+                </button>
+              </div>
+              {couponMsg && <p className={`text-xs mt-2 ${couponError ? "text-red-500" : "text-green-600"}`}>{couponMsg}</p>}
+            </div>
           </div>
 
           {/* Right: Order Summary */}
@@ -194,6 +297,7 @@ export default function CheckoutPage() {
                 ))}
                 <hr className="border-gray-200" />
                 <div className="flex justify-between text-gray-500"><span>Tạm tính ({totalItems}):</span><span>{formatPrice(totalPrice)}</span></div>
+                {discount > 0 && <div className="flex justify-between text-green-600"><span>Giảm giá:</span><span>-{formatPrice(discount)}</span></div>}
                 <div className="flex justify-between text-gray-500"><span>Phí vận chuyển:</span><span>{formatPrice(shipping)}</span></div>
                 <hr className="border-gray-200" />
                 <div className="flex justify-between font-bold text-lg"><span className="text-gray-900">Tổng cộng:</span><span className="text-[#E31837]">{formatPrice(total)}</span></div>

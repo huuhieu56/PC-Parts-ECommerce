@@ -245,6 +245,12 @@ Hệ thống quản lý **32 thực thể (Entity)** chính, được nhóm thà
 | created\_at | TIMESTAMP | DEFAULT NOW() | Ngày tạo |
 | updated\_at | TIMESTAMP | DEFAULT NOW() | Ngày cập nhật |
 
+> **Giới hạn vùng giao hàng (Shipping Area Restriction):**
+> Hiện tại hệ thống chỉ hỗ trợ giao hàng tại **Hà Nội**, bao gồm:
+> - **12 Quận:** Ba Đình, Cầu Giấy, Đống Đa, Hai Bà Trưng, Hoàn Kiếm, Thanh Xuân, Hoàng Mai, Long Biên, Hà Đông, Tây Hồ, Nam Từ Liêm, Bắc Từ Liêm
+> - **17 Huyện:** Thanh Trì, Ba Vì, Đan Phượng, Gia Lâm, Đông Anh, Thường Tín, Thanh Oai, Chương Mỹ, Hoài Đức, Mỹ Đức, Phúc Thọ, Thạch Thất, Quốc Oai, Phú Xuyên, Ứng Hòa, Mê Linh, Sóc Sơn
+> - **1 Thị xã:** Sơn Tây
+
 #### 3.2.4. Role (Vai trò)
 
 | Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |

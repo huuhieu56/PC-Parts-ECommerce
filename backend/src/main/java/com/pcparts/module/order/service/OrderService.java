@@ -1,5 +1,6 @@
 package com.pcparts.module.order.service;
 
+import com.pcparts.common.constant.ValidationConstants;
 import com.pcparts.common.dto.PageResponse;
 import com.pcparts.common.exception.BusinessException;
 import com.pcparts.common.exception.ResourceNotFoundException;
@@ -16,6 +17,9 @@ import com.pcparts.module.product.entity.Product;
 import com.pcparts.module.shopping.entity.CartItem;
 import com.pcparts.module.shopping.repository.CartItemRepository;
 import com.pcparts.module.shopping.repository.CartRepository;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,6 +35,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.pcparts.common.constant.ValidationConstants.VIETNAM_PHONE_MESSAGE;
+import static com.pcparts.common.constant.ValidationConstants.VIETNAM_PHONE_REGEX;
 
 /**
  * Service for order operations: create, view, update status.
@@ -94,13 +101,31 @@ public class OrderService {
         } else if (request.getShippingAddress() != null) {
             // Create new address from inline shipping info
             ShippingAddressRequest sa = request.getShippingAddress();
+
+            // Validate shipping area - currently only Hanoi is supported
+            String province = sa.getProvince() != null ? sa.getProvince() : "";
+            String district = sa.getDistrict() != null ? sa.getDistrict() : "";
+
+            if (!ValidationConstants.SUPPORTED_PROVINCE.equals(province)) {
+                throw new BusinessException(
+                    "Hiện tại chỉ hỗ trợ giao hàng tại " + ValidationConstants.SUPPORTED_PROVINCE,
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+            if (!ValidationConstants.HANOI_DISTRICTS.contains(district)) {
+                throw new BusinessException(
+                    "Quận/Huyện không hợp lệ. Vui lòng chọn quận/huyện thuộc " + ValidationConstants.SUPPORTED_PROVINCE,
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+
             address = Address.builder()
                     .user(user)
                     .label("Checkout")
                     .receiverName(sa.getReceiverName())
                     .receiverPhone(sa.getReceiverPhone())
-                    .province(sa.getProvince() != null ? sa.getProvince() : "")
-                    .district(sa.getDistrict() != null ? sa.getDistrict() : "")
+                    .province(province)
+                    .district(district)
                     .ward(sa.getWard() != null ? sa.getWard() : "")
                     .street(sa.getStreet() != null ? sa.getStreet() : "")
                     .isDefault(false)
@@ -368,6 +393,7 @@ public class OrderService {
     @Data @Builder @NoArgsConstructor @AllArgsConstructor
     public static class CreateOrderRequest {
         private Long addressId;
+        @Valid
         private ShippingAddressRequest shippingAddress;
         private String note;
         private String couponCode;
@@ -376,11 +402,22 @@ public class OrderService {
 
     @Data @Builder @NoArgsConstructor @AllArgsConstructor
     public static class ShippingAddressRequest {
+        @NotBlank(message = "Tên người nhận không được để trống")
         private String receiverName;
+
+        @NotBlank(message = "SĐT người nhận không được để trống")
+        @Pattern(regexp = VIETNAM_PHONE_REGEX, message = VIETNAM_PHONE_MESSAGE)
         private String receiverPhone;
+
+        @NotBlank(message = "Tỉnh/Thành phố không được để trống")
         private String province;
+
+        @NotBlank(message = "Quận/Huyện không được để trống")
         private String district;
+
         private String ward;
+
+        @NotBlank(message = "Địa chỉ không được để trống")
         private String street;
     }
 

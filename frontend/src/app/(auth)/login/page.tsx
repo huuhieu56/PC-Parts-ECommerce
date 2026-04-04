@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, Suspense } from "react";
-import { Cpu, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { Cpu, Eye, EyeOff, CheckCircle, AlertCircle } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
 import api from "@/lib/api";
@@ -20,6 +20,7 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isRegistered = searchParams.get("registered") === "true";
+  const isSessionExpired = searchParams.get("expired") === "true";
   const { setAuth } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -74,6 +75,12 @@ function LoginContent() {
               <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-2.5 rounded-lg flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
                 Đăng ký thành công! Vui lòng đăng nhập.
+              </div>
+            )}
+            {isSessionExpired && (
+              <div className="bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-2.5 rounded-lg flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" />
+                Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.
               </div>
             )}
             {error && (

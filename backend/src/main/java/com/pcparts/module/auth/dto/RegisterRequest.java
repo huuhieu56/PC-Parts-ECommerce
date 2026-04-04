@@ -2,10 +2,14 @@ package com.pcparts.module.auth.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import static com.pcparts.common.constant.ValidationConstants.VIETNAM_PHONE_MESSAGE;
+import static com.pcparts.common.constant.ValidationConstants.VIETNAM_PHONE_REGEX;
 
 /**
  * Request DTO for user registration.
@@ -23,7 +27,7 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "Số điện thoại không được để trống")
-    @Size(min = 10, max = 20, message = "Số điện thoại phải từ 10-20 ký tự")
+    @Pattern(regexp = VIETNAM_PHONE_REGEX, message = VIETNAM_PHONE_MESSAGE)
     private String phone;
 
     @NotBlank(message = "Mật khẩu không được để trống")
