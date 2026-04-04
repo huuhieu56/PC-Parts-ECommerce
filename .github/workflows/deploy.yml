@@ -97,6 +97,16 @@ jobs:
           name: docker-images
           path: ./images
 
+      - name: Create deploy directory on server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_SSH_PORT }}
+          script: |
+            mkdir -p ${{ secrets.DEPLOY_PATH || '/opt/pcparts' }}
+
       - name: Copy files to server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -105,8 +115,9 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_SSH_PORT }}
           source: "images/pcparts-backend.tar.gz,images/pcparts-frontend.tar.gz,docker-compose.prod.yml,nginx/"
-          target: ${{ vars.DEPLOY_PATH }}
+          target: ${{ secrets.DEPLOY_PATH }}
           strip_components: 0
+          overwrite: true
 
       - name: Load images and start services
         uses: appleboy/ssh-action@v1.2.0
@@ -118,7 +129,7 @@ jobs:
           script: |
             set -e
 
-            DEPLOY_DIR="${{ vars.DEPLOY_PATH }}"
+            DEPLOY_DIR="${{ secrets.DEPLOY_PATH }}"
             cd "$DEPLOY_DIR"
 
             echo "=== Loading Docker images ==="
