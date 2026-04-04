@@ -107,6 +107,7 @@ public class ReviewService {
         return ReviewDto.builder()
                 .id(r.getId())
                 .productId(r.getProduct().getId())
+                .customerName(r.getUser().getFullName()) // UC-CUS-07: Include customer name
                 .rating(r.getRating())
                 .content(r.getContent())
                 .createdAt(r.getCreatedAt() != null ? r.getCreatedAt().toString() : null)
@@ -117,6 +118,7 @@ public class ReviewService {
     public static class ReviewDto {
         private Long id;
         private Long productId;
+        private String customerName; // UC-CUS-07: Customer name from UserProfile.fullName
         private Integer rating;
         private String content;
         private String createdAt;

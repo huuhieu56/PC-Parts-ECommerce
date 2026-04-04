@@ -77,7 +77,33 @@ class ReviewServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getRating()).isEqualTo(5);
         assertThat(result.getContent()).isEqualTo("Excellent product!");
+        assertThat(result.getCustomerName()).isEqualTo("Test"); // UC-CUS-07: Must return customer name
         verify(reviewRepository).save(any(Review.class));
+    }
+
+    @Test
+    @DisplayName("UC-CUS-07: ReviewDto must include customerName from UserProfile.fullName")
+    void createReview_returnsCustomerName() {
+        testUser.setFullName("Nguyễn Văn A");
+        ReviewRequest req = new ReviewRequest(10L, 100L, 4, "Good product");
+
+        when(reviewRepository.existsByUserIdAndProductId(1L, 10L)).thenReturn(false);
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
+        when(productRepository.findById(10L)).thenReturn(Optional.of(testProduct));
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(testOrder));
+        when(orderDetailRepository.findByOrderId(100L)).thenReturn(List.of(
+                com.pcparts.module.order.entity.OrderDetail.builder().product(testProduct).build()
+        ));
+        when(reviewRepository.save(any(Review.class))).thenAnswer(inv -> {
+            Review r = inv.getArgument(0);
+            r.setId(2L);
+            r.setCreatedAt(LocalDateTime.now());
+            return r;
+        });
+
+        ReviewDto result = reviewService.createReview(1L, req);
+
+        assertThat(result.getCustomerName()).isEqualTo("Nguyễn Văn A");
     }
 
     @Test
