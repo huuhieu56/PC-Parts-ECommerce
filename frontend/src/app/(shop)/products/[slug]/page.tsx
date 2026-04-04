@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { Cpu, Star, ShoppingCart, Heart, Phone, MapPin, ChevronRight, Shield, Truck, RotateCcw, Minus, Plus } from "lucide-react";
+import { Cpu, Star, ShoppingCart, Heart, Phone, MapPin, ChevronRight, Shield, Truck, RotateCcw, Minus, Plus, Camera, X, Loader2 } from "lucide-react";
 import { useCartStore } from "@/stores/cart-store";
 import api from "@/lib/api";
 
@@ -101,24 +101,76 @@ function ReviewForm({ productId, onSubmitted }: { productId: number; onSubmitted
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
   const [msgError, setMsgError] = useState(false);
+  // UC-CUS-07: Image upload state
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(f => {
+      if (!["image/jpeg", "image/png", "image/webp"].includes(f.type)) {
+        setMsg("Chỉ chấp nhận ảnh JPG, PNG, WEBP"); setMsgError(true);
+        return false;
+      }
+      if (f.size > 5 * 1024 * 1024) {
+        setMsg("Ảnh tối đa 5MB"); setMsgError(true);
+        return false;
+      }
+      return true;
+    });
+    if (selectedFiles.length + validFiles.length > 5) {
+      setMsg("Tối đa 5 ảnh"); setMsgError(true);
+      return;
+    }
+    const newPreviews = validFiles.map(f => URL.createObjectURL(f));
+    setSelectedFiles(prev => [...prev, ...validFiles]);
+    setPreviewUrls(prev => [...prev, ...newPreviews]);
+    e.target.value = "";
+  };
+
+  const removeFile = (index: number) => {
+    URL.revokeObjectURL(previewUrls[index]);
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async () => {
     if (rating === 0) { setMsg("Vui lòng chọn số sao"); setMsgError(true); return; }
     if (!comment.trim()) { setMsg("Vui lòng nhập nội dung đánh giá"); setMsgError(true); return; }
     setSubmitting(true);
     setMsg("");
+
     try {
-      await api.post("/reviews", { productId, rating, content: comment.trim() });
+      let imageUrls: string[] = [];
+      // UC-CUS-07: Upload images first if any
+      if (selectedFiles.length > 0) {
+        setUploading(true);
+        const formData = new FormData();
+        selectedFiles.forEach(f => formData.append("files", f));
+        const uploadRes = await api.post("/reviews/images", formData, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
+        imageUrls = uploadRes.data.data || [];
+        setUploading(false);
+      }
+
+      await api.post("/reviews", { productId, rating, content: comment.trim(), imageUrls });
       setMsg("Đánh giá đã được gửi thành công!");
       setMsgError(false);
       setRating(0);
       setComment("");
+      // Clean up previews
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+      setSelectedFiles([]);
+      setPreviewUrls([]);
       onSubmitted();
     } catch {
       setMsg("Bạn cần đăng nhập để đánh giá, hoặc đã đánh giá sản phẩm này rồi.");
       setMsgError(true);
     } finally {
       setSubmitting(false);
+      setUploading(false);
     }
   };
 
@@ -148,13 +200,47 @@ function ReviewForm({ productId, onSubmitted }: { productId: number; onSubmitted
         rows={3}
         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
       />
+
+      {/* UC-CUS-07: Image upload section */}
+      <div className="mt-3">
+        <label className="flex items-center gap-2 text-sm text-gray-500 mb-2 cursor-pointer hover:text-blue-600">
+          <Camera className="w-4 h-4" />
+          <span>Thêm ảnh (tối đa 5 ảnh, 5MB/ảnh)</span>
+          <input
+            type="file"
+            accept=".jpg,.jpeg,.png,.webp"
+            multiple
+            className="hidden"
+            onChange={handleFileSelect}
+            disabled={submitting || selectedFiles.length >= 5}
+          />
+        </label>
+        {previewUrls.length > 0 && (
+          <div className="flex gap-2 flex-wrap">
+            {previewUrls.map((url, idx) => (
+              <div key={idx} className="relative w-16 h-16 group">
+                <img src={url} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover rounded-md border border-gray-200" />
+                <button
+                  type="button"
+                  onClick={() => removeFile(idx)}
+                  className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {msg && <p className={`text-xs mt-1 ${msgError ? "text-red-500" : "text-green-600"}`}>{msg}</p>}
       <button
         onClick={handleSubmit}
         disabled={submitting}
-        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
       >
-        {submitting ? "Đang gửi..." : "Gửi đánh giá"}
+        {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+        {uploading ? "Đang upload ảnh..." : submitting ? "Đang gửi..." : "Gửi đánh giá"}
       </button>
     </div>
   );
