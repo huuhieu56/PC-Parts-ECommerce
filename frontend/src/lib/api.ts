@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useAuthStore } from "@/stores/auth-store";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 
@@ -59,10 +60,12 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
+        // UC-CUS-06: Clear auth state properly (both localStorage and Zustand store)
+        useAuthStore.getState().clearAuth();
+
+        // Redirect to login with session expired message
         if (typeof window !== "undefined") {
-          window.location.href = "/login";
+          window.location.replace("/login?expired=true");
         }
         return Promise.reject(refreshError);
       }
