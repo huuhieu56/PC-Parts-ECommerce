@@ -42,7 +42,7 @@ public class ReviewController {
         // Validate authentication
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.error("Vui lòng đăng nhập"));
+                    .body(ApiResponse.error(401, "Vui lòng đăng nhập"));
         }
 
         List<String> uploadedUrls = new ArrayList<>();
