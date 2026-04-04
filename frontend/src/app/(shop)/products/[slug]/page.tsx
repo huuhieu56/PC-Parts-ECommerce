@@ -48,6 +48,7 @@ interface ReviewDto {
   comment: string;
   content: string;
   customerName: string;
+  images?: string[]; // UC-CUS-07: Review images uploaded by customer
   createdAt: string;
 }
 
@@ -586,6 +587,20 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                             <span className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleDateString("vi-VN")}</span>
                           </div>
                           <p className="text-sm text-gray-600">{r.content || r.comment}</p>
+                          {/* UC-CUS-07: Display review images */}
+                          {r.images && r.images.length > 0 && (
+                            <div className="flex gap-2 mt-2 flex-wrap">
+                              {r.images.map((img, idx) => (
+                                <a key={idx} href={img} target="_blank" rel="noopener noreferrer">
+                                  <img
+                                    src={img}
+                                    alt={`Ảnh đánh giá ${idx + 1}`}
+                                    className="w-16 h-16 object-cover rounded-md border border-gray-200 hover:border-blue-500 transition-colors cursor-pointer"
+                                  />
+                                </a>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
