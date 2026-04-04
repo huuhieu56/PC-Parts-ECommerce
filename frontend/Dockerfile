@@ -5,6 +5,12 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
+# Build-time args for Next.js (NEXT_PUBLIC_* are inlined at build time)
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_MINIO_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_MINIO_URL=$NEXT_PUBLIC_MINIO_URL
+
 COPY . .
 RUN npm run build
 
