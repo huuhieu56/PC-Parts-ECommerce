@@ -64,40 +64,41 @@ log_warn()  { echo -e "${YELLOW}⚠️  $*${NC}"; }
 log_error() { echo -e "${RED}❌ $*${NC}"; }
 log_step()  { echo -e "${CYAN}▶  $*${NC}"; }
 
-# ── Build SSH command ─────────────────────────────────
-build_ssh_cmd() {
-  local base_ssh="ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10"
-  base_ssh+=" -p ${PROD_SSH_PORT}"
+# ── Run SSH command ────────────────────────────────────
+# Trực tiếp chạy SSH thay vì build string (tránh lỗi word-splitting)
+run_ssh() {
+  local remote_cmd="$1"
 
   if [[ -n "${PROD_SSH_KEY}" ]]; then
-    # Ưu tiên 1: SSH key
-    base_ssh+=" -i ${PROD_SSH_KEY}"
-    echo "${base_ssh} ${PROD_SSH_HOST}"
+    ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
+      -p "${PROD_SSH_PORT}" -i "${PROD_SSH_KEY}" \
+      "${PROD_SSH_HOST}" "${remote_cmd}"
   elif [[ -n "${PROD_SSH_PASS}" ]]; then
-    # Ưu tiên 2: Password (qua sshpass)
     if ! command -v sshpass &>/dev/null; then
       log_error "sshpass chưa cài. Chạy: sudo apt install sshpass"
       exit 1
     fi
-    echo "sshpass -p '${PROD_SSH_PASS}' ${base_ssh} ${PROD_SSH_HOST}"
+    SSHPASS="${PROD_SSH_PASS}" sshpass -e \
+      ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
+      -p "${PROD_SSH_PORT}" \
+      "${PROD_SSH_HOST}" "${remote_cmd}"
   else
-    # Ưu tiên 3: SSH agent / default key (~/.ssh/id_rsa)
-    echo "${base_ssh} ${PROD_SSH_HOST}"
+    ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
+      -p "${PROD_SSH_PORT}" \
+      "${PROD_SSH_HOST}" "${remote_cmd}"
   fi
 }
 
 # ── 1. Check production API is reachable ───────────────
 check_api() {
   log_info "Kiểm tra API production: ${PROD_API_URL}"
-  
+
   local elapsed=0
-  # Try health endpoint first, fallback to API URL
   local check_url="${PROD_HEALTH_URL}"
-  
+
   until curl -sf -k --max-time 5 "${check_url}" > /dev/null 2>&1; do
     if (( elapsed >= MAX_WAIT )); then
       log_warn "Health endpoint không phản hồi, thử API URL trực tiếp..."
-      # Try the API URL itself
       if curl -sf -k --max-time 5 "${PROD_API_URL}" > /dev/null 2>&1 || \
          curl -s -k --max-time 5 -o /dev/null -w "%{http_code}" "${PROD_API_URL}" 2>&1 | grep -q "4[0-9][0-9]"; then
         log_ok "API reachable (health endpoint không khả dụng nhưng API phản hồi)"
@@ -118,12 +119,10 @@ check_api() {
 # ── 2. Check SSH connection ────────────────────────────
 check_ssh() {
   log_info "Kiểm tra SSH: ${PROD_SSH_HOST}:${PROD_SSH_PORT}"
-  local ssh_cmd
-  ssh_cmd=$(build_ssh_cmd)
-  
-  if ! ${ssh_cmd} "echo 'SSH OK'" > /dev/null 2>&1; then
+
+  if ! run_ssh "echo 'SSH OK'" > /dev/null 2>&1; then
     log_error "Không thể SSH vào ${PROD_SSH_HOST}:${PROD_SSH_PORT}"
-    log_error "Kiểm tra: SSH key, firewall, hoặc PROD_SSH_HOST/PROD_SSH_PORT"
+    log_error "Kiểm tra: SSH key/password, firewall, hoặc PROD_SSH_HOST/PROD_SSH_PORT"
     exit 1
   fi
   log_ok "SSH connection OK"
@@ -137,7 +136,7 @@ register() {
   local phone="$4"
 
   log_step "Đăng ký: ${email}"
-  
+
   local http_code response
   response=$(curl -s -k -w "\n%{http_code}" -X POST "${PROD_API_URL}/register" \
     -H "Content-Type: application/json" \
@@ -147,7 +146,7 @@ register() {
       \"password\": \"${password}\",
       \"phone\": \"${phone}\"
     }" 2>&1)
-  
+
   http_code=$(echo "${response}" | tail -1)
   local body
   body=$(echo "${response}" | sed '$d')
@@ -169,22 +168,17 @@ register() {
 # ── 4. Run SQL on production via SSH + docker exec ─────
 run_remote_sql() {
   local sql="$1"
-  local ssh_cmd
-  ssh_cmd=$(build_ssh_cmd)
-  
-  ${ssh_cmd} "docker exec -i ${PROD_POSTGRES_CONTAINER} psql -U ${PROD_DB_USER} -d ${PROD_DB_NAME} -c \"${sql}\"" 2>/dev/null
+  run_ssh "docker exec -i ${PROD_POSTGRES_CONTAINER} psql -U ${PROD_DB_USER} -d ${PROD_DB_NAME} -c \"${sql}\"" 2>/dev/null
 }
 
 # ── 5. Verify account exists ──────────────────────────
 verify_account() {
   local email="$1"
   local expected_role="$2"
-  local ssh_cmd
-  ssh_cmd=$(build_ssh_cmd)
-  
+
   local result
-  result=$(${ssh_cmd} "docker exec -i ${PROD_POSTGRES_CONTAINER} psql -U ${PROD_DB_USER} -d ${PROD_DB_NAME} -t -c \"SELECT r.name FROM account a JOIN role r ON a.role_id = r.id WHERE a.email = '${email}';\"" 2>/dev/null | tr -d ' ')
-  
+  result=$(run_ssh "docker exec -i ${PROD_POSTGRES_CONTAINER} psql -U ${PROD_DB_USER} -d ${PROD_DB_NAME} -t -c \"SELECT r.name FROM account a JOIN role r ON a.role_id = r.id WHERE a.email = '${email}';\"" 2>/dev/null | tr -d ' ')
+
   if [[ "${result}" == "${expected_role}" ]]; then
     log_ok "  ${email} → role = ${result} ✓"
   else
