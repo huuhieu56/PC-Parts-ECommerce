@@ -26,6 +26,7 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env.prod 
 
 # Vercel
 .vercel
@@ -52,3 +53,6 @@ backend/target/
 # OS
 Thumbs.db
 .DS_Store
+
+# Data
+data/
