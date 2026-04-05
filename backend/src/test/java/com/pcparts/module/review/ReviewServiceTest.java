@@ -56,7 +56,11 @@ class ReviewServiceTest {
     @Test
     @DisplayName("Create review — success")
     void createReview_success() {
-        ReviewRequest req = new ReviewRequest(10L, 100L, 5, "Excellent product!");
+        ReviewRequest req = new ReviewRequest();
+        req.setProductId(10L);
+        req.setOrderId(100L);
+        req.setRating(5);
+        req.setContent("Excellent product!");
 
         when(reviewRepository.existsByUserIdAndProductId(1L, 10L)).thenReturn(false);
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
@@ -77,13 +81,47 @@ class ReviewServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getRating()).isEqualTo(5);
         assertThat(result.getContent()).isEqualTo("Excellent product!");
+        assertThat(result.getCustomerName()).isEqualTo("Test"); // UC-CUS-07: Must return customer name
         verify(reviewRepository).save(any(Review.class));
+    }
+
+    @Test
+    @DisplayName("UC-CUS-07: ReviewDto must include customerName from UserProfile.fullName")
+    void createReview_returnsCustomerName() {
+        testUser.setFullName("Nguyễn Văn A");
+        ReviewRequest req = new ReviewRequest();
+        req.setProductId(10L);
+        req.setOrderId(100L);
+        req.setRating(4);
+        req.setContent("Good product");
+
+        when(reviewRepository.existsByUserIdAndProductId(1L, 10L)).thenReturn(false);
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
+        when(productRepository.findById(10L)).thenReturn(Optional.of(testProduct));
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(testOrder));
+        when(orderDetailRepository.findByOrderId(100L)).thenReturn(List.of(
+                com.pcparts.module.order.entity.OrderDetail.builder().product(testProduct).build()
+        ));
+        when(reviewRepository.save(any(Review.class))).thenAnswer(inv -> {
+            Review r = inv.getArgument(0);
+            r.setId(2L);
+            r.setCreatedAt(LocalDateTime.now());
+            return r;
+        });
+
+        ReviewDto result = reviewService.createReview(1L, req);
+
+        assertThat(result.getCustomerName()).isEqualTo("Nguyễn Văn A");
     }
 
     @Test
     @DisplayName("Create review — duplicate throws conflict")
     void createReview_duplicate() {
-        ReviewRequest req = new ReviewRequest(10L, 100L, 5, "Duplicate");
+        ReviewRequest req = new ReviewRequest();
+        req.setProductId(10L);
+        req.setOrderId(100L);
+        req.setRating(5);
+        req.setContent("Duplicate");
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(reviewRepository.existsByUserIdAndProductId(1L, 10L)).thenReturn(true);
 
@@ -95,12 +133,82 @@ class ReviewServiceTest {
     @Test
     @DisplayName("Create review — product not found throws")
     void createReview_productNotFound() {
-        ReviewRequest req = new ReviewRequest(999L, 100L, 5, "Test");
+        ReviewRequest req = new ReviewRequest();
+        req.setProductId(999L);
+        req.setOrderId(100L);
+        req.setRating(5);
+        req.setContent("Test");
         when(reviewRepository.existsByUserIdAndProductId(1L, 999L)).thenReturn(false);
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(productRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> reviewService.createReview(1L, req))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("UC-CUS-07: Create review with images — images are saved and returned")
+    void createReview_withImages() {
+        List<String> imageUrls = List.of(
+                "http://minio/bucket/review1.jpg",
+                "http://minio/bucket/review2.jpg"
+        );
+        ReviewRequest req = new ReviewRequest();
+        req.setProductId(10L);
+        req.setOrderId(100L);
+        req.setRating(5);
+        req.setContent("Great with images!");
+        req.setImageUrls(imageUrls);
+
+        when(reviewRepository.existsByUserIdAndProductId(1L, 10L)).thenReturn(false);
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
+        when(productRepository.findById(10L)).thenReturn(Optional.of(testProduct));
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(testOrder));
+        when(orderDetailRepository.findByOrderId(100L)).thenReturn(List.of(
+                com.pcparts.module.order.entity.OrderDetail.builder().product(testProduct).build()
+        ));
+        when(reviewRepository.save(any(Review.class))).thenAnswer(inv -> {
+            Review r = inv.getArgument(0);
+            r.setId(3L);
+            r.setCreatedAt(LocalDateTime.now());
+            return r;
+        });
+
+        ReviewDto result = reviewService.createReview(1L, req);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getImages()).hasSize(2);
+        assertThat(result.getImages()).containsExactly(
+                "http://minio/bucket/review1.jpg",
+                "http://minio/bucket/review2.jpg"
+        );
+    }
+
+    @Test
+    @DisplayName("UC-CUS-07: Create review without images — images list is empty")
+    void createReview_withoutImages() {
+        ReviewRequest req = new ReviewRequest();
+        req.setProductId(10L);
+        req.setOrderId(100L);
+        req.setRating(4);
+        req.setContent("No images");
+
+        when(reviewRepository.existsByUserIdAndProductId(1L, 10L)).thenReturn(false);
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
+        when(productRepository.findById(10L)).thenReturn(Optional.of(testProduct));
+        when(orderRepository.findById(100L)).thenReturn(Optional.of(testOrder));
+        when(orderDetailRepository.findByOrderId(100L)).thenReturn(List.of(
+                com.pcparts.module.order.entity.OrderDetail.builder().product(testProduct).build()
+        ));
+        when(reviewRepository.save(any(Review.class))).thenAnswer(inv -> {
+            Review r = inv.getArgument(0);
+            r.setId(4L);
+            r.setCreatedAt(LocalDateTime.now());
+            return r;
+        });
+
+        ReviewDto result = reviewService.createReview(1L, req);
+
+        assertThat(result.getImages()).isEmpty();
     }
 }
