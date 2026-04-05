@@ -37,12 +37,15 @@ class WishlistServiceTest {
     @InjectMocks
     private WishlistService wishlistService;
 
+    private static final Long ACCOUNT_ID = 1L;
+    private static final Long PROFILE_ID = 100L;
+
     private UserProfile testUser;
     private Product testProduct;
 
     @BeforeEach
     void setUp() {
-        testUser = UserProfile.builder().id(1L).fullName("Test").phone("0901111111").build();
+        testUser = UserProfile.builder().id(PROFILE_ID).fullName("Test").phone("0901111111").build();
         testProduct = Product.builder().id(10L).name("GPU RTX 4090").slug("gpu-rtx-4090")
                 .sellingPrice(new BigDecimal("45000000")).status("ACTIVE").build();
     }
@@ -50,10 +53,11 @@ class WishlistServiceTest {
     @Test
     @DisplayName("Get wishlist — returns items")
     void getWishlist_returnsItems() {
+        when(userProfileRepository.findByAccountId(ACCOUNT_ID)).thenReturn(Optional.of(testUser));
         Wishlist w = Wishlist.builder().id(1L).user(testUser).product(testProduct).build();
-        when(wishlistRepository.findByUserId(1L)).thenReturn(List.of(w));
+        when(wishlistRepository.findByUserId(PROFILE_ID)).thenReturn(List.of(w));
 
-        List<WishlistItemDto> result = wishlistService.getWishlist(1L);
+        List<WishlistItemDto> result = wishlistService.getWishlist(ACCOUNT_ID);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getProductName()).isEqualTo("GPU RTX 4090");
@@ -63,11 +67,11 @@ class WishlistServiceTest {
     @Test
     @DisplayName("Add to wishlist — success")
     void addToWishlist_success() {
-        when(wishlistRepository.findByUserIdAndProductId(1L, 10L)).thenReturn(Optional.empty());
-        when(userProfileRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userProfileRepository.findByAccountId(ACCOUNT_ID)).thenReturn(Optional.of(testUser));
+        when(wishlistRepository.findByUserIdAndProductId(PROFILE_ID, 10L)).thenReturn(Optional.empty());
         when(productRepository.findById(10L)).thenReturn(Optional.of(testProduct));
 
-        wishlistService.addToWishlist(1L, 10L);
+        wishlistService.addToWishlist(ACCOUNT_ID, 10L);
 
         verify(wishlistRepository).save(any(Wishlist.class));
     }
@@ -75,10 +79,11 @@ class WishlistServiceTest {
     @Test
     @DisplayName("Add to wishlist — duplicate toggles removal")
     void addToWishlist_duplicate() {
+        when(userProfileRepository.findByAccountId(ACCOUNT_ID)).thenReturn(Optional.of(testUser));
         Wishlist existing = Wishlist.builder().id(99L).user(testUser).product(testProduct).build();
-        when(wishlistRepository.findByUserIdAndProductId(1L, 10L)).thenReturn(Optional.of(existing));
+        when(wishlistRepository.findByUserIdAndProductId(PROFILE_ID, 10L)).thenReturn(Optional.of(existing));
 
-        wishlistService.addToWishlist(1L, 10L);
+        wishlistService.addToWishlist(ACCOUNT_ID, 10L);
 
         verify(wishlistRepository).delete(existing);
     }
@@ -86,10 +91,11 @@ class WishlistServiceTest {
     @Test
     @DisplayName("Remove from wishlist — success")
     void removeFromWishlist_success() {
+        when(userProfileRepository.findByAccountId(ACCOUNT_ID)).thenReturn(Optional.of(testUser));
         Wishlist w = Wishlist.builder().id(1L).user(testUser).product(testProduct).build();
-        when(wishlistRepository.findByUserIdAndProductId(1L, 10L)).thenReturn(Optional.of(w));
+        when(wishlistRepository.findByUserIdAndProductId(PROFILE_ID, 10L)).thenReturn(Optional.of(w));
 
-        wishlistService.removeFromWishlist(1L, 10L);
+        wishlistService.removeFromWishlist(ACCOUNT_ID, 10L);
 
         verify(wishlistRepository).delete(w);
     }
@@ -97,9 +103,10 @@ class WishlistServiceTest {
     @Test
     @DisplayName("Remove from wishlist — not found throws exception")
     void removeFromWishlist_notFound() {
-        when(wishlistRepository.findByUserIdAndProductId(1L, 999L)).thenReturn(Optional.empty());
+        when(userProfileRepository.findByAccountId(ACCOUNT_ID)).thenReturn(Optional.of(testUser));
+        when(wishlistRepository.findByUserIdAndProductId(PROFILE_ID, 999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> wishlistService.removeFromWishlist(1L, 999L))
+        assertThatThrownBy(() -> wishlistService.removeFromWishlist(ACCOUNT_ID, 999L))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 }

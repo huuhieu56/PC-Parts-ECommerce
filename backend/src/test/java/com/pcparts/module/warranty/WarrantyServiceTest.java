@@ -8,6 +8,7 @@ import com.pcparts.module.order.repository.OrderRepository;
 import com.pcparts.module.product.entity.Product;
 import com.pcparts.module.product.repository.ProductRepository;
 import com.pcparts.module.warranty.entity.WarrantyRequest;
+import com.pcparts.module.warranty.repository.WarrantyPolicyRepository;
 import com.pcparts.module.warranty.repository.WarrantyRequestRepository;
 import com.pcparts.module.warranty.service.WarrantyService;
 import com.pcparts.module.warranty.service.WarrantyService.*;
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.*;
 class WarrantyServiceTest {
 
     @Mock private WarrantyRequestRepository warrantyRepo;
+    @Mock private WarrantyPolicyRepository warrantyPolicyRepo;
     @Mock private UserProfileRepository userProfileRepository;
     @Mock private OrderRepository orderRepository;
     @Mock private ProductRepository productRepository;
@@ -63,6 +65,7 @@ class WarrantyServiceTest {
                 com.pcparts.module.order.entity.OrderDetail.builder().product(testProduct).build()
         ));
         when(productRepository.findById(10L)).thenReturn(Optional.of(testProduct));
+        when(warrantyPolicyRepo.findByProductId(10L)).thenReturn(Optional.empty());
         when(warrantyRepo.save(any(WarrantyRequest.class))).thenAnswer(inv -> {
             WarrantyRequest wr = inv.getArgument(0);
             wr.setId(1L);
