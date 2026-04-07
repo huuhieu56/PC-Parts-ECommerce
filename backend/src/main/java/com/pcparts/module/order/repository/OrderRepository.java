@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Repository for Order entity with aggregate query support.
@@ -16,6 +17,11 @@ import java.math.BigDecimal;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     Page<Order> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
     Page<Order> findByStatusOrderByCreatedAtDesc(String status, Pageable pageable);
+
+    /**
+     * UC-CUS-07: Find orders by user and status for review validation.
+     */
+    List<Order> findByUserIdAndStatus(Long userId, String status);
 
     /**
      * Returns the sum of all order totalAmount values.
