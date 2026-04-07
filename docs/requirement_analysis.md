@@ -549,7 +549,11 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Chưa chọn số sao → Báo lỗi "Vui lòng chọn số sao"
 
-\-        Ảnh sai định dạng hoặc quá dung lượng → Báo lỗi
+\-        Ảnh sai định dạng (chỉ chấp nhận JPG, PNG, WEBP) → Báo lỗi "Chỉ chấp nhận ảnh JPG, PNG, WEBP"
+
+\-        Ảnh quá dung lượng (tối đa 5MB/ảnh) → Báo lỗi "Ảnh tối đa 5MB"
+
+\-        Vượt số lượng ảnh (tối đa 5 ảnh) → Báo lỗi "Tối đa 5 ảnh"
 
 7\.    Hậu điều kiện:
 
@@ -878,7 +882,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        SKU trùng → Báo lỗi "Mã SKU đã tồn tại"
 
-\-        Ảnh sai định dạng → Báo lỗi
+\-        Ảnh sai định dạng (chỉ chấp nhận JPG, PNG, WEBP) hoặc quá dung lượng (tối đa 5MB/ảnh) → Báo lỗi
 
 \-        Xóa Product có Order chưa hoàn thành → Chặn xóa
 

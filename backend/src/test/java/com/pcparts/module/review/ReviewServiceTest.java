@@ -211,4 +211,56 @@ class ReviewServiceTest {
 
         assertThat(result.getImages()).isEmpty();
     }
+
+    @Test
+    @DisplayName("UC-CUS-07: User without completed order cannot review — throws BusinessException")
+    void createReview_withoutPurchase_throwsException() {
+        // User chưa mua sản phẩm (không có order COMPLETED chứa product này)
+        ReviewRequest req = new ReviewRequest();
+        req.setProductId(10L);
+        req.setRating(5);
+        req.setContent("Trying to review without purchase");
+        // KHÔNG gửi orderId
+
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
+        when(reviewRepository.existsByUserIdAndProductId(1L, 10L)).thenReturn(false);
+        when(productRepository.findById(10L)).thenReturn(Optional.of(testProduct));
+        // User không có order nào chứa product này với status COMPLETED
+        when(orderRepository.findByUserIdAndStatus(1L, "COMPLETED")).thenReturn(List.of());
+
+        assertThatThrownBy(() -> reviewService.createReview(1L, req))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("cần mua sản phẩm");
+    }
+
+    @Test
+    @DisplayName("UC-CUS-07: User with completed order containing product can review without orderId")
+    void createReview_withPurchase_noOrderId_success() {
+        // User đã mua sản phẩm nhưng không gửi orderId trong request
+        ReviewRequest req = new ReviewRequest();
+        req.setProductId(10L);
+        req.setRating(5);
+        req.setContent("Great product!");
+        // KHÔNG gửi orderId - system tự tìm
+
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
+        when(reviewRepository.existsByUserIdAndProductId(1L, 10L)).thenReturn(false);
+        when(productRepository.findById(10L)).thenReturn(Optional.of(testProduct));
+        // User có order COMPLETED chứa product này
+        when(orderRepository.findByUserIdAndStatus(1L, "COMPLETED")).thenReturn(List.of(testOrder));
+        when(orderDetailRepository.findByOrderId(100L)).thenReturn(List.of(
+                com.pcparts.module.order.entity.OrderDetail.builder().product(testProduct).build()
+        ));
+        when(reviewRepository.save(any(Review.class))).thenAnswer(inv -> {
+            Review r = inv.getArgument(0);
+            r.setId(5L);
+            r.setCreatedAt(LocalDateTime.now());
+            return r;
+        });
+
+        ReviewDto result = reviewService.createReview(1L, req);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getRating()).isEqualTo(5);
+    }
 }
