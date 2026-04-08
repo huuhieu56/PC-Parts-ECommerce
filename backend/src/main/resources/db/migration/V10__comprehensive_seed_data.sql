@@ -4,13 +4,14 @@
 -- =============================================
 
 -- =============================================
--- 1. CATEGORIES (8 root categories)
+-- 1. CATEGORIES (9 root categories)
 -- =============================================
 INSERT INTO category (name, description, parent_id, level) VALUES
     ('CPU', 'Bộ vi xử lý - Processor', NULL, 0),
     ('Mainboard', 'Bo mạch chủ - Motherboard', NULL, 0),
     ('RAM', 'Bộ nhớ trong - Memory', NULL, 0),
     ('SSD', 'Ổ cứng thể rắn - Solid State Drive', NULL, 0),
+    ('HDD', 'Ổ cứng cơ học - Hard Disk Drive', NULL, 0),
     ('VGA', 'Card đồ hoạ - Graphics Card', NULL, 0),
     ('PSU', 'Nguồn máy tính - Power Supply Unit', NULL, 0),
     ('Case', 'Vỏ máy tính - Computer Case', NULL, 0),
@@ -70,6 +71,13 @@ INSERT INTO attribute (name, category_id) VALUES
     ('Dung lượng', (SELECT id FROM category WHERE name = 'SSD')),
     ('Tốc độ đọc', (SELECT id FROM category WHERE name = 'SSD')),
     ('Tốc độ ghi', (SELECT id FROM category WHERE name = 'SSD'));
+
+-- HDD Attributes
+INSERT INTO attribute (name, category_id) VALUES
+    ('Dung lượng', (SELECT id FROM category WHERE name = 'HDD')),
+    ('Tốc độ quay', (SELECT id FROM category WHERE name = 'HDD')),
+    ('Cache', (SELECT id FROM category WHERE name = 'HDD')),
+    ('Giao tiếp', (SELECT id FROM category WHERE name = 'HDD'));
 
 -- VGA Attributes
 INSERT INTO attribute (name, category_id) VALUES
@@ -213,6 +221,30 @@ INSERT INTO attribute_value (attribute_id, value)
 SELECT a.id, t.val
 FROM attribute a, (VALUES ('530 MB/s'), ('1700 MB/s'), ('3000 MB/s'), ('4100 MB/s'), ('5000 MB/s'), ('6500 MB/s'), ('6900 MB/s')) AS t(val)
 WHERE a.name = 'Tốc độ ghi' AND a.category_id = (SELECT id FROM category WHERE name = 'SSD');
+
+-- HDD Capacity
+INSERT INTO attribute_value (attribute_id, value)
+SELECT a.id, t.val
+FROM attribute a, (VALUES ('500GB'), ('1TB'), ('2TB'), ('4TB'), ('6TB'), ('8TB'), ('10TB'), ('12TB'), ('14TB'), ('16TB'), ('18TB'), ('20TB'), ('22TB'), ('24TB')) AS t(val)
+WHERE a.name = 'Dung lượng' AND a.category_id = (SELECT id FROM category WHERE name = 'HDD');
+
+-- HDD RPM
+INSERT INTO attribute_value (attribute_id, value)
+SELECT a.id, t.val
+FROM attribute a, (VALUES ('5400 RPM'), ('7200 RPM'), ('10000 RPM'), ('15000 RPM')) AS t(val)
+WHERE a.name = 'Tốc độ quay' AND a.category_id = (SELECT id FROM category WHERE name = 'HDD');
+
+-- HDD Cache
+INSERT INTO attribute_value (attribute_id, value)
+SELECT a.id, t.val
+FROM attribute a, (VALUES ('32MB'), ('64MB'), ('128MB'), ('256MB'), ('512MB')) AS t(val)
+WHERE a.name = 'Cache' AND a.category_id = (SELECT id FROM category WHERE name = 'HDD');
+
+-- HDD Interface
+INSERT INTO attribute_value (attribute_id, value)
+SELECT a.id, t.val
+FROM attribute a, (VALUES ('SATA III'), ('SAS')) AS t(val)
+WHERE a.name = 'Giao tiếp' AND a.category_id = (SELECT id FROM category WHERE name = 'HDD');
 
 -- VGA GPU Chip
 INSERT INTO attribute_value (attribute_id, value)
