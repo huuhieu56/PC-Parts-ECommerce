@@ -92,6 +92,13 @@ minio:
   secret-key: ${MINIO_SECRET_KEY}
   bucket: ${MINIO_BUCKET:pcparts}
 
+# --- Cerebras AI (LLM) ---
+cerebras:
+  api-key: ${CEREBRAS_API_KEY:}
+  base-url: ${CEREBRAS_BASE_URL:https://api.cerebras.ai/v1}
+  model: ${CEREBRAS_MODEL:llama3.1-8b}
+  timeout: ${CEREBRAS_TIMEOUT:30000}
+
 # --- Logging ---
 logging:
   level:
