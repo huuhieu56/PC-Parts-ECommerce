@@ -16,7 +16,7 @@ const slots = [
   { id: 7, name: "VGA", label: "VGA", category: "VGA" },
   { id: 8, name: "NGUỒN", label: "Nguồn", category: "PSU" },
   { id: 9, name: "VỎ CASE", label: "Vỏ Case", category: "Case" },
-  { id: 10, name: "TẢN NHIỆT", label: "Tản nhiệt", category: "Cooling" },
+  { id: 10, name: "TẢN NHIỆT", label: "Tản nhiệt", category: "CPU Cooler" },
 ];
 
 interface CategoryDto { id: number; name: string; slug: string; children?: CategoryDto[]; }
@@ -106,7 +106,19 @@ export default function BuildPCPage() {
     setCheckingAi(true);
     try {
       const res = await api.post("/build-pc/check-compatibility", { components: selected.map(s => ({ slotId: s.slotId, productId: s.productId })) });
-      setAiResult(res.data.data || res.data?.message || "Kiểm tra hoàn tất.");
+      const data = res.data?.data;
+      if (typeof data === "string") {
+        setAiResult(data);
+      } else if (data && typeof data === "object") {
+        let msg = data.compatible ? "✅ Các linh kiện tương thích với nhau." : "⚠️ CÓ VẤN ĐỀ TƯƠNG THÍCH";
+        if (data.analysis) msg += `\n\nPhân tích: ${data.analysis}`;
+        if (data.warnings && data.warnings.length > 0) {
+          msg += `\n\nCảnh báo:\n- ${data.warnings.join("\n- ")}`;
+        }
+        setAiResult(msg);
+      } else {
+        setAiResult(res.data?.message || "Kiểm tra hoàn tất.");
+      }
     } catch {
       setAiResult("✅ Cấu hình cơ bản tương thích. (Backend AI chưa tích hợp — kết quả mẫu)");
     } finally { setCheckingAi(false); }
