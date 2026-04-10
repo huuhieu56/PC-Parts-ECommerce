@@ -6,9 +6,9 @@ import { Footer } from "@/components/layout/Footer";
 export default function ShopLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col">
-      <Header />
+      <div className="print:hidden"><Header /></div>
       <main className="flex-1">{children}</main>
-      <Footer />
+      <div className="print:hidden"><Footer /></div>
     </div>
   );
 }
