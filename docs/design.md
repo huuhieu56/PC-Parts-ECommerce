@@ -2,9 +2,10 @@
 ## (Software Design Description – SDD)
 
 **Dự án:** Hệ thống Website Thương mại Điện tử Phân phối Linh kiện Máy tính  
-**Phiên bản:** 1.0  
+**Phiên bản:** 1.1  
 **Ngày tạo:** 2026-03-25  
-**Trạng thái:** Bản nháp (Draft)  
+**Cập nhật lần cuối:** 2026-04-12  
+**Trạng thái:** Hoàn thiện (Final Draft)  
 
 ---
 
@@ -13,35 +14,81 @@
 | Phiên bản | Ngày | Tác giả | Mô tả thay đổi |
 |:----------|:-----|:--------|:----------------|
 | 1.0 | 2026-03-25 | — | Tạo mới tài liệu |
+| 1.1 | 2026-04-12 | — | Bổ sung Component Diagram, Deployment Diagram, ERD, Test Cases |
 
 ---
 
 ## Mục lục
 
 1. [Giới thiệu](#1-giới-thiệu)
-   - 1.1 [Mục đích](#11-mục-đích-tài-liệu-purpose)
-   - 1.2 [Phạm vi](#12-phạm-vi-hệ-thống-scope)
-   - 1.3 [Từ điển thuật ngữ](#13-thuật-ngữ--viết-tắt-glossary)
-   - 1.4 [Tài liệu tham khảo](#14-tài-liệu-tham-chiếu-references)
-   - 1.5 [Tổng quát](#15-tổng-quát)
-2. [Mô hình hóa cấu trúc](#2-mô-hình-hóa-cấu-trúc)
-3. [Mô hình hóa sự tương tác](#3-mô-hình-hóa-sự-tương-tác)
-4. [Kiến trúc tổng thể của hệ thống](#4-kiến-trúc-tổng-thể-của-hệ-thống)
-5. [Thiết kế chi tiết lớp](#5-thiết-kế-chi-tiết-lớp)
-6. [Thiết kế giao diện](#6-thiết-kế-giao-diện)
-7. [Thiết kế dữ liệu](#7-thiết-kế-dữ-liệu)
+   - 1.1 [Mục đích tài liệu](#11-mục-đích-tài-liệu)
+   - 1.2 [Phạm vi hệ thống](#12-phạm-vi-hệ-thống)
+   - 1.3 [Thuật ngữ & Viết tắt](#13-thuật-ngữ--viết-tắt)
+   - 1.4 [Tài liệu tham chiếu](#14-tài-liệu-tham-chiếu)
+2. [Kiến trúc tổng thể (Architectural Design)](#2-kiến-trúc-tổng-thể-architectural-design)
+   - 2.1 [Lựa chọn kiến trúc](#21-lựa-chọn-kiến-trúc)
+   - 2.2 [Component / Package Diagram](#22-component--package-diagram)
+   - 2.3 [Deployment Diagram](#23-deployment-diagram)
+3. [Thiết kế chi tiết (Detailed Design)](#3-thiết-kế-chi-tiết-detailed-design)
+   - 3.1 [Biểu đồ lớp chi tiết (Detailed Class Diagram)](#31-biểu-đồ-lớp-chi-tiết-detailed-class-diagram)
+   - 3.2 [Biểu đồ tuần tự chi tiết (Detailed Sequence Diagram)](#32-biểu-đồ-tuần-tự-chi-tiết-detailed-sequence-diagram)
+   - 3.3 [Sơ đồ quan hệ thực thể (ERD)](#33-sơ-đồ-quan-hệ-thực-thể-erd)
+   - 3.4 [Test Case](#34-test-case)
+
+---
+
+## Danh mục hình ảnh & biểu đồ
+
+| STT | Mã hình | Tên biểu đồ | Loại | Phần |
+|:----|:--------|:-------------|:-----|:-----|
+| 1 | Hình 2.1 | Sơ đồ kiến trúc tổng quan (High-Level Architecture) | Architecture | 2.1 |
+| 2 | Hình 2.2 | Component / Package Diagram | UML Component | 2.2 |
+| 3 | Hình 2.3 | Deployment Diagram | UML Deployment | 2.3 |
+| 4 | Hình 3.1 | Class Diagram — Module Authentication & Authorization | UML Class | 3.1.1 |
+| 5 | Hình 3.2 | Class Diagram — Module Product Catalog | UML Class | 3.1.2 |
+| 6 | Hình 3.3 | Class Diagram — Module Order & Payment | UML Class | 3.1.3 |
+| 7 | Hình 3.4 | Sequence Diagram — Đăng ký tài khoản | UML Sequence | 3.2.1 |
+| 8 | Hình 3.5 | Sequence Diagram — Đăng nhập & Merge giỏ hàng | UML Sequence | 3.2.2 |
+| 9 | Hình 3.6 | Sequence Diagram — Đăng xuất & Refresh Token | UML Sequence | 3.2.3 |
+| 10 | Hình 3.7 | Sequence Diagram — Thay đổi mật khẩu | UML Sequence | 3.2.4 |
+| 11 | Hình 3.8 | Sequence Diagram — Quên & Thiết lập lại mật khẩu | UML Sequence | 3.2.5 |
+| 12 | Hình 3.9 | Sequence Diagram — Cập nhật thông tin cá nhân | UML Sequence | 3.2.6 |
+| 13 | Hình 3.10 | Sequence Diagram — Duyệt, Tìm kiếm & Lọc sản phẩm | UML Sequence | 3.2.7 |
+| 14 | Hình 3.11 | Sequence Diagram — Xem chi tiết sản phẩm | UML Sequence | 3.2.8 |
+| 15 | Hình 3.12 | Sequence Diagram — Quản lý giỏ hàng (Guest & Customer) | UML Sequence | 3.2.9 |
+| 16 | Hình 3.13 | Sequence Diagram — Checkout & Tạo đơn hàng | UML Sequence | 3.2.10 |
+| 17 | Hình 3.14 | Sequence Diagram — Thanh toán Online Callback | UML Sequence | 3.2.11 |
+| 18 | Hình 3.15 | Sequence Diagram — Xem lịch sử & Chi tiết đơn hàng | UML Sequence | 3.2.12 |
+| 19 | Hình 3.16 | Sequence Diagram — Hủy đơn hàng | UML Sequence | 3.2.13 |
+| 20 | Hình 3.17 | Sequence Diagram — Đổi trả & Hoàn tiền | UML Sequence | 3.2.14 |
+| 21 | Hình 3.18 | Sequence Diagram — Gửi yêu cầu bảo hành | UML Sequence | 3.2.15 |
+| 22 | Hình 3.19 | Sequence Diagram — Đánh giá sản phẩm | UML Sequence | 3.2.16 |
+| 23 | Hình 3.20 | Sequence Diagram — Quản lý Wishlist | UML Sequence | 3.2.17 |
+| 24 | Hình 3.21 | Sequence Diagram — Build PC + Kiểm tra tương thích AI | UML Sequence | 3.2.18 |
+| 25 | Hình 3.22 | Sequence Diagram — Admin quản lý sản phẩm | UML Sequence | 3.2.19 |
+| 26 | Hình 3.23 | Sequence Diagram — Admin quản lý danh mục | UML Sequence | 3.2.20 |
+| 27 | Hình 3.24 | Sequence Diagram — Admin quản lý tồn kho | UML Sequence | 3.2.21 |
+| 28 | Hình 3.25 | Sequence Diagram — Admin cập nhật trạng thái đơn hàng | UML Sequence | 3.2.22 |
+| 29 | Hình 3.26 | Sequence Diagram — Admin quản lý người dùng | UML Sequence | 3.2.23 |
+| 30 | Hình 3.27 | Sequence Diagram — Admin quản lý mã giảm giá | UML Sequence | 3.2.24 |
+| 31 | Hình 3.28 | Sequence Diagram — Gửi thông báo | UML Sequence | 3.2.25 |
+| 32 | Hình 3.29 | ERD — Nhóm Phân quyền (Auth & User) | ER Diagram | 3.3.1 |
+| 33 | Hình 3.30 | ERD — Nhóm Sản phẩm (Product Catalog) | ER Diagram | 3.3.2 |
+| 34 | Hình 3.31 | ERD — Nhóm Mua sắm & Đơn hàng (Shopping & Order) | ER Diagram | 3.3.3 |
+| 35 | Hình 3.32 | ERD — Nhóm Tương tác & Bảo hành (Interaction & Warranty) | ER Diagram | 3.3.4 |
+| 36 | Hình 3.33 | ERD — Nhóm Thông báo (Notification) | ER Diagram | 3.3.5 |
 
 ---
 
 ## 1 Giới thiệu
 
-### 1.1 Mục đích tài liệu (Purpose)
+### 1.1 Mục đích tài liệu
 
 Tài liệu thiết kế phần mềm (SDD) này mô tả kiến trúc, thiết kế chi tiết và các quyết định kỹ thuật cho **Hệ thống Website Thương mại Điện tử Phân phối Linh kiện Máy tính, PC Lắp ráp và Thiết bị Công nghệ**. Tài liệu được xây dựng dựa trên tài liệu phân tích yêu cầu (SRS) đã được phê duyệt, nhằm cung cấp cái nhìn tổng quan và chi tiết về cách hệ thống sẽ được triển khai.
 
 **Đối tượng đọc:** Đội ngũ phát triển (Developer), Kiến trúc sư phần mềm (Architect), Quản lý dự án (PM), Đội ngũ kiểm thử (QA/QC), và các bên liên quan kỹ thuật.
 
-### 1.2 Phạm vi hệ thống (Scope)
+### 1.2 Phạm vi hệ thống
 
 Hệ thống bao gồm các module chức năng chính sau:
 
@@ -58,9 +105,7 @@ Hệ thống bao gồm các module chức năng chính sau:
 | M09 | Bảo hành & Đổi trả | Warranty\_Policy, Warranty\_Ticket, Return/Refund |
 | M10 | Quản trị Hệ thống | Quản lý tài khoản, Thống kê doanh thu |
 
-Tài liệu này bao gồm cả thiết kế kỹ thuật (backend, database, API) và thiết kế giao diện người dùng (UI/UX), được tích hợp trong các phần tương ứng.
-
-### 1.3 Thuật ngữ & Viết tắt (Glossary)
+### 1.3 Thuật ngữ & Viết tắt
 
 | Thuật ngữ | Định nghĩa |
 |:----------|:-----------|
@@ -74,36 +119,298 @@ Tài liệu này bao gồm cả thiết kế kỹ thuật (backend, database, AP
 | CRUD | Create, Read, Update, Delete — Các thao tác cơ bản |
 | SKU | Stock Keeping Unit — Mã quản lý kho |
 | COD | Cash On Delivery — Thanh toán khi nhận hàng |
-| CMS | Content Management System — Hệ quản trị nội dung |
 | ER / ERD | Entity-Relationship (Diagram) — Sơ đồ quan hệ thực thể |
 | DTO | Data Transfer Object — Đối tượng truyền dữ liệu |
 | UML | Unified Modeling Language — Ngôn ngữ mô hình hóa |
+| MVC | Model-View-Controller — Mẫu kiến trúc phân tách trách nhiệm |
 
-### 1.4 Tài liệu tham chiếu (References)
+### 1.4 Tài liệu tham chiếu
 
 | Mã tài liệu | Tên tài liệu | Phiên bản |
 |:-------------|:--------------|:----------|
 | SRS-v1.0 | Tài liệu Phân tích Yêu cầu (requirement\_analysis.md) | 1.0 |
 | IEEE 1016-2009 | IEEE Standard for Information Technology — Software Design Descriptions | — |
 | UML-diagrams | The Unified Modeling Language, https://www.uml-diagrams.org/ | — |
-
-### 1.5 Tổng quát
-
-Tài liệu này được viết dựa theo chuẩn IEEE 1016-2009 (Software Design Descriptions), với cấu trúc được chia làm bảy phần:
-
-1. **Phần 1:** Cung cấp cái nhìn tổng quan về các thành phần của SDD, phạm vi hệ thống và thuật ngữ.
-2. **Phần 2:** Mô hình hóa cấu trúc các ca sử dụng — biểu đồ lớp cho từng module.
-3. **Phần 3:** Mô hình hóa sự tương tác — biểu đồ tuần tự (Sequence Diagram) cho các luồng nghiệp vụ chính.
-4. **Phần 4:** Kiến trúc tổng thể hệ thống — kiến trúc phân lớp, nguyên tắc thiết kế, Design System UI/UX.
-5. **Phần 5:** Thiết kế chi tiết lớp — thiết kế thành phần (Component Design) cho các Service, bảo mật, yêu cầu phi chức năng.
-6. **Phần 6:** Thiết kế giao diện hệ thống — API Design, Wireframes, Responsive Design, Component States.
-7. **Phần 7:** Thiết kế mô hình dữ liệu — ERD, schema chi tiết, quan hệ giữa các thực thể.
+| VP-Component | What is Component Diagram, https://www.visual-paradigm.com/guide/uml-unified-modeling-language/what-is-component-diagram/ | — |
+| VP-Deployment | What is Deployment Diagram, https://www.visual-paradigm.com/guide/uml-unified-modeling-language/what-is-deployment-diagram/ | — |
 
 ---
 
-## 2 Mô hình hóa cấu trúc
+## 2 Kiến trúc tổng thể (Architectural Design)
 
-### 2.1 Biểu đồ lớp — Module Authentication & Authorization
+### 2.1 Lựa chọn kiến trúc
+
+Hệ thống được thiết kế theo kiến trúc **Monolithic phân lớp (Layered Monolithic Architecture)**, tuân theo mô hình **MVC mở rộng (Model-View-Controller)** áp dụng vào bối cảnh ứng dụng web hiện đại.
+
+#### Ánh xạ mô hình MVC
+
+| Thành phần MVC | Ánh xạ trong hệ thống | Công nghệ |
+|:---------------|:-----------------------|:----------|
+| **View** | Frontend — Giao diện người dùng, hiển thị dữ liệu, tương tác | Next.js (App Router) + TypeScript |
+| **Controller** | Backend — Nhận request, điều phối logic, trả response (REST API) | Spring Boot REST Controllers |
+| **Model** | Backend — Entity/ORM + Database, xử lý business logic | Spring Data JPA + PostgreSQL |
+
+Backend được tách thêm thành các tầng nội bộ (Controller → Service → Repository) theo nguyên tắc **Separation of Concerns**, giúp code dễ bảo trì và test hơn so với MVC truyền thống.
+
+#### Lý do lựa chọn
+
+| Tiêu chí | Layered Monolith (đã chọn) | Microservices | Serverless |
+|:---------|:---------------------------|:--------------|:-----------|
+| Độ phức tạp vận hành | Thấp — 1 backend duy nhất | Cao — nhiều service, cần orchestration | Trung bình — phụ thuộc cloud vendor |
+| Phù hợp team nhỏ | Rất phù hợp | Không phù hợp | Phù hợp nhưng hạn chế |
+| Chi phí infrastructure | Thấp | Cao | Biến động |
+| Khả năng mở rộng | Ngang (stateless) + tách module sau | Tốt nhất | Tự động |
+| Tốc độ phát triển ban đầu | Nhanh | Chậm (setup overhead) | Trung bình |
+| Debug & Testing | Dễ | Khó (distributed tracing) | Khó (cold start, vendor lock-in) |
+
+**Kết luận:** Với quy mô đội ngũ nhỏ/vừa và giai đoạn MVP, kiến trúc Layered Monolith giúp giảm complexity vận hành, vẫn đảm bảo tính module hóa, và dễ dàng migrate sang Microservices trong tương lai nhờ thiết kế module rõ ràng.
+
+#### Sơ đồ kiến trúc tổng quan
+
+> **Hình 2.1** — Sơ đồ kiến trúc tổng quan
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                     CLIENT LAYER (View — MVC)                     │
+│  ┌─────────────────────┐     ┌──────────────────────────────┐   │
+│  │  Customer Web App   │     │  Admin CMS Web App           │   │
+│  │  (Next.js App Router)│     │  (Next.js App Router)        │   │
+│  └────────┬────────────┘     └──────────────┬───────────────┘   │
+│           │            HTTPS / REST API       │                  │
+└───────────┼──────────────────────────────────┼──────────────────┘
+            │                                  │
+┌───────────┼──────────────────────────────────┼──────────────────┐
+│           ▼          API GATEWAY              ▼                  │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  Nginx — Routing, Rate Limiting, CORS, SSL Termination   │   │
+│  └──────────────────────┬───────────────────────────────────┘   │
+└─────────────────────────┼──────────────────────────────────────┘
+                          │
+┌─────────────────────────┼──────────────────────────────────────┐
+│                         ▼                                       │
+│         APPLICATION LAYER (Controller + Service — MVC)           │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  Spring Boot Backend                                      │   │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐   │   │
+│  │  │Controller│ │Controller│ │Controller│ │Controller│   │   │
+│  │  │  Auth    │ │ Product  │ │  Order   │ │ Inventory│   │   │
+│  │  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘   │   │
+│  │  ┌────┴─────────────┴────────────┴─────────────┴─────┐   │   │
+│  │  │              SERVICE LAYER (Business Logic)       │   │   │
+│  │  └────────────────────────┬──────────────────────────┘   │   │
+│  │  ┌────────────────────────┴──────────────────────────┐   │   │
+│  │  │          REPOSITORY LAYER (Data Access)           │   │   │
+│  │  └────────────────────────┬──────────────────────────┘   │   │
+│  └───────────────────────────┼──────────────────────────────┘   │
+└──────────────────────────────┼──────────────────────────────────┘
+                               │
+┌──────────────────────────────┼──────────────────────────────────┐
+│                    DATA LAYER (Model — MVC)                       │
+│   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐       │
+│   │  PostgreSQL   │   │    Redis     │   │    MinIO     │       │
+│   │ (Primary DB)  │   │ (Cache/Session)│  │ (File Storage)│      │
+│   └──────────────┘   └──────────────┘   └──────────────┘       │
+└─────────────────────────────────────────────────────────────────┘
+                               │
+┌──────────────────────────────┼──────────────────────────────────┐
+│              EXTERNAL SERVICES (Dịch vụ bên ngoài)               │
+│   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐       │
+│   │ VNPay / MoMo │   │  LLM API     │   │ Email (SMTP) │       │
+│   └──────────────┘   └──────────────┘   └──────────────┘       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 2.2 Component / Package Diagram
+
+> **Hình 2.2** — Component / Package Diagram
+
+Sơ đồ mô tả 10 module chức năng (M01–M10) và các phụ thuộc giữa chúng, cùng với các hệ thống bên ngoài.
+
+```mermaid
+graph TB
+    subgraph "CLIENT LAYER"
+        FE_Customer["Customer Web App<br/>(Next.js)"]
+        FE_Admin["Admin CMS Web App<br/>(Next.js)"]
+    end
+
+    subgraph "API GATEWAY"
+        Nginx["Nginx<br/>Reverse Proxy"]
+    end
+
+    subgraph "BACKEND — Application Modules"
+        M01["M01: Auth & RBAC<br/>──────────────<br/>AuthController<br/>AuthService<br/>AccountRepository"]
+        M02["M02: Product Catalog<br/>──────────────<br/>ProductController<br/>ProductService<br/>CategoryService"]
+        M03["M03: Shopping<br/>──────────────<br/>CartController<br/>CartService<br/>WishlistService"]
+        M04["M04: Order & Payment<br/>──────────────<br/>OrderController<br/>OrderService<br/>PaymentService"]
+        M05["M05: Build PC<br/>──────────────<br/>BuildPCController<br/>BuildPCService<br/>CompatibilityService"]
+        M06["M06: Inventory<br/>──────────────<br/>InventoryController<br/>InventoryService<br/>SupplierService"]
+        M07["M07: Coupon<br/>──────────────<br/>CouponController<br/>CouponService"]
+        M08["M08: Review<br/>──────────────<br/>ReviewController<br/>ReviewService"]
+        M09["M09: Warranty & Return<br/>──────────────<br/>WarrantyController<br/>ReturnController"]
+        M10["M10: Admin & Report<br/>──────────────<br/>AdminController<br/>ReportService"]
+    end
+
+    subgraph "DATA LAYER"
+        PostgreSQL[("PostgreSQL<br/>Primary Database")]
+        Redis[("Redis<br/>Cache & Session")]
+        MinIO[("MinIO<br/>File Storage")]
+    end
+
+    subgraph "EXTERNAL SERVICES"
+        VNPay["VNPay API"]
+        MoMo["MoMo API"]
+        LLM["LLM API<br/>(AI Compatibility)"]
+        SMTP["Email Service<br/>(SMTP)"]
+    end
+
+    FE_Customer --> Nginx
+    FE_Admin --> Nginx
+    Nginx --> M01
+    Nginx --> M02
+    Nginx --> M03
+    Nginx --> M04
+    Nginx --> M05
+    Nginx --> M06
+    Nginx --> M07
+    Nginx --> M08
+    Nginx --> M09
+    Nginx --> M10
+
+    M03 -->|"Requires Auth"| M01
+    M04 -->|"Requires Auth"| M01
+    M05 -->|"Requires Auth"| M01
+    M08 -->|"Requires Auth"| M01
+    M09 -->|"Requires Auth"| M01
+    M10 -->|"Requires Auth"| M01
+
+    M03 -->|"Product info"| M02
+    M04 -->|"Product info"| M02
+    M05 -->|"Product info"| M02
+
+    M04 -->|"Cart items"| M03
+    M04 -->|"Deduct stock"| M06
+    M04 -->|"Apply coupon"| M07
+    M09 -->|"Return stock"| M06
+    M09 -->|"Order info"| M04
+
+    M05 -->|"AI check"| LLM
+    M04 -->|"Online payment"| VNPay
+    M04 -->|"Online payment"| MoMo
+    M04 -->|"Confirmation"| SMTP
+
+    M01 --> PostgreSQL
+    M02 --> PostgreSQL
+    M03 --> PostgreSQL
+    M04 --> PostgreSQL
+    M06 --> PostgreSQL
+    M07 --> PostgreSQL
+    M08 --> PostgreSQL
+    M09 --> PostgreSQL
+    M10 --> PostgreSQL
+
+    M03 -->|"Guest Cart"| Redis
+    M01 -->|"Session"| Redis
+    M02 -->|"Product Cache"| Redis
+
+    M02 -->|"Images"| MinIO
+    M08 -->|"Review Images"| MinIO
+    M05 -->|"PDF Export"| MinIO
+```
+
+**Quan hệ chính giữa các module:**
+
+| Quan hệ | Mô tả |
+|:---------|:------|
+| M03 → M01 | Shopping cần xác thực để phân biệt Guest vs Customer |
+| M04 → M03 | Order lấy danh sách Cart\_Item từ Shopping để tạo đơn |
+| M04 → M06 | Order trừ kho khi checkout |
+| M04 → M07 | Order validate và áp dụng Coupon |
+| M05 → M02 | Build PC truy vấn Product + Attribute để hiển thị slot |
+| M05 → LLM | Build PC gọi LLM API kiểm tra tương thích AI |
+| M09 → M04 | Bảo hành/Đổi trả cần thông tin Order gốc |
+| M09 → M06 | Đổi trả hoàn lại kho hàng khi duyệt |
+
+### 2.3 Deployment Diagram
+
+> **Hình 2.3** — Deployment Diagram
+
+Sơ đồ triển khai mô tả cách các thành phần được đặt trên các node vật lý/ảo và kết nối với nhau.
+
+```mermaid
+graph TB
+    subgraph "Client Devices"
+        Browser["Web Browser<br/>(Chrome, Firefox, Safari)<br/>──────────────<br/>Desktop / Mobile"]
+    end
+
+    subgraph "Production Server"
+        subgraph "Docker Host"
+            subgraph "Container: Nginx"
+                NginxC["Nginx:alpine<br/>──────────────<br/>Port: 80 / 443<br/>SSL Termination<br/>Reverse Proxy"]
+            end
+
+            subgraph "Container: Frontend"
+                FrontendC["Node.js 20<br/>──────────────<br/>Next.js App<br/>Port: 3000 (internal)<br/>SSR + Static Assets"]
+            end
+
+            subgraph "Container: Backend"
+                BackendC["Java 21<br/>──────────────<br/>Spring Boot App<br/>Port: 8080 (internal)<br/>REST API Server"]
+            end
+
+            subgraph "Container: PostgreSQL"
+                PostgreSQLC["PostgreSQL 16 Alpine<br/>──────────────<br/>Port: 5432 (internal)<br/>Volume: pgdata"]
+            end
+
+            subgraph "Container: Redis"
+                RedisC["Redis 7 Alpine<br/>──────────────<br/>Port: 6379 (internal)<br/>Session & Cache"]
+            end
+
+            subgraph "Container: MinIO"
+                MinIOC["MinIO Server<br/>──────────────<br/>Port: 9000 (API)<br/>Port: 9001 (Console)<br/>Volume: minio_data"]
+            end
+        end
+    end
+
+    subgraph "External Services"
+        VNPayS["VNPay Gateway<br/>HTTPS"]
+        MoMoS["MoMo Gateway<br/>HTTPS"]
+        LLMS["LLM API Provider<br/>HTTPS / REST"]
+        SMTPS["Email Service<br/>SMTP / API"]
+    end
+
+    Browser -->|"HTTPS :443"| NginxC
+    NginxC -->|"HTTP :3000"| FrontendC
+    NginxC -->|"HTTP :8080<br/>/api/*"| BackendC
+
+    BackendC -->|"TCP :5432<br/>JDBC"| PostgreSQLC
+    BackendC -->|"TCP :6379"| RedisC
+    BackendC -->|"HTTP :9000<br/>S3 API"| MinIOC
+
+    BackendC -->|"HTTPS"| VNPayS
+    BackendC -->|"HTTPS"| MoMoS
+    BackendC -->|"HTTPS"| LLMS
+    BackendC -->|"SMTP/HTTPS"| SMTPS
+```
+
+**Thông số triển khai:**
+
+| Thành phần | Image | Port | Volume | Ghi chú |
+|:-----------|:------|:-----|:-------|:--------|
+| Nginx | `nginx:alpine` | 80, 443 | `./nginx/conf.d` | SSL cert mount |
+| Frontend | Custom Dockerfile | 3000 (internal) | — | Chỉ expose qua Nginx |
+| Backend | Custom Dockerfile | 8080 (internal) | — | Health check: `/actuator/health` |
+| PostgreSQL | `postgres:16-alpine` | 5432 (internal) | `pgdata` | Flyway auto-migrate |
+| Redis | `redis:7-alpine` | 6379 (internal) | `redis_data` | Password protected |
+| MinIO | `minio/minio` | 9000, 9001 | `minio_data` | Console trên :9001 |
+
+---
+
+## 3 Thiết kế chi tiết (Detailed Design)
+
+### 3.1 Biểu đồ lớp chi tiết (Detailed Class Diagram)
+
+#### 3.1.1 Module Authentication & Authorization
+
+> **Hình 3.1** — Class Diagram — Module Authentication & Authorization
 
 ```mermaid
 classDiagram
@@ -175,7 +482,9 @@ classDiagram
     Role "*" --> "*" Permission
 ```
 
-### 2.2 Biểu đồ lớp — Module Product Catalog
+#### 3.1.2 Module Product Catalog
+
+> **Hình 3.2** — Class Diagram — Module Product Catalog
 
 ```mermaid
 classDiagram
@@ -265,7 +574,9 @@ classDiagram
     ProductAttribute --> AttributeValue
 ```
 
-### 2.3 Biểu đồ lớp — Module Order & Payment
+#### 3.1.3 Module Order & Payment
+
+> **Hình 3.3** — Class Diagram — Module Order & Payment
 
 ```mermaid
 classDiagram
@@ -357,11 +668,44 @@ classDiagram
     OrderDetail --> Product
 ```
 
----
+### 3.2 Biểu đồ tuần tự chi tiết (Detailed Sequence Diagram)
 
-## 3 Mô hình hóa sự tương tác
+#### 3.2.1 Luồng Đăng ký tài khoản
 
-### 3.1 Luồng Đăng nhập & Merge giỏ hàng
+> **Hình 3.4** — Sequence Diagram — Đăng ký tài khoản
+
+```mermaid
+sequenceDiagram
+    actor Customer
+    participant FE as Next.js (Frontend)
+    participant BE as Spring Boot (Backend)
+    participant DB as PostgreSQL
+
+    Customer->>FE: Nhập email, password, fullName, phone
+    FE->>FE: Validate client-side (format email, độ mạnh password)
+    FE->>BE: POST /api/v1/auth/register {email, password, fullName, phone}
+
+    BE->>DB: SELECT Account WHERE email = ?
+    DB-->>BE: Result
+
+    alt Email đã tồn tại
+        BE-->>FE: 409 Conflict {message: "Email đã được sử dụng"}
+        FE-->>Customer: Hiển thị lỗi
+    else Email hợp lệ
+        BE->>BE: BCrypt hash password
+        BE->>DB: INSERT Account (email, password_hash, role_id=CUSTOMER)
+        BE->>DB: INSERT User_Profile (account_id, full_name, phone)
+        BE->>BE: Sinh JWT Access Token + Refresh Token
+        BE->>DB: INSERT Token (refresh_token)
+        BE-->>FE: 201 {accessToken, refreshToken, user}
+        FE->>FE: Lưu token, cập nhật Zustand store
+        FE-->>Customer: Redirect về trang chủ
+    end
+```
+
+#### 3.2.2 Luồng Đăng nhập & Merge giỏ hàng
+
+> **Hình 3.5** — Sequence Diagram — Đăng nhập & Merge giỏ hàng
 
 ```mermaid
 sequenceDiagram
@@ -406,7 +750,310 @@ sequenceDiagram
     end
 ```
 
-### 3.2 Luồng Checkout & Tạo đơn hàng
+#### 3.2.3 Luồng Đăng xuất & Refresh Token
+
+> **Hình 3.6** — Sequence Diagram — Đăng xuất & Refresh Token
+
+```mermaid
+sequenceDiagram
+    actor Customer
+    participant FE as Next.js (Frontend)
+    participant BE as Spring Boot (Backend)
+    participant DB as PostgreSQL
+    participant Cache as Redis
+
+    Note over FE,BE: Luồng Refresh Token
+    FE->>FE: Access Token hết hạn (15 phút)
+    FE->>BE: POST /api/v1/auth/refresh-token {refreshToken}
+    BE->>DB: SELECT Token WHERE token_value = ? AND expires_at > NOW()
+
+    alt Refresh Token hợp lệ
+        BE->>BE: Sinh Access Token mới
+        BE-->>FE: 200 {accessToken}
+        FE->>FE: Cập nhật token trong store
+    else Refresh Token hết hạn / không hợp lệ
+        BE-->>FE: 401 Unauthorized
+        FE->>FE: Xóa token, redirect đăng nhập
+    end
+
+    Note over FE,BE: Luồng Đăng xuất
+    Customer->>FE: Nhấn "Đăng xuất"
+    FE->>BE: POST /api/v1/auth/logout {refreshToken}
+    BE->>DB: DELETE Token WHERE token_value = ?
+    BE->>Cache: DEL session:{user_id}
+    BE-->>FE: 200 OK
+    FE->>FE: Xóa token, xóa Zustand store
+    FE-->>Customer: Redirect về trang chủ
+```
+
+#### 3.2.4 Luồng Thay đổi mật khẩu
+
+> **Hình 3.7** — Sequence Diagram — Thay đổi mật khẩu
+
+```mermaid
+sequenceDiagram
+    actor Customer
+    participant FE as Next.js (Frontend)
+    participant BE as Spring Boot (Backend)
+    participant DB as PostgreSQL
+
+    Customer->>FE: Nhập mật khẩu cũ + mật khẩu mới
+    FE->>FE: Validate (mật khẩu mới ≥ 8 ký tự, có chữ hoa, số, ký tự đặc biệt)
+    FE->>BE: PUT /api/v1/auth/change-password {oldPassword, newPassword}
+    BE->>BE: Validate JWT → lấy account_id
+
+    BE->>DB: SELECT Account WHERE id = ?
+    DB-->>BE: Account (password_hash)
+    BE->>BE: Verify BCrypt(oldPassword, hash)
+
+    alt Mật khẩu cũ sai
+        BE-->>FE: 400 {message: "Mật khẩu hiện tại không đúng"}
+        FE-->>Customer: Hiển thị lỗi
+    else Mật khẩu cũ đúng
+        BE->>BE: BCrypt hash newPassword
+        BE->>DB: UPDATE Account SET password_hash = ?
+        BE->>DB: DELETE Token WHERE account_id = ? (thu hồi tất cả refresh token)
+        BE-->>FE: 200 {message: "Đổi mật khẩu thành công"}
+        FE-->>Customer: Thông báo thành công, yêu cầu đăng nhập lại
+    end
+```
+
+#### 3.2.5 Luồng Quên & Thiết lập lại mật khẩu
+
+> **Hình 3.8** — Sequence Diagram — Quên & Thiết lập lại mật khẩu
+
+```mermaid
+sequenceDiagram
+    actor Customer
+    participant FE as Next.js (Frontend)
+    participant BE as Spring Boot (Backend)
+    participant DB as PostgreSQL
+    participant Email as Email Service (SMTP)
+
+    Customer->>FE: Nhập email, nhấn "Quên mật khẩu"
+    FE->>BE: POST /api/v1/auth/forgot-password {email}
+    BE->>DB: SELECT Account WHERE email = ?
+
+    alt Email không tồn tại
+        BE-->>FE: 200 {message: "Nếu email tồn tại, link reset đã được gửi"}
+        Note over BE: Trả 200 để tránh lộ email tồn tại
+    else Email tồn tại
+        BE->>BE: Sinh reset token (UUID + expiry 30 phút)
+        BE->>DB: INSERT Token (type=RESET_PASSWORD, token_value, expires_at)
+        BE->>Email: Gửi email chứa link reset password
+        Email-->>Customer: Email với link /reset-password?token=xxx
+        BE-->>FE: 200 {message: "Nếu email tồn tại, link reset đã được gửi"}
+    end
+
+    FE-->>Customer: Hiển thị thông báo kiểm tra email
+
+    Note over Customer,DB: Thiết lập lại mật khẩu
+    Customer->>FE: Mở link reset, nhập mật khẩu mới
+    FE->>BE: POST /api/v1/auth/reset-password {token, newPassword}
+    BE->>DB: SELECT Token WHERE token_value = ? AND type = 'RESET_PASSWORD'
+
+    alt Token hết hạn / không hợp lệ
+        BE-->>FE: 400 {message: "Link đã hết hạn"}
+    else Token hợp lệ
+        BE->>BE: BCrypt hash newPassword
+        BE->>DB: UPDATE Account SET password_hash = ?
+        BE->>DB: DELETE Token WHERE account_id = ? (xóa tất cả token cũ)
+        BE-->>FE: 200 {message: "Đặt lại mật khẩu thành công"}
+        FE-->>Customer: Redirect đến trang đăng nhập
+    end
+```
+
+#### 3.2.6 Luồng Cập nhật thông tin cá nhân
+
+> **Hình 3.9** — Sequence Diagram — Cập nhật thông tin cá nhân
+
+```mermaid
+sequenceDiagram
+    actor Customer
+    participant FE as Next.js (Frontend)
+    participant BE as Spring Boot (Backend)
+    participant DB as PostgreSQL
+    participant Storage as MinIO
+
+    Customer->>FE: Mở trang Profile
+    FE->>BE: GET /api/v1/users/me
+    BE->>DB: SELECT User_Profile + Address WHERE account_id = ?
+    BE-->>FE: 200 {fullName, phone, avatar, addresses[]}
+    FE-->>Customer: Hiển thị thông tin hiện tại
+
+    Customer->>FE: Sửa thông tin + upload avatar mới
+    FE->>BE: PUT /api/v1/users/me {fullName, phone, gender, dateOfBirth}
+    BE->>DB: UPDATE User_Profile SET ...
+    BE-->>FE: 200 {updatedProfile}
+
+    opt Upload avatar
+        FE->>BE: POST /api/v1/users/me/avatar (multipart/form-data)
+        BE->>Storage: PUT object (avatars/{user_id}/avatar.jpg)
+        Storage-->>BE: Object URL
+        BE->>DB: UPDATE User_Profile SET avatar_url = ?
+        BE-->>FE: 200 {avatarUrl}
+    end
+
+    opt Quản lý địa chỉ
+        Customer->>FE: Thêm / Sửa / Xóa địa chỉ
+        FE->>BE: POST|PUT|DELETE /api/v1/users/me/addresses/{id?}
+        BE->>DB: INSERT|UPDATE|DELETE Address
+        BE-->>FE: 200 {address}
+    end
+
+    FE-->>Customer: Cập nhật giao diện
+```
+
+#### 3.2.7 Luồng Duyệt, Tìm kiếm & Lọc sản phẩm
+
+> **Hình 3.10** — Sequence Diagram — Duyệt, Tìm kiếm & Lọc sản phẩm
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant FE as Next.js (Frontend)
+    participant BE as Spring Boot (Backend)
+    participant Cache as Redis
+    participant DB as PostgreSQL
+
+    User->>FE: Truy cập trang sản phẩm / nhập từ khóa / chọn bộ lọc
+    FE->>BE: GET /api/v1/products?search=keyword&category=1&brand=2&minPrice=X&maxPrice=Y&page=1&size=20&sort=price_asc
+
+    BE->>Cache: GET product_list:{hash(query_params)}
+    alt Cache hit
+        Cache-->>BE: Cached product list
+    else Cache miss
+        BE->>DB: SELECT Product JOIN Category JOIN Brand JOIN Inventory WHERE status='ACTIVE' AND (name ILIKE '%keyword%' OR sku ILIKE '%keyword%') AND category_id=? AND brand_id=? AND selling_price BETWEEN ? AND ? ORDER BY ... LIMIT 20 OFFSET 0
+        DB-->>BE: Product list + total count
+        BE->>Cache: SETEX product_list:{hash} TTL=300s
+    end
+
+    BE-->>FE: 200 {products[], totalItems, totalPages, currentPage}
+    FE-->>User: Hiển thị danh sách SP có pagination
+
+    opt Lọc theo thuộc tính động
+        User->>FE: Chọn thuộc tính (Socket: LGA1700)
+        FE->>BE: GET /api/v1/products?category=1&attr_socket=LGA1700
+        BE->>DB: SELECT Product JOIN Product_Attribute JOIN Attribute_Value WHERE ...
+        BE-->>FE: 200 {filtered products[]}
+        FE-->>User: Cập nhật danh sách
+    end
+
+    opt Xem sản phẩm theo danh mục
+        User->>FE: Chọn danh mục từ menu
+        FE->>BE: GET /api/v1/categories/{id}/products
+        BE->>DB: SELECT Product WHERE category_id = ? OR category_id IN (SELECT id FROM Category WHERE parent_id = ?)
+        BE-->>FE: 200 {products[], category info}
+        FE-->>User: Hiển thị SP theo danh mục
+    end
+```
+
+#### 3.2.8 Luồng Xem chi tiết sản phẩm
+
+> **Hình 3.11** — Sequence Diagram — Xem chi tiết sản phẩm
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant FE as Next.js (Frontend)
+    participant BE as Spring Boot (Backend)
+    participant Cache as Redis
+    participant DB as PostgreSQL
+
+    User->>FE: Nhấn vào sản phẩm (slug)
+    FE->>BE: GET /api/v1/products/{slug}
+
+    BE->>Cache: GET product_detail:{slug}
+    alt Cache hit
+        Cache-->>BE: Cached product detail
+    else Cache miss
+        BE->>DB: SELECT Product JOIN Category JOIN Brand WHERE slug = ? AND status = 'ACTIVE'
+        BE->>DB: SELECT Product_Image WHERE product_id = ? ORDER BY sort_order
+        BE->>DB: SELECT Product_Attribute JOIN Attribute JOIN Attribute_Value WHERE product_id = ?
+        BE->>DB: SELECT Inventory WHERE product_id = ?
+        BE->>DB: SELECT AVG(rating), COUNT(*) FROM Review WHERE product_id = ?
+        DB-->>BE: Product + Images + Attributes + Inventory + Rating
+        BE->>Cache: SETEX product_detail:{slug} TTL=600s
+    end
+
+    BE-->>FE: 200 {product, images[], attributes[], inventory, averageRating, reviewCount}
+    FE-->>User: Hiển thị chi tiết SP (ảnh, giá, thông số, tồn kho, đánh giá)
+
+    opt Xem đánh giá sản phẩm
+        FE->>BE: GET /api/v1/products/{id}/reviews?page=1&size=10
+        BE->>DB: SELECT Review JOIN User_Profile JOIN Review_Image WHERE product_id = ?
+        BE-->>FE: 200 {reviews[], totalItems}
+        FE-->>User: Hiển thị danh sách đánh giá
+    end
+```
+
+#### 3.2.9 Luồng Quản lý giỏ hàng (Thêm / Sửa / Xóa)
+
+> **Hình 3.12** — Sequence Diagram — Quản lý giỏ hàng (Guest & Customer)
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant FE as Next.js (Frontend)
+    participant BE as Spring Boot (Backend)
+    participant Cache as Redis
+    participant DB as PostgreSQL
+
+    Note over User,DB: Thêm sản phẩm vào giỏ
+    User->>FE: Nhấn "Thêm vào giỏ" (product_id, quantity)
+
+    alt Chưa đăng nhập (Guest)
+        FE->>BE: POST /api/v1/cart/items {sessionId, productId, quantity}
+        BE->>DB: SELECT Inventory WHERE product_id = ?
+        alt Hết hàng
+            BE-->>FE: 409 {message: "Sản phẩm đã hết hàng"}
+        else Còn hàng
+            BE->>Cache: HSET cart:{sessionId} productId quantity
+            BE->>Cache: EXPIRE cart:{sessionId} 7d
+            BE-->>FE: 200 {cartItem}
+        end
+    else Đã đăng nhập (Customer)
+        FE->>BE: POST /api/v1/cart/items {productId, quantity}
+        BE->>BE: Validate JWT → user_id
+        BE->>DB: SELECT Inventory WHERE product_id = ?
+        alt Hết hàng
+            BE-->>FE: 409 {message: "Sản phẩm đã hết hàng"}
+        else Còn hàng
+            BE->>DB: SELECT Cart WHERE user_id = ?
+            opt Chưa có Cart
+                BE->>DB: INSERT Cart (user_id)
+            end
+            BE->>DB: SELECT Cart_Item WHERE cart_id = ? AND product_id = ?
+            alt Đã có trong giỏ
+                BE->>DB: UPDATE Cart_Item SET quantity += ?
+            else Chưa có
+                BE->>DB: INSERT Cart_Item (cart_id, product_id, quantity)
+            end
+            BE-->>FE: 200 {cartItem}
+        end
+    end
+
+    FE-->>User: Cập nhật icon giỏ hàng
+
+    Note over User,DB: Cập nhật số lượng
+    User->>FE: Thay đổi số lượng
+    FE->>BE: PATCH /api/v1/cart/items/{id} {quantity}
+    BE->>DB: SELECT Inventory WHERE product_id = ?
+    BE->>BE: quantity = MIN(requested, inventory.quantity)
+    BE->>DB: UPDATE Cart_Item SET quantity = ?
+    BE-->>FE: 200 {updatedItem, warning?}
+
+    Note over User,DB: Xóa sản phẩm
+    User->>FE: Nhấn "Xóa"
+    FE->>BE: DELETE /api/v1/cart/items/{id}
+    BE->>DB: DELETE Cart_Item WHERE id = ?
+    BE-->>FE: 204 No Content
+    FE-->>User: Cập nhật giỏ hàng
+```
+
+#### 3.2.10 Luồng Checkout & Tạo đơn hàng
+
+> **Hình 3.13** — Sequence Diagram — Checkout & Tạo đơn hàng
 
 ```mermaid
 sequenceDiagram
@@ -414,15 +1061,12 @@ sequenceDiagram
     participant FE as Next.js
     participant BE as Spring Boot
     participant DB as PostgreSQL
-    participant Cache as Redis
     participant Pay as VNPay/MoMo
-    participant Email as Email Service
 
     Customer->>FE: Nhấn "Đặt hàng"
     FE->>BE: POST /api/orders {address_id, payment_method, coupon_code?}
-    
-    BE->>BE: Validate JWT (xác thực Customer)
-    
+    BE->>BE: Validate JWT
+
     opt Có coupon_code
         BE->>DB: SELECT Coupon WHERE code = ?
         BE->>BE: Validate (còn hạn, chưa max_uses, chưa dùng bởi user)
@@ -435,13 +1079,10 @@ sequenceDiagram
 
     alt Hết hàng
         BE-->>FE: 409 Conflict {sản phẩm hết hàng}
-        FE-->>Customer: Hiển thị SP hết hàng
     else Đủ hàng
         BE->>DB: INSERT Order (status=PENDING)
         BE->>DB: INSERT Order_Detail[] (snapshot đơn giá)
-        BE->>DB: INSERT Payment (status=PENDING)
-        BE->>DB: INSERT Shipping (status=WAITING_PICKUP)
-        BE->>DB: INSERT Order_Status_History
+        BE->>DB: INSERT Payment + Shipping + Order_Status_History
 
         loop Trừ kho
             BE->>DB: UPDATE Inventory SET quantity -= ?
@@ -449,8 +1090,7 @@ sequenceDiagram
         end
 
         opt Có Coupon
-            BE->>DB: INSERT Coupon_Usage
-            BE->>DB: UPDATE Coupon SET used_count += 1
+            BE->>DB: INSERT Coupon_Usage, UPDATE Coupon.used_count
         end
 
         BE->>DB: DELETE Cart_Item (đã đặt)
@@ -467,12 +1107,286 @@ sequenceDiagram
             BE-->>FE: 201 {orderId}
         end
 
-        BE->>Email: Gửi email xác nhận (async)
         FE-->>Customer: Hiển thị "Đặt hàng thành công"
     end
 ```
 
-### 3.3 Luồng Build PC + Kiểm tra tương thích AI
+#### 3.2.11 Luồng Thanh toán Online — Callback VNPay/MoMo
+
+> **Hình 3.14** — Sequence Diagram — Thanh toán Online Callback
+
+```mermaid
+sequenceDiagram
+    actor Customer
+    participant FE as Next.js (Frontend)
+    participant Pay as VNPay / MoMo Gateway
+    participant BE as Spring Boot (Backend)
+    participant DB as PostgreSQL
+
+    Note over Customer,DB: Sau khi tạo đơn (xem 3.2.2), Customer được redirect sang cổng thanh toán
+
+    Customer->>Pay: Nhập thông tin thanh toán & xác nhận
+    Pay->>Pay: Xử lý giao dịch
+
+    alt Thanh toán thành công
+        Pay->>BE: IPN Callback: GET /api/v1/payments/vnpay-callback?vnp_TxnRef=orderId&vnp_ResponseCode=00&vnp_SecureHash=xxx
+        BE->>BE: Verify signature (HMAC SHA512)
+        BE->>DB: SELECT Payment WHERE order_id = ?
+        BE->>DB: UPDATE Payment SET status = 'SUCCESS', transaction_id = ?, paid_at = NOW()
+        BE->>DB: UPDATE Orders SET status = 'CONFIRMED'
+        BE->>DB: INSERT Order_Status_History (PENDING → CONFIRMED)
+        BE->>DB: INSERT Notification (user_id, "Thanh toán thành công")
+        BE-->>Pay: 200 OK
+
+        Pay->>FE: Redirect /order-success?orderId=xxx
+        FE->>BE: GET /api/v1/orders/{id}
+        BE-->>FE: 200 {order details}
+        FE-->>Customer: Hiển thị "Đặt hàng thành công"
+
+    else Thanh toán thất bại
+        Pay->>BE: IPN Callback: vnp_ResponseCode != 00
+        BE->>DB: UPDATE Payment SET status = 'FAILED'
+        BE-->>Pay: 200 OK
+
+        Pay->>FE: Redirect /order-failed?orderId=xxx
+        FE-->>Customer: Hiển thị "Thanh toán thất bại", cho phép thử lại
+    end
+```
+
+#### 3.2.12 Luồng Xem lịch sử & Chi tiết đơn hàng
+
+> **Hình 3.15** — Sequence Diagram — Xem lịch sử & Chi tiết đơn hàng
+
+```mermaid
+sequenceDiagram
+    actor Customer
+    participant FE as Next.js (Frontend)
+    participant BE as Spring Boot (Backend)
+    participant DB as PostgreSQL
+
+    Customer->>FE: Mở trang "Đơn hàng của tôi"
+    FE->>BE: GET /api/v1/orders?page=1&size=10&status=ALL
+    BE->>BE: Validate JWT → user_id
+    BE->>DB: SELECT Orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 10 OFFSET 0
+    DB-->>BE: Orders list + total count
+    BE-->>FE: 200 {orders[], totalItems, totalPages}
+    FE-->>Customer: Hiển thị danh sách đơn hàng (mã đơn, ngày, tổng tiền, trạng thái)
+
+    Customer->>FE: Nhấn vào đơn hàng cụ thể
+    FE->>BE: GET /api/v1/orders/{id}
+    BE->>BE: Validate JWT → kiểm tra order.user_id == current_user
+    BE->>DB: SELECT Orders JOIN Order_Detail JOIN Product JOIN Payment JOIN Shipping WHERE orders.id = ?
+    BE->>DB: SELECT Order_Status_History WHERE order_id = ? ORDER BY created_at
+    DB-->>BE: Full order details
+    BE-->>FE: 200 {order, details[], payment, shipping, statusHistory[]}
+    FE-->>Customer: Hiển thị chi tiết đơn (sản phẩm, thanh toán, vận chuyển, lịch sử trạng thái)
+```
+
+#### 3.2.13 Luồng Hủy đơn hàng
+
+> **Hình 3.16** — Sequence Diagram — Hủy đơn hàng
+
+```mermaid
+sequenceDiagram
+    actor Customer
+    participant FE as Next.js (Frontend)
+    participant BE as Spring Boot (Backend)
+    participant DB as PostgreSQL
+
+    Customer->>FE: Nhấn "Hủy đơn hàng"
+    FE->>BE: PATCH /api/v1/orders/{id}/cancel {reason?}
+    BE->>BE: Validate JWT → user_id
+
+    BE->>DB: SELECT Orders WHERE id = ? AND user_id = ?
+    DB-->>BE: Order (status, coupon_id)
+
+    alt Đơn không phải PENDING
+        BE-->>FE: 400 {message: "Chỉ hủy được đơn hàng đang chờ xử lý"}
+    else Đơn hàng PENDING
+        BE->>DB: UPDATE Orders SET status = 'CANCELLED'
+        BE->>DB: INSERT Order_Status_History (PENDING → CANCELLED, note=reason)
+
+        loop Hoàn kho — mỗi Order_Detail
+            BE->>DB: SELECT Order_Detail WHERE order_id = ?
+            BE->>DB: UPDATE Inventory SET quantity += order_detail.quantity
+            BE->>DB: INSERT Inventory_Log (type='CANCEL', +quantity, note='Hủy đơn #id')
+        end
+
+        opt Có Coupon
+            BE->>DB: UPDATE Coupon SET used_count -= 1
+            BE->>DB: DELETE Coupon_Usage WHERE order_id = ?
+        end
+
+        opt Đã thanh toán Online
+            BE->>DB: UPDATE Payment SET status = 'REFUNDED'
+            Note over BE: Trigger hoàn tiền qua VNPay/MoMo API
+        end
+
+        BE->>DB: INSERT Notification (user_id, "Đơn hàng #id đã được hủy")
+        BE-->>FE: 200 {message: "Hủy đơn hàng thành công"}
+        FE-->>Customer: Cập nhật trạng thái đơn
+    end
+```
+
+#### 3.2.14 Luồng Đổi trả & Hoàn tiền
+
+> **Hình 3.17** — Sequence Diagram — Đổi trả & Hoàn tiền
+
+```mermaid
+sequenceDiagram
+    actor Customer
+    participant FE as Next.js
+    participant BE as Spring Boot
+    participant DB as PostgreSQL
+
+    Customer->>FE: Tạo yêu cầu đổi trả
+    FE->>BE: POST /api/returns {order_id, order_detail_id, type, reason}
+    BE->>BE: Validate (đơn hàng COMPLETED, trong thời gian cho phép)
+    BE->>DB: INSERT Return (status=PENDING_APPROVAL)
+    BE-->>FE: 201 {returnId}
+
+    Note over BE,DB: Admin/Sales duyệt
+
+    alt Duyệt - REFUND
+        BE->>DB: UPDATE Return SET status=APPROVED
+        BE->>DB: INSERT Payment (status=REFUNDED, amount=refund_amount)
+        BE->>DB: UPDATE Inventory SET quantity += ?
+        BE->>DB: INSERT Inventory_Log (type=RETURN)
+    else Duyệt - EXCHANGE
+        BE->>DB: UPDATE Return SET status=APPROVED
+        BE->>DB: UPDATE Inventory (hoàn kho SP cũ)
+        BE->>DB: INSERT Order mới (SP thay thế)
+    else Từ chối
+        BE->>DB: UPDATE Return SET status=REJECTED, note="Lý do"
+    end
+```
+
+#### 3.2.15 Luồng Gửi yêu cầu bảo hành
+
+> **Hình 3.18** — Sequence Diagram — Gửi yêu cầu bảo hành
+
+```mermaid
+sequenceDiagram
+    actor Customer
+    participant FE as Next.js
+    participant BE as Spring Boot
+    participant DB as PostgreSQL
+
+    Customer->>FE: Mở form bảo hành
+    FE->>BE: POST /api/warranty-tickets {product_id, order_id, serial_number, issue_description}
+    BE->>BE: Validate JWT (Customer)
+    BE->>DB: SELECT Order_Detail WHERE order_id AND product_id
+    BE->>DB: SELECT Warranty_Policy (ưu tiên Product > Category)
+    BE->>BE: Kiểm tra còn hạn BH (order.created_at + duration_months > NOW)
+
+    alt Hết hạn BH
+        BE-->>FE: 400 {message: "Sản phẩm đã hết hạn bảo hành"}
+    else Còn hạn
+        BE->>DB: INSERT Warranty_Ticket (status=RECEIVED)
+        BE-->>FE: 201 {ticketId, status}
+        FE-->>Customer: "Phiếu BH #xxx đã tạo thành công"
+    end
+
+    Note over BE,DB: Phía Admin/Sales xử lý
+    BE->>DB: UPDATE Warranty_Ticket SET status=PROCESSING
+    BE->>DB: UPDATE Warranty_Ticket SET status=REPAIRED, resolution="..."
+    BE->>DB: UPDATE Warranty_Ticket SET status=RETURNED
+```
+
+#### 3.2.16 Luồng Đánh giá sản phẩm (Viết / Sửa / Xóa)
+
+> **Hình 3.19** — Sequence Diagram — Đánh giá sản phẩm
+
+```mermaid
+sequenceDiagram
+    actor Customer
+    participant FE as Next.js (Frontend)
+    participant BE as Spring Boot (Backend)
+    participant DB as PostgreSQL
+    participant Storage as MinIO
+
+    Note over Customer,DB: Viết đánh giá
+    Customer->>FE: Nhập rating (1-5), nội dung, upload ảnh
+    FE->>BE: POST /api/v1/reviews {productId, orderId, rating, content}
+    BE->>BE: Validate JWT → user_id
+
+    BE->>DB: SELECT Order_Detail WHERE order_id = ? AND product_id = ? AND order.user_id = ?
+    alt Chưa mua sản phẩm này
+        BE-->>FE: 400 {message: "Bạn chưa mua sản phẩm này"}
+    else Đã mua
+        BE->>DB: SELECT Review WHERE user_id = ? AND product_id = ? AND order_id = ?
+        alt Đã đánh giá rồi
+            BE-->>FE: 409 {message: "Bạn đã đánh giá sản phẩm này cho đơn hàng này"}
+        else Chưa đánh giá
+            BE->>DB: INSERT Review (user_id, product_id, order_id, rating, content)
+            DB-->>BE: review_id
+
+            opt Có ảnh đánh giá
+                loop Mỗi ảnh
+                    FE->>BE: POST /api/v1/reviews/{id}/images (multipart)
+                    BE->>Storage: PUT object (reviews/{review_id}/img_n.jpg)
+                    BE->>DB: INSERT Review_Image (review_id, image_url)
+                end
+            end
+
+            BE-->>FE: 201 {review}
+            FE-->>Customer: Hiển thị đánh giá vừa tạo
+        end
+    end
+
+    Note over Customer,DB: Chỉnh sửa đánh giá
+    Customer->>FE: Sửa nội dung / rating
+    FE->>BE: PUT /api/v1/reviews/{id} {rating, content}
+    BE->>BE: Validate owner (review.user_id == current_user)
+    BE->>DB: UPDATE Review SET rating = ?, content = ?
+    BE-->>FE: 200 {updatedReview}
+
+    Note over Customer,DB: Xóa đánh giá
+    Customer->>FE: Nhấn "Xóa đánh giá"
+    FE->>BE: DELETE /api/v1/reviews/{id}
+    BE->>BE: Validate owner
+    BE->>DB: DELETE Review WHERE id = ? (CASCADE xóa Review_Image)
+    BE-->>FE: 204 No Content
+```
+
+#### 3.2.17 Luồng Quản lý Wishlist
+
+> **Hình 3.20** — Sequence Diagram — Quản lý Wishlist
+
+```mermaid
+sequenceDiagram
+    actor Customer
+    participant FE as Next.js (Frontend)
+    participant BE as Spring Boot (Backend)
+    participant DB as PostgreSQL
+
+    Note over Customer,DB: Thêm vào Wishlist
+    Customer->>FE: Nhấn icon ♡ trên sản phẩm
+    FE->>BE: POST /api/v1/wishlist {productId}
+    BE->>BE: Validate JWT → user_id
+
+    BE->>DB: SELECT Wishlist WHERE user_id = ? AND product_id = ?
+    alt Đã có trong Wishlist (toggle off)
+        BE->>DB: DELETE Wishlist WHERE user_id = ? AND product_id = ?
+        BE-->>FE: 200 {action: "REMOVED"}
+        FE-->>Customer: Icon ♡ chuyển về trắng
+    else Chưa có (toggle on)
+        BE->>DB: INSERT Wishlist (user_id, product_id)
+        BE-->>FE: 201 {action: "ADDED"}
+        FE-->>Customer: Icon ♥ chuyển sang đỏ
+    end
+
+    Note over Customer,DB: Xem danh sách Wishlist
+    Customer->>FE: Mở trang Wishlist
+    FE->>BE: GET /api/v1/wishlist?page=1&size=20
+    BE->>DB: SELECT Wishlist JOIN Product JOIN Product_Image JOIN Inventory WHERE user_id = ?
+    BE-->>FE: 200 {wishlistItems[], totalItems}
+    FE-->>Customer: Hiển thị danh sách SP yêu thích (tên, ảnh, giá, tình trạng kho)
+```
+
+#### 3.2.18 Luồng Build PC + Kiểm tra tương thích AI
+
+> **Hình 3.21** — Sequence Diagram — Build PC + Kiểm tra tương thích AI
 
 ```mermaid
 sequenceDiagram
@@ -530,1256 +1444,815 @@ sequenceDiagram
     end
 ```
 
-### 3.4 Luồng Gửi yêu cầu bảo hành
+#### 3.2.19 Luồng Admin — Quản lý sản phẩm (CRUD)
+
+> **Hình 3.22** — Sequence Diagram — Admin quản lý sản phẩm
 
 ```mermaid
 sequenceDiagram
-    actor Customer
-    participant FE as Next.js
-    participant BE as Spring Boot
+    actor Admin
+    participant FE as Next.js (Admin CMS)
+    participant BE as Spring Boot (Backend)
     participant DB as PostgreSQL
+    participant Storage as MinIO
 
-    Customer->>FE: Mở form bảo hành
-    FE->>BE: POST /api/warranty-tickets {product_id, order_id, serial_number, issue_description}
-    BE->>BE: Validate JWT (Customer)
-    BE->>DB: SELECT Order_Detail WHERE order_id AND product_id
-    BE->>DB: SELECT Warranty_Policy (ưu tiên Product > Category)
-    BE->>BE: Kiểm tra còn hạn BH (order.created_at + duration_months > NOW)
-
-    alt Hết hạn BH
-        BE-->>FE: 400 {message: "Sản phẩm đã hết hạn bảo hành"}
-    else Còn hạn
-        BE->>DB: INSERT Warranty_Ticket (status=RECEIVED)
-        BE-->>FE: 201 {ticketId, status}
-        FE-->>Customer: "Phiếu BH #xxx đã tạo thành công"
+    Note over Admin,DB: Thêm sản phẩm mới
+    Admin->>FE: Nhập thông tin SP + upload ảnh
+    FE->>BE: POST /api/v1/admin/products {name, sku, slug, originalPrice, sellingPrice, description, categoryId, brandId, condition, attributes[]}
+    BE->>BE: Validate JWT + Role (ADMIN)
+    BE->>DB: SELECT Product WHERE sku = ? OR slug = ?
+    alt SKU/Slug trùng
+        BE-->>FE: 409 {message: "SKU hoặc Slug đã tồn tại"}
+    else Hợp lệ
+        BE->>DB: INSERT Product (...)
+        DB-->>BE: product_id
+        loop Mỗi thuộc tính
+            BE->>DB: INSERT Product_Attribute (product_id, attribute_id, attribute_value_id)
+        end
+        BE->>DB: INSERT Inventory (product_id, quantity=0, supplier_id)
+        loop Upload ảnh
+            FE->>BE: POST /api/v1/admin/products/{id}/images (multipart)
+            BE->>Storage: PUT object (products/{product_id}/img_n.jpg)
+            Storage-->>BE: Object URL
+            BE->>DB: INSERT Product_Image (product_id, image_url, is_primary, sort_order)
+        end
+        BE-->>FE: 201 {product}
+        FE-->>Admin: Hiển thị SP vừa tạo
     end
 
-    Note over BE,DB: Phía Admin/Sales xử lý
-    BE->>DB: UPDATE Warranty_Ticket SET status=PROCESSING
-    BE->>DB: UPDATE Warranty_Ticket SET status=REPAIRED, resolution="..."
-    BE->>DB: UPDATE Warranty_Ticket SET status=RETURNED
+    Note over Admin,DB: Cập nhật sản phẩm
+    Admin->>FE: Sửa thông tin SP
+    FE->>BE: PUT /api/v1/admin/products/{id} {name, sellingPrice, ...}
+    BE->>DB: UPDATE Product SET ...
+    BE-->>FE: 200 {updatedProduct}
+
+    Note over Admin,DB: Xóa sản phẩm (soft delete)
+    Admin->>FE: Nhấn "Ngừng bán"
+    FE->>BE: DELETE /api/v1/admin/products/{id}
+    BE->>DB: SELECT Order_Detail WHERE product_id = ?
+    alt Có trong đơn hàng → soft delete
+        BE->>DB: UPDATE Product SET status = 'DISCONTINUED'
+        BE-->>FE: 200 {message: "Sản phẩm đã ngừng bán"}
+    else Không có đơn → có thể hard delete
+        BE->>DB: DELETE Product WHERE id = ? (CASCADE)
+        BE-->>FE: 204 No Content
+    end
 ```
 
-### 3.5 Luồng Đổi trả & Hoàn tiền
+#### 3.2.20 Luồng Admin — Quản lý danh mục sản phẩm
+
+> **Hình 3.23** — Sequence Diagram — Admin quản lý danh mục
 
 ```mermaid
 sequenceDiagram
-    actor Customer
-    participant FE as Next.js
-    participant BE as Spring Boot
+    actor Admin
+    participant FE as Next.js (Admin CMS)
+    participant BE as Spring Boot (Backend)
     participant DB as PostgreSQL
 
-    Customer->>FE: Tạo yêu cầu đổi trả
-    FE->>BE: POST /api/returns {order_id, order_detail_id, type, reason}
-    BE->>BE: Validate (đơn hàng COMPLETED, trong thời gian cho phép)
-    BE->>DB: INSERT Return (status=PENDING_APPROVAL)
-    BE-->>FE: 201 {returnId}
+    Note over Admin,DB: Xem cây danh mục
+    Admin->>FE: Mở trang quản lý danh mục
+    FE->>BE: GET /api/v1/admin/categories?tree=true
+    BE->>DB: SELECT Category ORDER BY level, name
+    BE->>BE: Build tree structure (parent-child)
+    BE-->>FE: 200 {categories[{id, name, children[]}]}
+    FE-->>Admin: Hiển thị cây danh mục
 
-    Note over BE,DB: Admin/Sales duyệt
-    
-    alt Duyệt - REFUND
-        BE->>DB: UPDATE Return SET status=APPROVED
-        BE->>DB: INSERT Payment (status=REFUNDED, amount=refund_amount)
-        BE->>DB: UPDATE Inventory SET quantity += ?
-        BE->>DB: INSERT Inventory_Log (type=RETURN)
-    else Duyệt - EXCHANGE
-        BE->>DB: UPDATE Return SET status=APPROVED
-        BE->>DB: UPDATE Inventory (hoàn kho SP cũ)
-        BE->>DB: INSERT Order mới (SP thay thế)
-    else Từ chối
-        BE->>DB: UPDATE Return SET status=REJECTED, note="Lý do"
+    Note over Admin,DB: Thêm danh mục
+    Admin->>FE: Nhập tên, mô tả, chọn danh mục cha
+    FE->>BE: POST /api/v1/admin/categories {name, description, parentId}
+    BE->>DB: SELECT Category WHERE parent_id = ? → tính level
+    BE->>DB: INSERT Category (name, description, parent_id, level)
+    BE-->>FE: 201 {category}
+
+    Note over Admin,DB: Quản lý thuộc tính (Attribute) theo danh mục
+    Admin->>FE: Thêm thuộc tính cho danh mục "CPU"
+    FE->>BE: POST /api/v1/admin/categories/{id}/attributes {name: "Socket"}
+    BE->>DB: INSERT Attribute (name, category_id)
+    FE->>BE: POST /api/v1/admin/attributes/{id}/values {value: "LGA1700"}
+    BE->>DB: INSERT Attribute_Value (attribute_id, value)
+    BE-->>FE: 201 {attribute, values[]}
+
+    Note over Admin,DB: Cập nhật / Xóa danh mục
+    Admin->>FE: Sửa hoặc xóa danh mục
+    FE->>BE: PUT|DELETE /api/v1/admin/categories/{id}
+    BE->>DB: SELECT Product WHERE category_id = ?
+    alt Có sản phẩm → không cho xóa
+        BE-->>FE: 409 {message: "Danh mục đang có sản phẩm, không thể xóa"}
+    else Không có sản phẩm
+        BE->>DB: DELETE Category WHERE id = ?
+        BE-->>FE: 204 No Content
     end
 ```
 
----
+#### 3.2.21 Luồng Admin — Quản lý tồn kho
 
-## 4 Kiến trúc tổng thể của hệ thống
+> **Hình 3.24** — Sequence Diagram — Admin quản lý tồn kho
 
-### 4.1 Kiểu kiến trúc (Architectural Style)
+```mermaid
+sequenceDiagram
+    actor Warehouse as Warehouse Staff
+    participant FE as Next.js (Admin CMS)
+    participant BE as Spring Boot (Backend)
+    participant DB as PostgreSQL
 
-Hệ thống được thiết kế theo kiến trúc **Monolithic phân lớp (Layered Monolithic Architecture)** với khả năng mở rộng theo hướng **Modular Monolith**, giúp dễ dàng tách module thành microservice khi cần thiết trong tương lai.
+    Note over Warehouse,DB: Xem danh sách tồn kho
+    Warehouse->>FE: Mở trang quản lý kho
+    FE->>BE: GET /api/v1/admin/inventory?page=1&size=20&lowStock=false
+    BE->>BE: Validate JWT + Role (WAREHOUSE)
+    BE->>DB: SELECT Inventory JOIN Product JOIN Supplier ORDER BY quantity ASC
+    BE-->>FE: 200 {inventoryItems[], totalItems}
+    FE-->>Warehouse: Hiển thị danh sách (tên SP, tồn kho, ngưỡng cảnh báo, NCC)
 
-**Lý do lựa chọn:**
-- Phù hợp với quy mô đội ngũ phát triển nhỏ/vừa.
-- Giảm complexity về vận hành (deployment, monitoring) so với microservice.
-- Vẫn đảm bảo tính module hóa, dễ bảo trì, dễ test.
+    Note over Warehouse,DB: Nhập hàng từ NCC
+    Warehouse->>FE: Chọn SP, nhập số lượng nhập
+    FE->>BE: POST /api/v1/admin/inventory/import {productId, quantity, supplierId, note}
+    BE->>DB: UPDATE Inventory SET quantity += ?, supplier_id = ?
+    BE->>DB: INSERT Inventory_Log (product_id, type='IMPORT', quantity_change=+?, performed_by, note)
+    BE-->>FE: 200 {updatedInventory}
+    FE-->>Warehouse: Cập nhật số lượng tồn kho
 
-### 4.2 Sơ đồ kiến trúc tổng quan (High-Level Architecture Diagram)
+    Note over Warehouse,DB: Kiểm kê / Điều chỉnh kho
+    Warehouse->>FE: Nhập số lượng thực tế sau kiểm kê
+    FE->>BE: POST /api/v1/admin/inventory/adjust {productId, newQuantity, note}
+    BE->>DB: SELECT Inventory WHERE product_id = ?
+    DB-->>BE: Current quantity
+    BE->>BE: diff = newQuantity - currentQuantity
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                     CLIENT LAYER (Lớp Trình bày)                 │
-│  ┌─────────────────────┐     ┌──────────────────────────────┐   │
-│  │  Customer Web App   │     │  Admin CMS Web App           │   │
-│  │  (Next.js App Router)│     │  (Next.js App Router)        │   │
-│  │  - Hiển thị SP      │     │  - Quản lý SP, Đơn hàng     │   │
-│  │  - Giỏ hàng Guest   │     │  - Quản lý Kho, Tài khoản   │   │
-│  │  - Build PC         │     │  - Thống kê Doanh thu        │   │
-│  │  - Checkout         │     │  - Bảo hành, Đổi trả        │   │
-│  └────────┬────────────┘     └──────────────┬───────────────┘   │
-│           │            HTTPS / REST API       │                  │
-└───────────┼──────────────────────────────────┼──────────────────┘
-            │                                  │
-┌───────────┼──────────────────────────────────┼──────────────────┐
-│           ▼          API GATEWAY LAYER        ▼                  │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  API Gateway / Reverse Proxy (Nginx)                     │   │
-│  │  - Routing, Rate Limiting, CORS, SSL Termination         │   │
-│  └──────────────────────┬───────────────────────────────────┘   │
-└─────────────────────────┼──────────────────────────────────────┘
-                          │
-┌─────────────────────────┼──────────────────────────────────────┐
-│                         ▼                                       │
-│              APPLICATION LAYER (Lớp Ứng dụng)                   │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  Backend Application Server                              │   │
-│  │                                                          │   │
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐   │   │
-│  │  │Controller│ │Controller│ │Controller│ │Controller│   │   │
-│  │  │  Auth    │ │ Product  │ │  Order   │ │Notification│  │   │
-│  │  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘   │   │
-│  │       │             │            │             │         │   │
-│  │  ┌────┴─────────────┴────────────┴─────────────┴─────┐   │   │
-│  │  │              SERVICE LAYER (Business Logic)       │   │   │
-│  │  │  AuthService, ProductService, OrderService,       │   │   │
-│  │  │  CartService, NotificationService, InventoryService,│   │   │
-│  │  │  CouponService, ReviewService, WarrantyService,   │   │   │
-│  │  │  ShippingService, PaymentService, ReportService   │   │   │
-│  │  └────────────────────────┬──────────────────────────┘   │   │
-│  │                           │                              │   │
-│  │  ┌────────────────────────┴──────────────────────────┐   │   │
-│  │  │          REPOSITORY / DATA ACCESS LAYER           │   │   │
-│  │  │  AccountRepo, ProductRepo, OrderRepo, CartRepo,  │   │   │
-│  │  │  InventoryRepo, CouponRepo, ReviewRepo, ...      │   │   │
-│  │  └────────────────────────┬──────────────────────────┘   │   │
-│  └───────────────────────────┼──────────────────────────────┘   │
-└──────────────────────────────┼──────────────────────────────────┘
-                               │
-┌──────────────────────────────┼──────────────────────────────────┐
-│                              ▼                                   │
-│                    DATA LAYER (Lớp Dữ liệu)                     │
-│   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐       │
-│   │  PostgreSQL   │   │    Redis     │   │    MinIO     │       │
-│   │ (Primary DB)  │   │  (Cache &    │   │  (Images,    │       │
-│   │               │   │   Session)   │   │   PDF, ...)  │       │
-│   └──────────────┘   └──────────────┘   └──────────────┘       │
-└─────────────────────────────────────────────────────────────────┘
-                               │
-┌──────────────────────────────┼──────────────────────────────────┐
-│              EXTERNAL SERVICES (Dịch vụ bên ngoài)               │
-│   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐       │
-│   │  VNPay /     │   │  LLM API     │   │  Email       │       │
-│   │  MoMo API    │   │  (AI tương   │   │  Service     │       │
-│   │  (Thanh toán)│   │   thích)     │   │  (SMTP)      │       │
-│   └──────────────┘   └──────────────┘   └──────────────┘       │
-└─────────────────────────────────────────────────────────────────┘
+    alt diff < 0 AND newQuantity < 0
+        BE-->>FE: 400 {message: "Số lượng không thể âm"}
+    else Hợp lệ
+        BE->>DB: UPDATE Inventory SET quantity = ?
+        BE->>DB: INSERT Inventory_Log (type='ADJUSTMENT', quantity_change=diff, performed_by, note)
+        BE-->>FE: 200 {updatedInventory, adjustedBy: diff}
+    end
 ```
 
-### 4.3 Phân lớp kiến trúc (Architectural Layers)
+#### 3.2.22 Luồng Admin — Cập nhật trạng thái đơn hàng
 
-| Lớp | Trách nhiệm | Công nghệ đề xuất |
-|:----|:-------------|:-------------------|
-| **Presentation Layer** | Giao diện người dùng (Customer, Admin/Sales/Warehouse) | Next.js (App Router) + TypeScript + Tailwind CSS + shadcn/ui |
-| **API Gateway** | Routing, Rate Limiting, CORS, SSL, Load Balancing | Nginx / Spring Cloud Gateway |
-| **Controller Layer** | Nhận request, validate input, trả response (REST API) | Spring Boot (REST Controller) |
-| **Service Layer** | Business Logic, Transaction Management | Spring Service + @Transactional |
-| **Repository Layer** | Truy xuất dữ liệu, DAO Pattern | Spring Data JPA / Hibernate |
-| **Data Layer** | Lưu trữ dữ liệu chính | PostgreSQL |
-| **Cache Layer** | Session (Guest Cart), Caching dữ liệu hot | Redis |
-| **File Storage** | Hình ảnh sản phẩm, Review, PDF báo giá | MinIO |
-| **External Integration** | Cổng thanh toán, AI (LLM), Email | VNPay/MoMo SDK, LLM API, SMTP |
+> **Hình 3.25** — Sequence Diagram — Admin cập nhật trạng thái đơn hàng
 
-### 4.4 Nguyên tắc thiết kế (Design Principles)
+```mermaid
+sequenceDiagram
+    actor Sales as Sales Staff
+    participant FE as Next.js (Admin CMS)
+    participant BE as Spring Boot (Backend)
+    participant DB as PostgreSQL
 
-1. **Separation of Concerns (SoC):** Mỗi lớp chỉ đảm nhận một trách nhiệm duy nhất.
-2. **Dependency Inversion:** Các lớp trên phụ thuộc abstraction (interface), không phụ thuộc implementation.
-3. **Single Responsibility Principle:** Mỗi Service/Repository xử lý một nhóm nghiệp vụ cụ thể.
-4. **DRY (Don't Repeat Yourself):** Tái sử dụng logic chung qua base class hoặc utility.
-5. **Fail-Fast:** Validate input sớm ở Controller, trả lỗi rõ ràng.
-6. **Stateless API:** Backend không lưu trạng thái phiên (session) — sử dụng JWT + Redis.
+    Note over Sales,DB: Xem danh sách đơn hàng
+    Sales->>FE: Mở trang quản lý đơn hàng
+    FE->>BE: GET /api/v1/admin/orders?page=1&size=20&status=PENDING
+    BE->>BE: Validate JWT + Role (SALES | ADMIN)
+    BE->>DB: SELECT Orders JOIN User_Profile JOIN Payment WHERE status = ? ORDER BY created_at DESC
+    BE-->>FE: 200 {orders[], totalItems}
+    FE-->>Sales: Hiển thị danh sách đơn
 
-### 4.5 Design System (UI/UX)
+    Note over Sales,DB: Xác nhận đơn hàng
+    Sales->>FE: Nhấn "Xác nhận" đơn hàng PENDING
+    FE->>BE: PATCH /api/v1/admin/orders/{id}/status {newStatus: "CONFIRMED", note?}
+    BE->>DB: SELECT Orders WHERE id = ?
+    BE->>BE: Validate transition (PENDING → CONFIRMED ✓)
+    BE->>DB: UPDATE Orders SET status = 'CONFIRMED'
+    BE->>DB: INSERT Order_Status_History (old='PENDING', new='CONFIRMED', changed_by, note)
+    BE->>DB: INSERT Notification (user_id, "Đơn hàng #id đã được xác nhận")
+    BE-->>FE: 200 {updatedOrder}
 
-#### 4.5.1 Triết lý thiết kế
+    Note over Sales,DB: Chuyển trạng thái giao hàng
+    Sales->>FE: Cập nhật tracking, chuyển DELIVERING
+    FE->>BE: PATCH /api/v1/admin/orders/{id}/status {newStatus: "DELIVERING"}
+    BE->>DB: UPDATE Orders SET status = 'DELIVERING'
+    BE->>DB: UPDATE Shipping SET status = 'IN_TRANSIT', tracking_number = ?
+    BE->>DB: INSERT Order_Status_History (CONFIRMED → DELIVERING)
+    BE->>DB: INSERT Notification (user_id, "Đơn hàng #id đang được giao")
+    BE-->>FE: 200 {updatedOrder}
 
-> **Phong cách tổng thể:** Lấy cảm hứng từ An Phát PC — NỀN SÁNG (trắng/xám nhạt), header xanh đậm, giá sale đỏ, typography đậm rõ ràng. **KHÔNG HỖ TRỢ DARK MODE.**
-
-| # | Nguyên tắc | Mô tả |
-|:--|:-----------|:------|
-| DP-01 | **Sáng & Chuyên nghiệp** | Nền trắng sạch, header xanh đậm nổi bật, giá đỏ bắt mắt. |
-| DP-02 | **Consistency** | Đồng nhất style, spacing, typography, color trên toàn bộ ứng dụng. |
-| DP-03 | **Performance First** | Skeleton loading, lazy load images, pagination thay vì infinite scroll. |
-| DP-04 | **Mobile Responsive** | Thiết kế mobile-first, breakpoints rõ ràng. |
-| DP-05 | **Accessibility** | WCAG 2.1 AA — contrast đủ, keyboard navigation, alt text. |
-| DP-06 | **Trust & Credibility** | Giá rõ ràng, BH rõ ràng, hotline nổi bật, badge "còn hàng" xanh lá. |
-| DP-07 | **Tươi sáng & Tràn đầy năng lượng** | Dùng màu sắc tươi cho banner/CTA. Tránh giao diện nhạt nhẽo. |
-
-#### 4.5.2 User Personas tham chiếu
-
-| Persona | Mục tiêu chính | Pain Points |
-|:--------|:---------------|:------------|
-| **Khách hàng cá nhân** (18-35) | Mua linh kiện đúng, giá tốt, BH rõ ràng | Sợ mua nhầm linh kiện không tương thích |
-| **Game thủ** (16-30) | Build PC Gaming, so sánh cấu hình | Muốn tool Build PC nhanh, trực quan |
-| **Khách doanh nghiệp** *(Giai đoạn 2)* | Mua số lượng lớn, xuất hóa đơn | Cần báo giá PDF, liên hệ nhanh |
-| **Admin/Sales** | Quản lý đơn hàng, kho hàng | Cần dashboard rõ ràng, thao tác nhanh |
-
-#### 4.5.3 Color Palette
-
-> **CHỈ HỖ TRỢ LIGHT MODE.** Không có Dark mode toggle.
-
-**Màu chủ đạo:**
-
-| Token | Hex | Tailwind | Mục đích sử dụng |
-|:------|:----|:---------|:-----------------|
-| `--header-bg` | `#1A4B9C` | `bg-[#1A4B9C]` | Header chính, nền navigation bar |
-| `--header-top` | `#0D2B5E` | `bg-[#0D2B5E]` | Thanh thông tin trên cùng |
-| `--primary` | `#2563EB` (Blue 600) | `bg-blue-600` | CTA phụ, link, active state |
-| `--primary-hover` | `#1D4ED8` (Blue 700) | `bg-blue-700` | Hover state |
-
-**Màu accent (Sale, CTA):**
-
-| Token | Hex | Tailwind | Mục đích sử dụng |
-|:------|:----|:---------|:-----------------|
-| `--sale-price` | `#E31837` | `text-[#E31837]` | **Giá bán** (luôn dùng màu đỏ đậm cho giá) |
-| `--sale-badge` | `#EF4444` (Red 500) | `bg-red-500` | Badge giảm giá, flash sale |
-| `--cta-buy` | `#E31837` | `bg-[#E31837]` | Button "ĐẶT MUA NGAY" |
-| `--cta-cart` | `#2563EB` | `bg-blue-600` | Button "CHO VÀO GIỎ" |
-| `--highlight` | `#FBBF24` (Amber 400) | `bg-amber-400` | Banner highlight, flash sale accent |
-
-**Màu nền & Text:**
-
-| Token | Hex | Tailwind | Mục đích sử dụng |
-|:------|:----|:---------|:-----------------|
-| `--background` | `#FFFFFF` | `bg-white` | Nền chính trang |
-| `--background-alt` | `#F3F4F6` (Gray 100) | `bg-gray-100` | Nền phụ (section, page background) |
-| `--card` | `#FFFFFF` | `bg-white` | Nền card sản phẩm |
-| `--text-primary` | `#111827` (Gray 900) | `text-gray-900` | Text chính |
-| `--text-secondary` | `#6B7280` (Gray 500) | `text-gray-500` | Text phụ, caption |
-| `--text-muted` | `#9CA3AF` (Gray 400) | `text-gray-400` | Text rất nhạt (giá gốc gạch ngang) |
-
-**Màu trạng thái:**
-
-| Token | Hex | Tailwind | Mục đích sử dụng |
-|:------|:----|:---------|:-----------------|
-| `--success` | `#22C55E` (Green 500) | `bg-green-500` | Còn hàng, thành công |
-| `--warning` | `#F59E0B` (Amber 500) | `bg-amber-500` | Cảnh báo, sắp hết hàng |
-| `--destructive` | `#EF4444` (Red 500) | `bg-red-500` | Lỗi, xóa, hết hàng |
-| `--border` | `#E5E7EB` (Gray 200) | `border-gray-200` | Border, divider |
-| `--footer-bg` | `#1E293B` (Slate 800) | `bg-slate-800` | Nền footer xanh đậm tối |
-
-#### 4.5.4 Typography
-
-| Token | Font | Size | Weight | Use case |
-|:------|:-----|:-----|:-------|:---------|
-| `h1` | Inter | 30px / 1.875rem | 700 (Bold) | Tiêu đề trang |
-| `h2` | Inter | 24px / 1.5rem | 600 (SemiBold) | Tiêu đề section |
-| `h3` | Inter | 20px / 1.25rem | 600 | Tiêu đề card, sub-section |
-| `body` | Inter | 16px / 1rem | 400 (Regular) | Nội dung chính |
-| `body-sm` | Inter | 14px / 0.875rem | 400 | Mô tả phụ, caption |
-| `caption` | Inter | 12px / 0.75rem | 400 | Label, badge, hint |
-| `price` | Inter | 20px / 1.25rem | 700 | Giá bán |
-| `price-original` | Inter | 14px / 0.875rem | 400 + line-through | Giá gốc (khi giảm) |
-
-> **Font loading:** Google Fonts — `Inter` qua `next/font/google` (tự host, không request external).
-
-#### 4.5.5 Spacing & Grid
-
-| Token | Value | Sử dụng |
-|:------|:------|:--------|
-| `--space-xs` | 4px | Khoảng cách giữa icon-text |
-| `--space-sm` | 8px | Padding nhỏ, gap grid |
-| `--space-md` | 16px | Padding card, gap giữa items |
-| `--space-lg` | 24px | Section spacing |
-| `--space-xl` | 32px | Page section gap |
-| `--space-2xl` | 48px | Header/Footer margin |
-| `--radius-sm` | 6px | Input, small button |
-| `--radius-md` | 8px | Card |
-| `--radius-lg` | 12px | Modal, dialog |
-| **Grid** | 12 columns | Container max-width: 1280px, gap: 16px |
-
-#### 4.5.6 Component Library (shadcn/ui)
-
-| Component | Biến thể | Sử dụng trong |
-|:----------|:---------|:--------------|
-| `Button` | default, destructive, outline, ghost, link | CTA, form submit, actions |
-| `Input` | text, password, search | Form fields |
-| `Select` | single, searchable | Filter, dropdown |
-| `Card` | default | Product card, order card |
-| `Dialog` | default | Confirm delete, preview ảnh |
-| `Sheet` | side (right) | Mobile menu, cart sidebar |
-| `Table` | default + pagination | Admin data tables |
-| `Badge` | default, destructive, outline | Status tags, sale badge |
-| `Avatar` | default | User avatar |
-| `Skeleton` | default | Loading states |
-| `Toast` | success, error, warning | Notification messages |
-| `Tabs` | default | Product tabs (Mô tả, Thông số, Đánh giá) |
-| `Breadcrumb` | default | Navigation hierarchy |
-| `Pagination` | default | Product listing, order list |
-| `DropdownMenu` | default | User menu, action menu |
-| `Accordion` | default | FAQ, filter sidebar (mobile) |
-| `Separator` | horizontal | Section divider |
-
-#### 4.5.7 Icons (Lucide Icons)
-
-| Icon | Sử dụng |
-|:-----|:--------|
-| `ShoppingCart` | Giỏ hàng |
-| `Heart` | Wishlist |
-| `Search` | Tìm kiếm |
-| `User` | Tài khoản |
-| `Package` | Đơn hàng |
-| `Monitor` | Build PC |
-| `Star` | Đánh giá |
-| `Shield` | Bảo hành |
-| `RotateCcw` | Đổi trả |
-| `Phone` | Hotline (header top bar) |
-| `MapPin` | Showroom (header top bar) |
-| `ChevronRight` | Breadcrumb, navigation |
-| `Filter` | Mở panel bộ lọc |
-| `Truck` | Vận chuyển |
-| `CreditCard` | Thanh toán |
-| `Cpu` | Logo / PC Parts brand icon |
-
----
-
-## 5 Thiết kế chi tiết lớp
-
-### 5.1 AuthService — Xác thực & Phân quyền
-
-**Trách nhiệm:** Đăng ký, đăng nhập, đăng xuất, quản lý JWT Token, RBAC.
-
-**Luồng xử lý chính:**
-
-- **Đăng ký:** Validate input → Kiểm tra trùng email/SĐT → Hash password (BCrypt) → Tạo Account (Role=Customer) + User → Trả 201 Created.
-- **Đăng nhập:** Validate email/password → Kiểm tra is\_active → Sinh Access Token (JWT, 15 phút) + Refresh Token (30 ngày, lưu DB) → Merge giỏ hàng Session vào Cart DB → Trả token.
-- **Đăng xuất:** Xóa Refresh Token trong DB → Xóa giỏ hàng Session (Redis) → Client xóa Access Token. *(Lưu ý: Cart DB được giữ nguyên cho lần đăng nhập sau, chỉ xóa giỏ tạm Session — xem thêm CartService mục 5.2)*
-- **Authorization:** Middleware/Filter kiểm tra JWT → Trích xuất Role → Kiểm tra Permission qua Role\_Permission → Cho phép hoặc từ chối (403).
-
-### 5.2 CartService — Giỏ hàng
-
-**Trách nhiệm:** Quản lý giỏ hàng Guest (Session/Redis) và Customer (Database).
-
-**Quy tắc nghiệp vụ quan trọng:**
-
-1. **Guest thêm SP:** Lưu vào Redis với key = session\_id. Kiểm tra `Inventory.quantity` trước khi thêm.
-2. **Đăng nhập (Merge):** Đọc giỏ từ Redis (session\_id) → Với mỗi item: nếu trùng product\_id trong Cart DB thì cộng dồn quantity; nếu mới thì tạo Cart\_Item → Xóa giỏ Redis.
-3. **Đăng xuất:** Xóa giỏ Session (Redis). Cart DB được giữ nguyên cho lần đăng nhập sau.
-4. **Sửa số lượng:** Kiểm tra `quantity ≤ Inventory.quantity`. Nếu vượt → giới hạn ở mức tối đa và trả thông báo.
-
-### 5.3 OrderService — Đơn hàng & Checkout
-
-**Trách nhiệm:** Xử lý checkout, tạo Order, tích hợp Payment, quản lý trạng thái.
-
-**Luồng Checkout:**
-
-1. Nhận request: danh sách Cart\_Item, address\_id, payment\_method, coupon\_code (opt).
-2. Validate Coupon (nếu có): code đúng, còn hạn, chưa vượt max\_uses, chưa sử dụng bởi user (Coupon\_Usage).
-3. Kiểm tra tồn kho: với mỗi Cart\_Item, kiểm tra `Inventory.quantity ≥ requested_qty`. Nếu không đủ → trả lỗi chỉ rõ SP hết hàng.
-4. Tạo Order (status=PENDING) + Order\_Detail (snapshot đơn giá) + Payment (status=PENDING) + Shipping (status=WAITING\_PICKUP) + Order\_Status\_History.
-5. Trừ kho: `Inventory.quantity -= qty`, tạo Inventory\_Log (type=SELL).
-6. Nếu có Coupon: tạo Coupon\_Usage, tăng Coupon.used\_count.
-7. Xóa Cart\_Item đã thanh toán.
-8. Nếu online payment (VNPay/MoMo): redirect sang cổng → callback cập nhật Payment.status + transaction\_id.
-9. Gửi email xác nhận.
-
-**State Machine — Trạng thái đơn hàng:**
-
-```
-  PENDING ────────────► DELIVERING ────────────► COMPLETED
-     │                       │                        
-     │                       │                        
-     └───────────────────────┴─────────► CANCELLED    
+    Note over Sales,DB: Hoàn thành đơn
+    Sales->>FE: Xác nhận đã giao thành công
+    FE->>BE: PATCH /api/v1/admin/orders/{id}/status {newStatus: "COMPLETED"}
+    BE->>DB: UPDATE Orders SET status = 'COMPLETED'
+    BE->>DB: UPDATE Shipping SET status = 'DELIVERED', delivered_date = NOW()
+    BE->>DB: INSERT Order_Status_History (DELIVERING → COMPLETED)
+    BE->>DB: INSERT Notification (user_id, "Đơn hàng #id đã giao thành công")
+    BE-->>FE: 200 {updatedOrder}
 ```
 
-**Quy tắc chuyển trạng thái:**
-- `PENDING → DELIVERING`: Sales/Admin xác nhận giao cho vận chuyển.
-- `DELIVERING → COMPLETED`: Shipping.status = DELIVERED → tự động chuyển.
-- `Any → CANCELLED`: Hoàn kho (Inventory\_Log type=RETURN), hoàn Coupon (giảm used\_count, xóa Coupon\_Usage).
+#### 3.2.23 Luồng Admin — Quản lý người dùng
 
-### 5.4 BuildPCService — Xây dựng cấu hình PC
+> **Hình 3.26** — Sequence Diagram — Admin quản lý người dùng
 
-**Trách nhiệm:** Hiển thị slot linh kiện, tính tổng giá, xuất báo giá PDF, kiểm tra tương thích AI.
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant FE as Next.js (Admin CMS)
+    participant BE as Spring Boot (Backend)
+    participant DB as PostgreSQL
 
-**Quy tắc quan trọng:**
+    Note over Admin,DB: Xem danh sách người dùng
+    Admin->>FE: Mở trang quản lý người dùng
+    FE->>BE: GET /api/v1/admin/users?page=1&size=20&search=keyword
+    BE->>BE: Validate JWT + Role (ADMIN)
+    BE->>DB: SELECT Account JOIN User_Profile JOIN Role WHERE (email ILIKE ? OR full_name ILIKE ?)
+    BE-->>FE: 200 {users[], totalItems}
+    FE-->>Admin: Hiển thị danh sách (email, tên, role, trạng thái)
 
-- **Không cần đăng nhập:** Chọn linh kiện, xem tổng giá, xuất báo giá PDF.
-- **Cần đăng nhập:** Kiểm tra tương thích AI, thêm vào giỏ hàng, tạo đơn hàng.
-- **Khi chưa đăng nhập nhấn nút cần đăng nhập:** Lưu cấu hình vào Session (Redis) → Redirect đăng nhập → Sau đăng nhập, khôi phục cấu hình từ Session.
-- **AI Compatibility Check:** Gửi thông số kỹ thuật (Attribute\_Value) của các linh kiện đã chọn tới LLM API → Nhận phân tích + gợi ý thay thế → Trả cho user.
-- **Thêm vào giỏ:** Mỗi linh kiện trong cấu hình → tạo 1 Cart\_Item riêng lẻ trong Cart.
+    Note over Admin,DB: Khóa / Mở khóa tài khoản
+    Admin->>FE: Nhấn "Khóa tài khoản"
+    FE->>BE: PATCH /api/v1/admin/users/{id}/status {isActive: false}
+    BE->>DB: UPDATE Account SET is_active = false WHERE id = ?
+    BE->>DB: DELETE Token WHERE account_id = ? (thu hồi tất cả session)
+    BE-->>FE: 200 {message: "Tài khoản đã bị khóa"}
+    FE-->>Admin: Cập nhật trạng thái
 
-### 5.5 InventoryService — Quản lý kho
+    Admin->>FE: Nhấn "Mở khóa tài khoản"
+    FE->>BE: PATCH /api/v1/admin/users/{id}/status {isActive: true}
+    BE->>DB: UPDATE Account SET is_active = true WHERE id = ?
+    BE-->>FE: 200 {message: "Tài khoản đã mở khóa"}
 
-**Trách nhiệm:** Theo dõi tồn kho, nhập hàng, kiểm kê, cảnh báo hết hàng.
-
-**Quy tắc:**
-- Mỗi thao tác thay đổi Inventory.quantity **bắt buộc** phải tạo Inventory\_Log tương ứng (audit trail).
-- Cảnh báo khi `Inventory.quantity ≤ Inventory.low_stock_threshold`.
-- Điều chỉnh âm dẫn đến tồn kho < 0 → yêu cầu xác nhận (confirmation flag trong request).
-
-### 5.6 WarrantyService & ReturnService — Bảo hành & Đổi trả
-
-**Trách nhiệm:** Quản lý chính sách bảo hành, phiếu bảo hành, yêu cầu đổi trả.
-
-**Quy tắc bảo hành:**
-- Kiểm tra Warranty\_Policy: ưu tiên Product > Category.
-- Kiểm tra thời hạn: `Order.created_at + duration_months > NOW()`.
-- State Machine phiếu BH: `RECEIVED → PROCESSING → REPAIRED/REJECTED → RETURNED`.
-
-**Quy tắc đổi trả:**
-- Duyệt + Hoàn tiền: Tạo Payment (status=REFUNDED), Inventory\_Log (type=RETURN).
-- Duyệt + Đổi hàng: Hoàn kho SP cũ, tạo Order mới cho SP thay thế.
-- Từ chối: Bắt buộc nhập lý do.
-
-### 5.7 Thiết kế bảo mật (Security Design)
-
-#### 5.7.1 Xác thực (Authentication)
-
-| Thành phần | Chi tiết |
-|:-----------|:---------|
-| Giao thức | HTTPS (TLS 1.3) cho mọi kết nối |
-| Mã hóa mật khẩu | BCrypt (cost factor ≥ 12) |
-| Token xác thực | JWT (Access Token: 15 phút, Refresh Token: 30 ngày lưu DB) |
-| Truyền token | Header `Authorization: Bearer <token>` |
-| Refresh flow | Client dùng Refresh Token để lấy Access Token mới khi hết hạn |
-
-#### 5.7.2 Phân quyền (Authorization — RBAC)
-
-| Role | Quyền truy cập |
-|:-----|:---------------|
-| **Guest** | Xem/tìm SP, Giỏ hàng tạm (Session), Build PC (chọn + xuất báo giá), Đăng ký |
-| **Customer** | Tất cả Guest + Checkout, Order, Review, Wishlist, Warranty, Return, Build PC (AI + Cart) |
-| **Sales** | Quản lý Order, Shipping, Coupon, Thống kê, Xử lý BH & Đổi trả |
-| **Warehouse** | Quản lý Inventory (Nhập/Kiểm kê), xem tồn kho |
-| **Admin** | Tất cả Sales + Warehouse + CRUD Category/Product/Brand/Supplier/Account/Warranty\_Policy |
-
-**Cơ chế kiểm tra:**
-- Middleware (Spring Security Filter) giải mã JWT → lấy `role_id` → truy vấn Role\_Permission → kiểm tra `permission.code` khớp với endpoint yêu cầu.
-- Nếu không có quyền → trả HTTP 403 Forbidden.
-
-#### 5.7.3 Bảo mật dữ liệu
-
-| Mối quan tâm | Giải pháp |
-|:-------------|:----------|
-| SQL Injection | Sử dụng Parameterized Queries / ORM (JPA) |
-| XSS | Escape output, Content-Security-Policy header |
-| CSRF | SameSite Cookie, CSRF Token cho form-based |
-| Rate Limiting | Giới hạn requests/phút tại API Gateway (Nginx) |
-| Input Validation | Validate tại Controller (Bean Validation / @Valid) |
-| Sensitive Data | Không trả password\_hash trong response; Mask thông tin thanh toán |
-| File Upload | Validate file type, kích thước; lưu ngoài web root |
-| CORS | Chỉ cho phép origin của frontend |
-
-### 5.8 Yêu cầu phi chức năng (Non-Functional Requirements)
-
-#### 5.8.1 Hiệu năng (Performance)
-
-| Chỉ số | Mục tiêu |
-|:-------|:---------|
-| Thời gian phản hồi API (P95) | ≤ 500ms cho GET, ≤ 1000ms cho POST/PUT |
-| Thời gian tải trang (Frontend) | ≤ 3 giây (First Contentful Paint) |
-| Throughput | ≥ 100 requests/giây (concurrent) |
-| Database query | ≤ 200ms cho các truy vấn phức tạp |
-
-#### 5.8.2 Khả năng mở rộng (Scalability)
-
-| Chiến lược | Mô tả |
-|:-----------|:------|
-| Horizontal Scaling | Backend stateless → mở rộng ngang bằng Load Balancer |
-| Database Read Replica | PostgreSQL Streaming Replication cho read-heavy queries |
-| Caching | Redis cho Session, Product Listing cache, Category tree |
-| CDN | Sử dụng CDN cho static assets (ảnh SP, JS, CSS) |
-
-#### 5.8.3 Khả dụng (Availability)
-
-| Chỉ số | Mục tiêu |
-|:-------|:---------|
-| Uptime | ≥ 99.5% (tương đương ≤ 1.83 ngày downtime/năm) |
-| Backup | Database backup hàng ngày, retention 30 ngày |
-| Disaster Recovery | RTO ≤ 4 giờ, RPO ≤ 1 giờ |
-
-#### 5.8.4 Khả năng bảo trì (Maintainability)
-
-| Yêu cầu | Mô tả |
-|:---------|:------|
-| Code Convention | Tuân thủ coding standard của ngôn ngữ/framework |
-| Documentation | API Documentation tự động (Swagger/OpenAPI) |
-| Logging | Structured logging (JSON format), tập trung qua ELK/Grafana |
-| Monitoring | Health check endpoint, metrics (Prometheus + Grafana) |
-| Testing | Unit Test coverage ≥ 70%, Integration Test cho các flow chính |
-| CI/CD | Tự động build, test, deploy qua pipeline (GitHub Actions) |
-
-### 5.9 Ma trận truy xuất yêu cầu (Requirements Traceability Matrix)
-
-| ID Yêu cầu | Tên yêu cầu | Module | Use Case | Thực thể chính |
-|:------------|:-------------|:-------|:---------|:---------------|
-| UR-AUTH-01 | Đăng ký & Đăng nhập | M01 | UC-CUS-04, UC-CUS-05, UC-CUS-06 | Account, User, Token, Cart |
-| UR-AUTH-02 | Phân quyền RBAC | M01 | — | Role, Permission, Role\_Permission |
-| UR-PROF-01 | Quản lý thông tin cá nhân | M10 | UC-CUS-14 | User, Account |
-| UR-ADDR-01 | Quản lý địa chỉ | M10 | UC-CUS-12 | Address |
-| UR-CAT-01 | Quản lý danh mục | M02 | UC-AD-01 | Category, Attribute, Attribute\_Value |
-| UR-PROD-01 | Quản lý sản phẩm | M02 | UC-AD-02 | Product, Product\_Attribute, Product\_Image, Inventory |
-| UR-BRAND-01 | Quản lý thương hiệu | M02 | UC-AD-02 | Brand |
-| UR-SHOP-01 | Lọc sản phẩm thông minh | M03 | UC-CUS-01 | Product, Product\_Attribute, Attribute, Inventory |
-| UR-SHOP-02 | Quản lý giỏ hàng | M03 | UC-CUS-03 | Cart, Cart\_Item |
-| UR-WISH-01 | Danh sách yêu thích | M03 | UC-CUS-09 | Wishlist |
-| UR-ORD-01 | Tạo đơn hàng (Checkout) | M04 | UC-CUS-02 | Order, Order\_Detail, Payment, Shipping, Inventory, Inventory\_Log |
-| UR-PAY-01 | Thanh toán đa phương thức | M04 | UC-CUS-02 | Payment |
-| UR-ORD-02 | Xử lý trạng thái đơn hàng | M04 | UC-AD-03 | Order, Order\_Status\_History |
-| UR-ORD-03 | Xem lịch sử đơn hàng | M04 | UC-CUS-13 | Order, Order\_Detail, Payment, Shipping |
-| UR-SHIP-01 | Quản lý vận chuyển | M04 | UC-AD-08 | Shipping |
-| UR-CPN-01 | Mã giảm giá | M07 | UC-AD-07 | Coupon, Coupon\_Usage |
-| UR-INV-01 | Tồn kho & Lịch sử | M06 | UC-AD-04 | Inventory, Inventory\_Log |
-| UR-INV-02 | Nhập hàng & Kiểm kê | M06 | UC-AD-04 | Inventory, Inventory\_Log |
-| UR-SUP-01 | Quản lý nhà cung cấp | M06 | UC-AD-04 | Supplier |
-| UR-REV-01 | Đánh giá sản phẩm | M08 | UC-CUS-07 | Review, Review\_Image |
-| UR-BLD-01 | Build PC | M05 | UC-CUS-08 | Product, Cart, Cart\_Item, Order, Order\_Detail |
-| UR-AI-01 | Đánh giá tương thích LLM | M05 | UC-CUS-08 | Product\_Attribute (external: LLM API) |
-| UR-USR-01 | Quản lý tài khoản | M10 | UC-AD-06 | Account, User, Role, Permission |
-| UR-WARPOL-01 | Chính sách bảo hành | M09 | UC-AD-09 | Warranty\_Policy |
-| UR-WAR-01 | Bảo hành | M09 | UC-CUS-10, UC-AD-09 | Warranty\_Ticket |
-| UR-RET-01 | Đổi trả & Hoàn tiền | M09 | UC-CUS-11, UC-AD-10 | Return, Payment, Inventory\_Log |
-| UR-AD-05 | Thống kê doanh thu | M10 | UC-AD-05 | Order, Order\_Detail, Product, Category |
-
----
-
-## 6 Thiết kế giao diện
-
-### 6.1 API Design Convention
-
-Hệ thống sử dụng **RESTful API** với các quy ước sau:
-
-| Quy ước | Chi tiết |
-|:--------|:---------|
-| Base URL | `https://api.domain.com/v1` |
-| Format | JSON |
-| Authentication | Bearer Token (JWT) trong Header `Authorization` |
-| Versioning | URL Path versioning (`/v1/`, `/v2/`) |
-| Naming | Sử dụng danh từ số nhiều cho resource: `/products`, `/orders` |
-| HTTP Methods | GET (đọc), POST (tạo), PUT (cập nhật toàn bộ), PATCH (cập nhật 1 phần), DELETE (xóa) |
-| Error Format | `{ "status": 400, "error": "BAD_REQUEST", "message": "..." }` |
-| Pagination | `?page=1&size=20&sort=createdAt,desc` |
-| Status Codes | 200 OK, 201 Created, 204 No Content, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 409 Conflict, 500 Internal Server Error |
-
-### 6.2 Bảng tổng hợp API Endpoints
-
-#### 6.2.1 Module Xác thực (M01 - Auth)
-
-| Method | Endpoint | Mô tả | Actor |
-|:-------|:---------|:------|:------|
-| POST | `/auth/register` | Đăng ký tài khoản | Guest |
-| POST | `/auth/login` | Đăng nhập, sinh JWT, merge giỏ hàng | Guest |
-| POST | `/auth/logout` | Đăng xuất, xóa Token | All authenticated |
-| POST | `/auth/refresh-token` | Làm mới Access Token | All authenticated |
-| POST | `/auth/forgot-password` | Yêu cầu đặt lại mật khẩu | Guest |
-| POST | `/auth/reset-password` | Đặt lại mật khẩu bằng token | Guest |
-
-#### 6.2.2 Module Sản phẩm (M02 - Product)
-
-| Method | Endpoint | Mô tả | Actor |
-|:-------|:---------|:------|:------|
-| GET | `/products` | Danh sách SP (có filter, pagination) | Public |
-| GET | `/products/{slug}` | Chi tiết sản phẩm | Public |
-| POST | `/admin/products` | Tạo sản phẩm | Admin |
-| PUT | `/admin/products/{id}` | Cập nhật sản phẩm | Admin |
-| DELETE | `/admin/products/{id}` | Xóa sản phẩm | Admin |
-| GET | `/categories` | Danh sách danh mục (phân cấp) | Public |
-| POST | `/admin/categories` | Tạo danh mục | Admin |
-| PUT | `/admin/categories/{id}` | Cập nhật danh mục | Admin |
-| DELETE | `/admin/categories/{id}` | Xóa danh mục | Admin |
-| GET | `/brands` | Danh sách thương hiệu | Public |
-| POST | `/admin/brands` | Tạo thương hiệu | Admin |
-| PUT | `/admin/brands/{id}` | Cập nhật thương hiệu | Admin |
-| DELETE | `/admin/brands/{id}` | Xóa thương hiệu | Admin |
-
-#### 6.2.3 Module Mua sắm (M03 - Shopping)
-
-| Method | Endpoint | Mô tả | Actor |
-|:-------|:---------|:------|:------|
-| GET | `/cart` | Xem giỏ hàng | Guest/Customer |
-| POST | `/cart/items` | Thêm sản phẩm vào giỏ | Guest/Customer |
-| PATCH | `/cart/items/{id}` | Sửa số lượng | Guest/Customer |
-| DELETE | `/cart/items/{id}` | Xóa sản phẩm khỏi giỏ | Guest/Customer |
-| GET | `/wishlist` | Danh sách yêu thích | Customer |
-| POST | `/wishlist` | Thêm/xóa yêu thích (toggle) | Customer |
-
-#### 6.2.4 Module Đơn hàng & Thanh toán (M04 - Order)
-
-| Method | Endpoint | Mô tả | Actor |
-|:-------|:---------|:------|:------|
-| POST | `/orders` | Tạo đơn hàng (Checkout) | Customer |
-| GET | `/orders` | Danh sách đơn hàng người dùng | Customer |
-| GET | `/orders/{id}` | Chi tiết đơn hàng | Customer |
-| GET | `/admin/orders` | Danh sách đơn hàng (Admin/Sales) | Admin/Sales |
-| PATCH | `/admin/orders/{id}/status` | Cập nhật trạng thái đơn hàng | Admin/Sales |
-| POST | `/payments/callback` | Callback từ cổng thanh toán | System |
-| GET | `/admin/orders/{id}/shipping` | Xem thông tin shipping | Admin/Sales |
-| PUT | `/admin/orders/{id}/shipping` | Cập nhật shipping | Admin/Sales |
-
-#### 6.2.5 Module Build PC (M05)
-
-| Method | Endpoint | Mô tả | Actor |
-|:-------|:---------|:------|:------|
-| POST | `/products/check-compatibility` | Kiểm tra tương thích AI (LLM) | Customer |
-
-#### 6.2.6 Module Kho hàng (M06 - Inventory)
-
-| Method | Endpoint | Mô tả | Actor |
-|:-------|:---------|:------|:------|
-| GET | `/admin/inventory` | Danh sách tồn kho | Admin/Warehouse |
-| POST | `/admin/inventory/import` | Nhập hàng | Admin/Warehouse |
-| POST | `/admin/inventory/adjust` | Kiểm kê / điều chỉnh | Admin/Warehouse |
-| GET | `/admin/suppliers` | Danh sách NCC | Admin |
-| POST | `/admin/suppliers` | Tạo NCC | Admin |
-| PUT | `/admin/suppliers/{id}` | Cập nhật NCC | Admin |
-| DELETE | `/admin/suppliers/{id}` | Xóa NCC | Admin |
-
-#### 6.2.7 Module Khuyến mãi (M07 - Coupon)
-
-| Method | Endpoint | Mô tả | Actor |
-|:-------|:---------|:------|:------|
-| GET | `/admin/coupons` | Danh sách mã giảm giá | Admin/Sales |
-| POST | `/admin/coupons` | Tạo mã giảm giá | Admin/Sales |
-| PUT | `/admin/coupons/{id}` | Cập nhật | Admin/Sales |
-| DELETE | `/admin/coupons/{id}` | Xóa | Admin/Sales |
-| POST | `/coupons/validate` | Kiểm tra hợp lệ (khi Checkout) | Customer |
-
-#### 6.2.8 Module Đánh giá (M08 - Review)
-
-| Method | Endpoint | Mô tả | Actor |
-|:-------|:---------|:------|:------|
-| GET | `/products/{id}/reviews` | Danh sách đánh giá sản phẩm | Public |
-| POST | `/products/{id}/reviews` | Gửi đánh giá | Customer |
-
-#### 6.2.9 Module Bảo hành & Đổi trả (M09)
-
-| Method | Endpoint | Mô tả | Actor |
-|:-------|:---------|:------|:------|
-| POST | `/warranty-tickets` | Tạo phiếu bảo hành | Customer |
-| GET | `/warranty-tickets` | Danh sách phiếu BH của user | Customer |
-| GET | `/admin/warranty-tickets` | Quản lý phiếu BH | Admin/Sales |
-| PATCH | `/admin/warranty-tickets/{id}` | Xử lý phiếu BH | Admin/Sales |
-| GET | `/admin/warranty-policies` | Danh sách chính sách BH | Admin |
-| POST | `/admin/warranty-policies` | Tạo chính sách BH | Admin |
-| PUT | `/admin/warranty-policies/{id}` | Cập nhật chính sách BH | Admin |
-| DELETE | `/admin/warranty-policies/{id}` | Xóa chính sách BH | Admin |
-| POST | `/returns` | Tạo yêu cầu đổi trả | Customer |
-| GET | `/returns` | Danh sách yêu cầu đổi trả (user) | Customer |
-| GET | `/admin/returns` | Quản lý đổi trả | Admin/Sales |
-| PATCH | `/admin/returns/{id}` | Duyệt/từ chối đổi trả | Admin/Sales |
-
-#### 6.2.10 Module Quản trị (M10 - Admin)
-
-| Method | Endpoint | Mô tả | Actor |
-|:-------|:---------|:------|:------|
-| GET | `/admin/accounts` | Danh sách tài khoản | Admin |
-| POST | `/admin/accounts` | Tạo tài khoản nội bộ | Admin |
-| PATCH | `/admin/accounts/{id}/status` | Khóa/mở khóa | Admin |
-| PATCH | `/admin/accounts/{id}/role` | Gán Role | Admin |
-| GET | `/admin/reports/revenue` | Thống kê doanh thu | Admin/Sales |
-| GET | `/users/profile` | Xem thông tin cá nhân | Customer |
-| PUT | `/users/profile` | Cập nhật thông tin cá nhân | Customer |
-| PUT | `/users/password` | Đổi mật khẩu | Customer |
-| GET | `/users/addresses` | Danh sách địa chỉ | Customer |
-| POST | `/users/addresses` | Thêm địa chỉ | Customer |
-| PUT | `/users/addresses/{id}` | Sửa địa chỉ | Customer |
-| DELETE | `/users/addresses/{id}` | Xóa địa chỉ | Customer |
-
-### 6.3 Giao diện tích hợp bên ngoài (External Integration Interfaces)
-
-| Hệ thống bên ngoài | Giao thức | Mục đích | Ghi chú |
-|:--------------------|:----------|:---------|:--------|
-| VNPay | HTTPS / Redirect | Thanh toán trực tuyến | Sử dụng VNPay SDK, callback URL |
-| MoMo | HTTPS / Redirect | Thanh toán trực tuyến | Sử dụng MoMo SDK, IPN callback |
-| LLM API | HTTPS / REST | Đánh giá tương thích linh kiện PC | Thiết kế qua abstraction layer |
-| Email Service | SMTP | Gửi email xác nhận đơn, thông báo | Có thể dùng SendGrid, SES |
-
-### 6.4 API Contracts chi tiết (Request / Response)
-
-#### 6.4.1 POST `/api/auth/register`
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "StrongP@ss123",
-  "fullName": "Nguyễn Văn A",
-  "phone": "0901234567"
-}
+    Note over Admin,DB: Phân quyền người dùng
+    Admin->>FE: Thay đổi role của user
+    FE->>BE: PATCH /api/v1/admin/users/{id}/role {roleId: 2}
+    BE->>DB: SELECT Role WHERE id = ?
+    BE->>DB: UPDATE Account SET role_id = ? WHERE id = ?
+    BE->>DB: DELETE Token WHERE account_id = ? (buộc đăng nhập lại với quyền mới)
+    BE-->>FE: 200 {updatedUser}
+    FE-->>Admin: Cập nhật role hiển thị
 ```
 
-**Response 201:**
-```json
-{
-  "status": 201,
-  "message": "Đăng ký thành công",
-  "data": {
-    "id": 1,
-    "email": "user@example.com",
-    "fullName": "Nguyễn Văn A"
-  }
-}
+#### 3.2.24 Luồng Admin — Quản lý mã giảm giá
+
+> **Hình 3.27** — Sequence Diagram — Admin quản lý mã giảm giá
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant FE as Next.js (Admin CMS)
+    participant BE as Spring Boot (Backend)
+    participant DB as PostgreSQL
+
+    Note over Admin,DB: Tạo mã giảm giá
+    Admin->>FE: Nhập thông tin coupon
+    FE->>BE: POST /api/v1/admin/coupons {code, discountType, discountValue, minOrderValue, maxDiscount, maxUses, startDate, endDate}
+    BE->>BE: Validate JWT + Role (ADMIN)
+    BE->>DB: SELECT Coupon WHERE code = ?
+    alt Mã đã tồn tại
+        BE-->>FE: 409 {message: "Mã giảm giá đã tồn tại"}
+    else Hợp lệ
+        BE->>DB: INSERT Coupon (code, discount_type, discount_value, min_order_value, max_discount, max_uses, start_date, end_date)
+        BE-->>FE: 201 {coupon}
+        FE-->>Admin: Hiển thị coupon vừa tạo
+    end
+
+    Note over Admin,DB: Cập nhật mã giảm giá
+    Admin->>FE: Sửa thông tin coupon
+    FE->>BE: PUT /api/v1/admin/coupons/{id} {discountValue, endDate, maxUses, ...}
+    BE->>DB: SELECT Coupon WHERE id = ?
+    BE->>DB: UPDATE Coupon SET ...
+    BE-->>FE: 200 {updatedCoupon}
+
+    Note over Admin,DB: Xem danh sách & thống kê
+    Admin->>FE: Mở trang quản lý coupon
+    FE->>BE: GET /api/v1/admin/coupons?page=1&size=20&status=active
+    BE->>DB: SELECT Coupon LEFT JOIN (SELECT coupon_id, COUNT(*) FROM Coupon_Usage GROUP BY coupon_id)
+    BE-->>FE: 200 {coupons[], totalItems}
+    FE-->>Admin: Hiển thị danh sách (mã, loại, giá trị, đã dùng/tối đa, thời hạn)
+
+    Note over Admin,DB: Xóa mã giảm giá
+    Admin->>FE: Nhấn "Xóa"
+    FE->>BE: DELETE /api/v1/admin/coupons/{id}
+    BE->>DB: SELECT Coupon_Usage WHERE coupon_id = ?
+    alt Đã có người sử dụng
+        BE-->>FE: 409 {message: "Không thể xóa mã đã được sử dụng"}
+    else Chưa ai sử dụng
+        BE->>DB: DELETE Coupon WHERE id = ?
+        BE-->>FE: 204 No Content
+    end
 ```
 
-#### 6.4.2 POST `/api/auth/login`
+#### 3.2.25 Luồng Gửi thông báo (Email & In-app)
 
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "StrongP@ss123",
-  "sessionId": "guest-session-uuid-xxx"
-}
+> **Hình 3.28** — Sequence Diagram — Gửi thông báo
+
+```mermaid
+sequenceDiagram
+    participant BE as Spring Boot (Backend)
+    participant DB as PostgreSQL
+    participant Email as Email Service (SMTP)
+    participant FE as Next.js (Frontend)
+    actor Customer
+
+    Note over BE,Email: Trigger: Đơn hàng được tạo thành công
+    BE->>DB: INSERT Notification (user_id, title="Đơn hàng mới", message="Đơn #id đã tạo", type='ORDER')
+    BE->>DB: SELECT Account JOIN User_Profile WHERE id = user_id
+    BE->>Email: Gửi email xác nhận đơn hàng (template: order_confirmation)
+    Email-->>Customer: Email: "Xác nhận đơn hàng #id"
+
+    Note over BE,Email: Trigger: Trạng thái đơn thay đổi
+    BE->>DB: INSERT Notification (user_id, title="Cập nhật đơn hàng", message="Đơn #id đang giao", type='ORDER')
+    BE->>Email: Gửi email cập nhật trạng thái
+    Email-->>Customer: Email: "Đơn hàng #id đang được giao"
+
+    Note over FE,DB: Customer xem thông báo
+    Customer->>FE: Nhấn icon 🔔
+    FE->>BE: GET /api/v1/notifications?page=1&size=20
+    BE->>DB: SELECT Notification WHERE user_id = ? ORDER BY created_at DESC
+    BE-->>FE: 200 {notifications[], unreadCount}
+    FE-->>Customer: Hiển thị danh sách thông báo (badge số chưa đọc)
+
+    Customer->>FE: Nhấn vào thông báo
+    FE->>BE: PATCH /api/v1/notifications/{id}/read
+    BE->>DB: UPDATE Notification SET is_read = true WHERE id = ?
+    BE-->>FE: 200 OK
+    FE-->>Customer: Đánh dấu đã đọc, redirect đến link liên quan
 ```
 
-**Response 200:**
-```json
-{
-  "status": 200,
-  "data": {
-    "accessToken": "eyJhbGciOi...",
-    "refreshToken": "eyJhbGciOi...",
-    "expiresIn": 900,
-    "user": {
-      "id": 1,
-      "email": "user@example.com",
-      "fullName": "Nguyễn Văn A",
-      "role": "CUSTOMER",
-      "avatarUrl": null
-    },
-    "cartMerged": true,
-    "cartItemCount": 3
-  }
-}
-```
+### 3.3 Sơ đồ quan hệ thực thể (ERD)
 
-#### 6.4.3 POST `/api/orders`
+Hệ thống quản lý **33 thực thể** chính, được chia thành 5 nhóm nghiệp vụ.
 
-**Request Body:**
-```json
-{
-  "addressId": 3,
-  "paymentMethod": "VNPAY",
-  "couponCode": "SALE2026",
-  "note": "Giao giờ hành chính"
-}
-```
+#### 3.3.1 ERD — Nhóm Phân quyền (Auth & User)
 
-**Response 201 (Online Payment):**
-```json
-{
-  "status": 201,
-  "message": "Đơn hàng đã tạo, vui lòng thanh toán",
-  "data": {
-    "orderId": 1001,
-    "subtotal": 25970000,
-    "discountAmount": 500000,
-    "shippingFee": 30000,
-    "totalAmount": 25500000,
-    "paymentMethod": "VNPAY",
-    "paymentUrl": "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=...",
-    "status": "PENDING"
-  }
-}
-```
+> **Hình 3.29** — ERD — Nhóm Phân quyền (Auth & User)
 
-#### 6.4.4 Error Response (chuẩn chung)
-
-```json
-{
-  "status": 400,
-  "error": "BAD_REQUEST",
-  "message": "Mô tả lỗi chi tiết",
-  "traceId": "550e8400-e29b-41d4-a716-446655440000",
-  "timestamp": "2026-03-25T11:00:00+07:00",
-  "errors": [
-    {
-      "field": "email",
-      "message": "Email không hợp lệ"
+```mermaid
+erDiagram
+    ACCOUNT {
+        bigint id PK
+        varchar email UK
+        varchar password_hash
+        boolean is_active
+        boolean is_verified
+        bigint role_id FK
+        timestamp last_login_at
+        timestamp created_at
+        timestamp updated_at
     }
-  ]
-}
+
+    USER_PROFILE {
+        bigint id PK
+        bigint account_id FK
+        varchar full_name
+        varchar phone UK
+        varchar avatar_url
+        date date_of_birth
+        varchar gender
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ADDRESS {
+        bigint id PK
+        bigint user_id FK
+        varchar label
+        varchar receiver_name
+        varchar receiver_phone
+        varchar province
+        varchar district
+        varchar ward
+        varchar street
+        boolean is_default
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ROLE {
+        bigint id PK
+        varchar name UK
+        varchar description
+    }
+
+    PERMISSION {
+        bigint id PK
+        varchar code UK
+        varchar description
+    }
+
+    ROLE_PERMISSION {
+        bigint role_id PK
+        bigint permission_id PK
+    }
+
+    TOKEN {
+        bigint id PK
+        bigint account_id FK
+        varchar token_type
+        varchar token_value
+        timestamp expires_at
+        timestamp created_at
+    }
+
+    ROLE ||--o{ ACCOUNT : "has many"
+    ACCOUNT ||--|| USER_PROFILE : "has one"
+    ACCOUNT ||--o{ TOKEN : "has many"
+    USER_PROFILE ||--o{ ADDRESS : "has many"
+    ROLE ||--o{ ROLE_PERMISSION : "has many"
+    PERMISSION ||--o{ ROLE_PERMISSION : "has many"
 ```
 
-### 6.5 Layout & Navigation — Customer
+#### 3.3.2 ERD — Nhóm Sản phẩm (Product Catalog)
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  TOP BAR (bg: #0D2B5E, text: trắng nhỏ)                     │
-│  📞 1900.XXXX  |  📍 Hệ thống Showroom  |  🎁 Khuyến mãi   │
-├─────────────────────────────────────────────────────────────┤
-│  HEADER CHÍNH (Sticky, bg: #1A4B9C, text: trắng)            │
-│  ┌───────┐  ┌──────────────────────────┐  ┌──┐ ┌──┐ ┌──┐  │
-│  │ LOGO  │  │  🔍 Tìm kiếm sản phẩm...│  │🖥│ │❤️│ │🛒│  │
-│  │PC PARTS│  │  (nền trắng, viền xám)  │  │PC│ │  │ │3 │  │
-│  └───────┘  └──────────────────────────┘  └──┘ └──┘ └──┘  │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │  NAV: Trang chủ | Sản phẩm ▼ | Build PC | Khuyến mãi│   │
-│  │  (text trắng trên nền xanh, hover: vàng #FBBF24)    │   │
-│  └──────────────────────────────────────────────────────┘   │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│                 PAGE CONTENT (bg: #F3F4F6)                  │
-│                                                             │
-├─────────────────────────────────────────────────────────────┤
-│  FOOTER (bg: #1E293B, text: trắng/xám nhạt)                 │
-│  © 2026 PC Parts Store. Hotline: 1900.XXXX                  │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### 6.6 Layout & Navigation — Admin
-
-```
-┌──────────┬──────────────────────────────────────────────────┐
-│ SIDEBAR  │  TOP BAR         🔍 Tìm kiếm    🔔   Admin ▼   │
-│          ├──────────────────────────────────────────────────┤
-│ Dashboard│                                                  │
-│ Sản phẩm │               MAIN CONTENT                      │
-│ Danh mục │            (Bảng, form, thống kê)                │
-│ Đơn hàng │                                                  │
-│ Kho hàng │                                                  │
-│ NCC      │                                                  │
-│ Mã giảm  │                                                  │
-│ Bảo hành │                                                  │
-│ Đổi trả  │                                                  │
-│ Tài khoản│                                                  │
-│ Thống kê │                                                  │
-└──────────┴──────────────────────────────────────────────────┘
-```
-
-**Sidebar:** Collapsible (thu gọn thành icon trên mobile/tablet). Active item highlight.
-
-### 6.7 Navigation Flow
+> **Hình 3.30** — ERD — Nhóm Sản phẩm (Product Catalog)
 
 ```mermaid
-graph TD
-    Home["Trang chủ /"]
-    Products["Danh sách SP /products"]
-    ProductDetail["Chi tiết SP /products/[slug]"]
-    BuildPC["Build PC /build-pc"]
-    Cart["Giỏ hàng /cart"]
-    Checkout["Checkout /checkout"]
-    OrderSuccess["Đơn hàng thành công"]
-    Auth["Đăng nhập /auth/login"]
-    Register["Đăng ký /auth/register"]
-    Profile["Profile /profile"]
-    Orders["Đơn hàng /orders"]
-    OrderDetail["Chi tiết ĐH /orders/[id]"]
-    Warranty["Bảo hành /warranty"]
-    Returns["Đổi trả /returns"]
+erDiagram
+    CATEGORY {
+        bigint id PK
+        varchar name UK
+        text description
+        bigint parent_id FK
+        int level
+        timestamp created_at
+        timestamp updated_at
+    }
 
-    Home --> Products --> ProductDetail
-    ProductDetail --> Cart
-    ProductDetail -->|"Thêm Wishlist"| Profile
-    BuildPC --> Cart
-    Cart --> Checkout -->|"Cần đăng nhập"| Auth --> Checkout
-    Checkout --> OrderSuccess
-    Profile --> Orders --> OrderDetail
-    Orders --> Warranty
-    Orders --> Returns
-    Home --> BuildPC
-    Home --> Auth
-    Auth --> Register
+    BRAND {
+        bigint id PK
+        varchar name UK
+        varchar logo_url
+        text description
+    }
+
+    PRODUCT {
+        bigint id PK
+        varchar name
+        varchar sku UK
+        varchar slug UK
+        decimal original_price
+        decimal selling_price
+        text description
+        bigint category_id FK
+        bigint brand_id FK
+        varchar condition
+        varchar status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ATTRIBUTE {
+        bigint id PK
+        varchar name
+        bigint category_id FK
+    }
+
+    ATTRIBUTE_VALUE {
+        bigint id PK
+        bigint attribute_id FK
+        varchar value
+    }
+
+    PRODUCT_ATTRIBUTE {
+        bigint product_id PK
+        bigint attribute_id PK
+        bigint attribute_value_id FK
+    }
+
+    PRODUCT_IMAGE {
+        bigint id PK
+        bigint product_id FK
+        varchar image_url
+        boolean is_primary
+        int sort_order
+    }
+
+    CATEGORY ||--o{ CATEGORY : "parent"
+    CATEGORY ||--o{ PRODUCT : "contains"
+    CATEGORY ||--o{ ATTRIBUTE : "defines"
+    BRAND ||--o{ PRODUCT : "produces"
+    ATTRIBUTE ||--o{ ATTRIBUTE_VALUE : "has values"
+    PRODUCT ||--o{ PRODUCT_ATTRIBUTE : "has attributes"
+    PRODUCT ||--o{ PRODUCT_IMAGE : "has images"
+    ATTRIBUTE ||--o{ PRODUCT_ATTRIBUTE : "referenced by"
+    ATTRIBUTE_VALUE ||--o{ PRODUCT_ATTRIBUTE : "referenced by"
 ```
 
-### 6.8 Wireframes mô tả — Customer
+#### 3.3.3 ERD — Nhóm Mua sắm & Đơn hàng (Shopping & Order)
 
-#### 6.8.1 Trang chủ (`/`)
+> **Hình 3.31** — ERD — Nhóm Mua sắm & Đơn hàng (Shopping & Order)
 
-- **Hero Banner / Carousel** (2/3 chiều rộng) + 2 Promo Cards nhỏ bên phải
-- **Danh mục nổi bật:** CPU, Main, RAM, GPU, SSD (icon grid)
-- **Brand Logos Bar:** Intel, AMD, ASUS, Lenovo, GIGABYTE, MSI, ... (grayscale)
-- **Promo Banners:** 3 cards ngang (TBVP, Màn hình, Gear — nhiều màu)
-- **Top Sản phẩm Bán chạy:** Tabs (Bán chạy, PC Gaming, Laptop, Màn hình Gaming) + Grid Product Cards
-- **Product Card (Light theme):** Nền trắng, viền xám nhạt, shadow nhẹ, ảnh 1:1 lazy load, badge NEW/giảm giá, tên SP (max 2 dòng), giá gốc gạch ngang, **giá bán đỏ đậm (#E31837)**, nút giỏ hàng, badge "Còn hàng" xanh lá
+```mermaid
+erDiagram
+    CART {
+        bigint id PK
+        bigint user_id FK
+        varchar session_id
+        timestamp created_at
+        timestamp updated_at
+    }
 
-#### 6.8.2 Danh sách sản phẩm (`/products?category=cpu`)
+    CART_ITEM {
+        bigint id PK
+        bigint cart_id FK
+        bigint product_id FK
+        int quantity
+    }
 
-- **Sidebar bộ lọc:** Brand (checkbox), Khoảng giá (range), Attribute động (socket, bus RAM), Tình trạng, Tồn kho
-- **Grid sản phẩm:** 4 cột desktop, pagination
-- **Mobile:** Bộ lọc thu vào `Sheet` (slide from left)
+    WISHLIST {
+        bigint id PK
+        bigint user_id FK
+        bigint product_id FK
+        timestamp created_at
+    }
 
-#### 6.8.3 Chi tiết sản phẩm (`/products/[slug]`)
+    COUPON {
+        bigint id PK
+        varchar code UK
+        varchar discount_type
+        decimal discount_value
+        decimal min_order_value
+        decimal max_discount
+        int max_uses
+        int used_count
+        timestamp start_date
+        timestamp end_date
+        timestamp created_at
+    }
 
-- **Bố cục 3 cột:** Image gallery (40%) | Thông tin SP + giá + CTA (35%) | Sidebar hotline/showroom (25%)
-- **Layout giá:** Giá gốc (xám, gạch ngang) → Giá sale (**đỏ đậm #E31837**, bold, 24px+) → Button "ĐẶT MUA NGAY" (đỏ, full width) → "MUA TRẢ GÓP" + "CHO VÀO GIỎ"
-- **Tabs:** Thông số (zebra stripes), Đánh giá
-- **Sản phẩm liên quan:** Grid 4-5 cards
+    ORDERS {
+        bigint id PK
+        bigint user_id FK
+        bigint address_id FK
+        decimal subtotal
+        decimal discount_amount
+        decimal total_amount
+        varchar status
+        text note
+        bigint coupon_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
 
-#### 6.8.4 Build PC (`/build-pc`)
+    ORDER_DETAIL {
+        bigint id PK
+        bigint order_id FK
+        bigint product_id FK
+        int quantity
+        decimal unit_price
+        decimal line_total
+    }
 
-- Danh sách slot linh kiện đánh số, nút `[+ Chọn]` xanh
-- **Cost bar đỏ** sticky, tổng chi phí dự tính
-- 6 nút hành động (Lưu, Tải ảnh, Chia sẻ, Tải Excel, Xem & In)
-- Nút "THÊM VÀO GIỎ HÀNG" lớn
-- Kết quả AI kiểm tra tương thích
+    PAYMENT {
+        bigint id PK
+        bigint order_id FK
+        varchar method
+        decimal amount
+        varchar status
+        varchar transaction_id
+        timestamp paid_at
+        timestamp created_at
+    }
 
-#### 6.8.5 Giỏ hàng (`/cart`)
+    SHIPPING {
+        bigint id PK
+        bigint order_id FK
+        varchar provider
+        varchar tracking_number
+        decimal shipping_fee
+        varchar status
+        date estimated_date
+        date delivered_date
+        timestamp created_at
+        timestamp updated_at
+    }
 
-- Danh sách SP: ảnh, tên, mã SP, BH, khuyến mãi, `[- 1 +]`, giá đỏ đậm
-- Tổng kết: phí VC, tổng, giảm, **Thanh toán** (đỏ đậm lớn nhất)
-- 2 nút: "ĐẶT HÀNG" (xanh đậm) + "MUA TRẢ GÓP" (đỏ/cam)
+    COUPON_USAGE {
+        bigint id PK
+        bigint coupon_id FK
+        bigint user_id FK
+        bigint order_id FK
+        timestamp used_at
+    }
 
-#### 6.8.6 Checkout (`/checkout`)
+    ORDER_STATUS_HISTORY {
+        bigint id PK
+        bigint order_id FK
+        varchar old_status
+        varchar new_status
+        bigint changed_by FK
+        text note
+        timestamp created_at
+    }
 
-- Chọn địa chỉ → Phương thức thanh toán (COD/VNPay/MoMo/CK) → Ghi chú → Tóm tắt + Đặt hàng
+    SUPPLIER {
+        bigint id PK
+        varchar name
+        varchar contact_person
+        varchar phone
+        varchar email
+        text address
+    }
 
-### 6.9 Wireframes mô tả — Admin/CMS
+    INVENTORY {
+        bigint id PK
+        bigint product_id FK
+        int quantity
+        int low_stock_threshold
+        bigint supplier_id FK
+        timestamp updated_at
+    }
 
-#### 6.9.1 Dashboard (`/admin`)
+    INVENTORY_LOG {
+        bigint id PK
+        bigint product_id FK
+        varchar type
+        int quantity_change
+        bigint performed_by FK
+        text note
+        timestamp created_at
+    }
 
-- 4 card: Doanh thu hôm nay, Đơn hàng mới, SP hết hàng, Khách mới
-- Biểu đồ doanh thu 7 ngày (Line Chart)
-- Bảng đơn hàng mới nhất
+    CART ||--o{ CART_ITEM : "contains"
+    ORDERS ||--o{ ORDER_DETAIL : "contains"
+    ORDERS ||--o{ PAYMENT : "has"
+    ORDERS ||--|| SHIPPING : "has one"
+    ORDERS ||--o{ ORDER_STATUS_HISTORY : "has history"
+    COUPON ||--o{ COUPON_USAGE : "tracked by"
+    COUPON ||--o{ ORDERS : "applied to"
+    SUPPLIER ||--o{ INVENTORY : "supplies"
+```
 
-#### 6.9.2 Quản lý sản phẩm (`/admin/products`)
+#### 3.3.4 ERD — Nhóm Tương tác & Bảo hành (Interaction & Warranty)
 
-- Bảng: checkbox, SP, SKU, Giá bán, Kho, Actions (Sửa/Xem/Xóa)
-- Tìm kiếm + Filter + "Thêm SP" + Pagination
+> **Hình 3.32** — ERD — Nhóm Tương tác & Bảo hành (Interaction & Warranty)
 
-#### 6.9.3 Quản lý đơn hàng (`/admin/orders`)
+```mermaid
+erDiagram
+    REVIEW {
+        bigint id PK
+        bigint user_id FK
+        bigint product_id FK
+        bigint order_id FK
+        int rating
+        text content
+        timestamp created_at
+    }
 
-- Tabs: Tất cả, Chờ xử lý, Đang giao, Hoàn thành
-- Bảng: #ID, Khách, Tổng, Trạng thái (badge 🟡🔵🟢🔴), Ngày
+    REVIEW_IMAGE {
+        bigint id PK
+        bigint review_id FK
+        varchar image_url
+    }
 
-| Ký hiệu | Backend Enum | Màu Badge | Ý nghĩa |
-|:---------|:-------------|:----------|:--------|
-| 🟡 | `PENDING` | Yellow | Chờ xử lý |
-| 🔵 | `DELIVERING` | Blue | Đang giao |
-| 🟢 | `COMPLETED` | Green | Hoàn thành |
-| 🔴 | `CANCELLED` | Red | Đã hủy |
+    WARRANTY_POLICY {
+        bigint id PK
+        bigint category_id FK
+        bigint product_id FK
+        int duration_months
+        text conditions
+        text description
+    }
 
-### 6.10 Responsive Design
+    WARRANTY_TICKET {
+        bigint id PK
+        bigint user_id FK
+        bigint product_id FK
+        bigint order_id FK
+        varchar serial_number
+        text issue_description
+        varchar status
+        text resolution
+        timestamp resolved_at
+        timestamp created_at
+        timestamp updated_at
+    }
 
-| Breakpoint | Tailwind | Chiều rộng | Mô tả |
-|:-----------|:---------|:----------|:------|
-| Mobile | `sm` | < 640px | 1 cột product, hamburger menu |
-| Tablet | `md` | 640-1023px | 2-3 cột product, sidebar collapsed |
-| Desktop | `lg` | 1024-1279px | 3-4 cột product, sidebar mở |
-| Large Desktop | `xl` | ≥ 1280px | Full layout, 4 cột product |
+    RETURN_REQUEST {
+        bigint id PK
+        bigint user_id FK
+        bigint order_id FK
+        bigint order_detail_id FK
+        varchar type
+        text reason
+        varchar status
+        decimal refund_amount
+        timestamp resolved_at
+        timestamp created_at
+        timestamp updated_at
+    }
 
-| Thành phần | Mobile | Desktop |
-|:-----------|:-------|:-------|
-| Header Nav | Hamburger menu (Sheet) | Inline navigation |
-| Search | Icon → expand fullscreen | Inline search bar |
-| Product Grid | 1-2 cột | 3-4 cột |
-| Product Detail | Stack (image trên, info dưới) | Side-by-side |
-| Filter | Sheet (slide from left) | Sidebar cố định |
-| Build PC | Scroll vertical | Table layout |
-| Admin Sidebar | Hidden (hamburger) | Cố định (collapsible) |
+    REVIEW ||--o{ REVIEW_IMAGE : "has images"
+    WARRANTY_POLICY ||--o{ WARRANTY_TICKET : "governs"
+```
 
-### 6.11 Trạng thái & Loading Patterns
+#### 3.3.5 ERD — Nhóm Thông báo (Notification)
 
-#### 6.11.1 Skeleton Loading
+> **Hình 3.33** — ERD — Nhóm Thông báo (Notification)
 
-| Thành phần | Skeleton Pattern |
-|:-----------|:----------------|
-| Product Card | Gray rectangle (image) + 3 gray lines |
-| Product List | Grid of 8-12 Skeleton cards |
-| Product Detail | Large image skeleton + text skeletons |
-| Table (Admin) | 5 rows of horizontal bars |
-| Dashboard Stats | 4 rectangular blocks |
+```mermaid
+erDiagram
+    NOTIFICATION {
+        bigint id PK
+        bigint user_id FK
+        varchar title
+        text message
+        varchar type
+        boolean is_read
+        timestamp created_at
+    }
+```
 
-#### 6.11.2 Empty States
+### 3.4 Test Case
 
-| Trang | Empty State |
-|:------|:-----------|
-| Giỏ hàng trống | Icon `ShoppingCart` + "Giỏ hàng trống" + [Mua sắm ngay] |
-| Wishlist trống | Icon `Heart` + "Chưa có sản phẩm yêu thích" |
-| Chưa có đơn hàng | Icon `Package` + "Chưa có đơn hàng nào" |
-| Không tìm thấy SP | Icon `Search` + "Không tìm thấy sản phẩm" + gợi ý sửa filter |
+Các kịch bản kiểm thử được thiết kế dựa trên yêu cầu chức năng trong tài liệu SRS (requirement\_analysis.md).
 
-#### 6.11.3 Error States
+**Quy ước:**
+- **P (Positive):** Luồng đúng, dữ liệu hợp lệ.
+- **N (Negative):** Luồng sai, dữ liệu không hợp lệ, trường hợp biên.
 
-| Tình huống | Hiển thị |
-|:-----------|:---------|
-| API Error (5xx) | Toast destructive: "Có lỗi xảy ra, vui lòng thử lại" |
-| Validation Error (4xx) | Inline error dưới field |
-| Network Error | Banner: "Mất kết nối mạng" + retry button |
-| 404 Page | Illustration + "Trang không tồn tại" + [Về trang chủ] |
+#### 3.4.1 Module Xác thực (M01)
 
-### 6.12 Accessibility
+| TC-ID | Tên test case | Điều kiện tiên quyết | Các bước thực hiện | Kết quả mong đợi | Loại |
+|:------|:-------------|:---------------------|:-------------------|:-----------------|:-----|
+| TC-AUTH-01 | Đăng ký thành công | Chưa có tài khoản với email test | 1. Nhập email, password, fullName, phone hợp lệ 2. Nhấn "Đăng ký" | Trả 201, tạo Account (role=CUSTOMER) + User | P |
+| TC-AUTH-02 | Đăng ký email đã tồn tại | Đã có tài khoản `a@test.com` | 1. Nhập email `a@test.com` 2. Nhấn "Đăng ký" | Trả 409, message "Email đã được sử dụng" | N |
+| TC-AUTH-03 | Đăng ký thiếu trường bắt buộc | — | 1. Để trống trường `fullName` 2. Nhấn "Đăng ký" | Trả 400, errors chỉ rõ field thiếu | N |
+| TC-AUTH-04 | Đăng ký password yếu | — | 1. Nhập password "123" 2. Nhấn "Đăng ký" | Trả 400, yêu cầu password mạnh hơn | N |
+| TC-AUTH-05 | Đăng nhập thành công | Tài khoản đã đăng ký, is\_active=true | 1. Nhập email, password đúng 2. Nhấn "Đăng nhập" | Trả 200, nhận accessToken + refreshToken | P |
+| TC-AUTH-06 | Đăng nhập sai mật khẩu | Tài khoản tồn tại | 1. Nhập email đúng, password sai | Trả 401, message "Email hoặc mật khẩu không đúng" | N |
+| TC-AUTH-07 | Đăng nhập tài khoản bị khóa | is\_active=false | 1. Nhập email, password đúng | Trả 403, message "Tài khoản đã bị khóa" | N |
+| TC-AUTH-08 | Refresh Token | Có refresh token hợp lệ | 1. Gọi POST /auth/refresh-token | Trả 200, nhận accessToken mới | P |
+| TC-AUTH-09 | Merge giỏ hàng khi đăng nhập | Guest có 2 SP trong Redis | 1. Đăng nhập thành công 2. Kiểm tra giỏ | Giỏ DB chứa SP từ Redis. Redis cart bị xóa | P |
+| TC-AUTH-10 | Truy cập API không có quyền | Role = CUSTOMER | 1. Gọi GET /admin/products | Trả 403 Forbidden | N |
 
-| Tiêu chí | Yêu cầu |
-|:---------|:---------|
-| Contrast Ratio | WCAG AA — tối thiểu 4.5:1 cho text, 3:1 cho large text |
-| Keyboard Navigation | Tab order hợp lý, focus ring visible |
-| Screen Reader | `aria-label` cho icon buttons; `alt` cho images |
-| Focus Management | Trap focus trong Dialog/Modal; restore focus khi đóng |
-| Form Labels | Mọi input có `<label>` hoặc `aria-label` |
-| Skip Navigation | Link "Skip to content" ẩn, hiện khi Tab |
-| Motion | `prefers-reduced-motion` — tắt animation |
+#### 3.4.2 Module Sản phẩm (M02)
 
-### 6.13 Component States (Acceptance Criteria)
+| TC-ID | Tên test case | Điều kiện tiên quyết | Các bước thực hiện | Kết quả mong đợi | Loại |
+|:------|:-------------|:---------------------|:-------------------|:-----------------|:-----|
+| TC-PROD-01 | Xem danh sách sản phẩm | DB có ≥ 5 SP ACTIVE | 1. Gọi GET /products?page=1&size=20 | Trả 200, danh sách có pagination, chỉ SP ACTIVE | P |
+| TC-PROD-02 | Tìm kiếm theo tên | DB có SP "Intel Core i7-14700K" | 1. Gọi GET /products?search=i7-14700K | Trả 200, kết quả chứa SP phù hợp | P |
+| TC-PROD-03 | Lọc theo danh mục | Category "CPU" id=1, có ≥ 3 SP | 1. Gọi GET /products?category=1 | Trả 200, chỉ SP thuộc category\_id=1 | P |
+| TC-PROD-04 | Lọc theo khoảng giá | DB có SP giá từ 1tr-50tr | 1. Gọi GET /products?minPrice=5000000&maxPrice=10000000 | Trả 200, chỉ SP trong khoảng giá | P |
+| TC-PROD-05 | Xem chi tiết SP | SP slug "intel-core-i7" tồn tại | 1. Gọi GET /products/intel-core-i7 | Trả 200, đầy đủ: tên, giá, ảnh, thông số, tồn kho | P |
+| TC-PROD-06 | Xem SP không tồn tại | Slug không có trong DB | 1. Gọi GET /products/abc-xyz-999 | Trả 404 Not Found | N |
+| TC-PROD-07 | Admin tạo SP mới | Đăng nhập ADMIN, có category + brand | 1. Gọi POST /admin/products với đầy đủ info | Trả 201, SP mới tạo thành công | P |
+| TC-PROD-08 | Admin cập nhật SP | SP id=1 tồn tại | 1. Gọi PUT /admin/products/1 với giá mới | Trả 200, giá được cập nhật | P |
+| TC-PROD-09 | Admin xóa SP đang có đơn hàng | SP id=1 có trong Order\_Detail | 1. Gọi DELETE /admin/products/1 | Trả 409 hoặc soft-delete (DISCONTINUED) | N |
+| TC-PROD-10 | Lọc thuộc tính động | Category "CPU" có attribute "Socket" | 1. Gọi GET /products?category=1&attr\_socket=LGA1700 | Trả 200, chỉ CPU có Socket LGA 1700 | P |
 
-| Component | Default | Hover | Focus | Disabled | Loading |
-|:----------|:--------|:------|:------|:---------|:--------|
-| `Button` (CTA mua) | bg-[#E31837], text-white | bg-red-700 | ring-2 ring-red-500 | opacity-50 | Spinner |
-| `Button` (cart) | bg-blue-600, text-white | bg-blue-700 | ring-2 ring-blue-500 | opacity-50 | Spinner |
-| `Button` (outline) | bg-white, border-gray-300 | bg-gray-50 | ring-2 ring-blue-500 | opacity-50 | Spinner |
-| `Input` | bg-white, border-gray-300 | — | ring-2 ring-blue-500 | bg-gray-100 | — |
-| `Card` (Product) | bg-white, shadow-sm | shadow-md, translate-y-[-2px] | ring-2 ring-blue-500 | — | Skeleton |
-| `Badge` (sale) | bg-red-500, text-white | — | — | — | — |
-| `Badge` (stock) | bg-green-500, text-white | — | — | — | — |
-| **Giá bán** | text-[#E31837], font-bold | — | — | — | — |
-| **Giá gốc** | text-gray-400, line-through | — | — | — | — |
+#### 3.4.3 Module Mua sắm (M03)
+
+| TC-ID | Tên test case | Điều kiện tiên quyết | Các bước thực hiện | Kết quả mong đợi | Loại |
+|:------|:-------------|:---------------------|:-------------------|:-----------------|:-----|
+| TC-SHOP-01 | Guest thêm SP vào giỏ | SP còn hàng (quantity ≥ 1) | 1. Không đăng nhập 2. POST /cart/items | Trả 200, item lưu vào Redis | P |
+| TC-SHOP-02 | Customer thêm SP vào giỏ | Đăng nhập, SP còn hàng | 1. POST /cart/items | Trả 200, Cart\_Item tạo trong DB | P |
+| TC-SHOP-03 | Thêm SP hết hàng | inventory.quantity=0 | 1. POST /cart/items | Trả 409, message "Sản phẩm đã hết hàng" | N |
+| TC-SHOP-04 | Sửa số lượng trong giỏ | Cart có item, Inventory.quantity=5 | 1. PATCH /cart/items/1 với quantity=3 | Trả 200, quantity cập nhật thành 3 | P |
+| TC-SHOP-05 | Sửa số lượng vượt tồn kho | Inventory.quantity=2 | 1. PATCH /cart/items/1 với quantity=10 | Trả 200, quantity giới hạn ở 2 + cảnh báo | N |
+| TC-SHOP-06 | Xóa SP khỏi giỏ | Cart có ≥ 1 item | 1. DELETE /cart/items/1 | Trả 204, item bị xóa | P |
+| TC-SHOP-07 | Merge giỏ khi đăng nhập | Guest có 2 item Redis, Customer có 1 item trùng trong DB | 1. Đăng nhập 2. Kiểm tra giỏ | Item trùng: cộng dồn. Item mới: thêm. Redis xóa | P |
+| TC-SHOP-08 | Thêm SP vào Wishlist | SP chưa có trong wishlist | 1. POST /wishlist với product\_id | Trả 201, SP trong danh sách yêu thích | P |
+| TC-SHOP-09 | Toggle Wishlist (xóa) | SP đã có trong wishlist | 1. POST /wishlist với product\_id (lần 2) | Trả 200, SP bị xóa khỏi wishlist | P |
+
+#### 3.4.4 Module Đơn hàng & Thanh toán (M04)
+
+| TC-ID | Tên test case | Điều kiện tiên quyết | Các bước thực hiện | Kết quả mong đợi | Loại |
+|:------|:-------------|:---------------------|:-------------------|:-----------------|:-----|
+| TC-ORD-01 | Checkout COD thành công | Giỏ có ≥ 1 item, có address, SP còn hàng | 1. POST /orders với paymentMethod=COD | Trả 201. Order, OrderDetail, Payment, Shipping tạo. Inventory trừ. Cart xóa | P |
+| TC-ORD-02 | Checkout VNPay thành công | Tương tự TC-ORD-01 | 1. POST /orders với paymentMethod=VNPAY | Trả 201 + paymentUrl. Sau callback: Payment.status=SUCCESS | P |
+| TC-ORD-03 | Checkout khi SP hết hàng | Inventory.quantity=0 | 1. POST /orders | Trả 409, liệt kê SP hết hàng. Order không tạo | N |
+| TC-ORD-04 | Áp dụng Coupon hợp lệ | Coupon còn hạn, chưa max\_uses | 1. POST /orders với couponCode | discount\_amount tính đúng. Coupon\_Usage tạo | P |
+| TC-ORD-05 | Áp dụng Coupon hết hạn | end\_date < NOW() | 1. POST /orders với couponCode | Trả 400, message "Mã giảm giá đã hết hạn" | N |
+| TC-ORD-06 | Áp dụng Coupon đã dùng | Coupon\_Usage đã có record | 1. POST /orders với couponCode | Trả 400, message "Bạn đã sử dụng mã này" | N |
+| TC-ORD-07 | Hủy đơn hàng | Order status=PENDING | 1. Hủy đơn hàng | Status → CANCELLED. Inventory hoàn lại. Coupon hoàn | P |
+| TC-ORD-08 | Sales cập nhật trạng thái | Role SALES, Order PENDING | 1. PATCH /admin/orders/1/status DELIVERING | Trả 200, status cập nhật. History ghi nhận | P |
+| TC-ORD-09 | Xem lịch sử đơn hàng | Customer có ≥ 3 đơn | 1. GET /orders | Trả 200, chỉ đơn của user. Có pagination | P |
+| TC-ORD-10 | VNPay callback thất bại | Order chờ thanh toán | 1. VNPay callback status=FAILED | Payment.status=FAILED. Order vẫn PENDING | N |
+
+#### 3.4.5 Module Build PC (M05)
+
+| TC-ID | Tên test case | Điều kiện tiên quyết | Các bước thực hiện | Kết quả mong đợi | Loại |
+|:------|:-------------|:---------------------|:-------------------|:-----------------|:-----|
+| TC-BPC-01 | Xem danh sách slot | DB có categories cho CPU, Main, RAM, GPU, SSD, Case, PSU | 1. Truy cập /build-pc | Hiển thị slot đánh số, nút [+ Chọn], tổng giá = 0đ | P |
+| TC-BPC-02 | Chọn linh kiện | Slot CPU, DB có ≥ 3 CPU ACTIVE | 1. Nhấn [+ Chọn] CPU 2. Chọn SP | SP hiển thị tại slot, tổng giá cập nhật | P |
+| TC-BPC-03 | Xuất báo giá PDF (Guest) | Chọn ≥ 2 linh kiện, chưa đăng nhập | 1. Nhấn "Xuất báo giá" | PDF download, chứa danh sách + tổng giá. Không cần login | P |
+| TC-BPC-04 | Kiểm tra tương thích AI | Đã đăng nhập, chọn CPU Intel + Main AMD | 1. Nhấn "Kiểm tra tương thích" | compatible=false, analysis mô tả lỗi socket, suggestions gợi ý | P |
+| TC-BPC-05 | Kiểm tra tương thích chưa đăng nhập | Chưa đăng nhập, đã chọn linh kiện | 1. Nhấn "Kiểm tra tương thích" | Lưu cấu hình Redis. Redirect đăng nhập. Sau login: khôi phục | N |
+| TC-BPC-06 | Thêm cấu hình vào giỏ | Đã đăng nhập, 5 linh kiện, tất cả còn hàng | 1. Nhấn "Thêm vào giỏ hàng" | 5 Cart\_Item riêng lẻ tạo trong DB | P |
+| TC-BPC-07 | Chọn linh kiện hết hàng | inventory.quantity=0 | 1. Chọn SP hết hàng | Hiển thị badge "Hết hàng", không cho chọn | N |
+
+#### 3.4.6 Module Kho hàng (M06)
+
+| TC-ID | Tên test case | Điều kiện tiên quyết | Các bước thực hiện | Kết quả mong đợi | Loại |
+|:------|:-------------|:---------------------|:-------------------|:-----------------|:-----|
+| TC-INV-01 | Xem danh sách tồn kho | Role WAREHOUSE, DB có ≥ 10 SP | 1. GET /admin/inventory | Trả 200, danh sách SP với quantity, threshold | P |
+| TC-INV-02 | Nhập hàng từ NCC | Role WAREHOUSE | 1. POST /admin/inventory/import product\_id=1, qty=100 | Inventory.quantity += 100. Inventory\_Log (IMPORT, +100) | P |
+| TC-INV-03 | Kiểm kê / Điều chỉnh | Quantity hiện tại = 50 | 1. POST /admin/inventory/adjust new\_quantity=45 | Inventory.quantity=45. Inventory\_Log (ADJUSTMENT, -5) | P |
+| TC-INV-04 | Cảnh báo sắp hết hàng | quantity=3, threshold=5 | 1. Xem danh sách inventory | SP highlight "Sắp hết hàng" | P |
+| TC-INV-05 | Điều chỉnh tồn kho dưới 0 | quantity=2 | 1. Adjust giảm 3 | Yêu cầu confirmation flag. Không có → trả 400 | N |
+| TC-INV-06 | Customer truy cập trang kho | Role = CUSTOMER | 1. GET /admin/inventory | Trả 403 Forbidden | N |
+
+#### 3.4.7 Module Bảo hành & Đổi trả (M09)
+
+| TC-ID | Tên test case | Điều kiện tiên quyết | Các bước thực hiện | Kết quả mong đợi | Loại |
+|:------|:-------------|:---------------------|:-------------------|:-----------------|:-----|
+| TC-WAR-01 | Tạo phiếu BH thành công | Order COMPLETED, BH 12 tháng, còn hạn | 1. POST /warranty-tickets | Trả 201, Warranty\_Ticket (status=RECEIVED) | P |
+| TC-WAR-02 | Tạo phiếu BH hết hạn | Order > 12 tháng trước | 1. POST /warranty-tickets | Trả 400, "Sản phẩm đã hết hạn bảo hành" | N |
+| TC-WAR-03 | BH cho SP không thuộc đơn | product\_id không có trong order | 1. POST /warranty-tickets | Trả 400, "SP không thuộc đơn hàng này" | N |
+| TC-WAR-04 | Sales xử lý phiếu BH | Ticket status=RECEIVED | 1. PATCH status=PROCESSING 2. PATCH status=REPAIRED | Trạng thái cập nhật tuần tự. Resolution ghi nhận | P |
+| TC-WAR-05 | Yêu cầu đổi trả (Refund) | Order COMPLETED, trong thời gian cho phép | 1. POST /returns type=REFUND | Trả 201, Return (PENDING\_APPROVAL) | P |
+| TC-WAR-06 | Duyệt đổi trả (Refund) | Return PENDING\_APPROVAL, type=REFUND | 1. PATCH status=APPROVED | Payment REFUNDED. Inventory hoàn. Inventory\_Log RETURN | P |
+| TC-WAR-07 | Duyệt đổi trả (Exchange) | type=EXCHANGE | 1. PATCH status=APPROVED | SP cũ hoàn kho. Order mới tạo cho SP thay thế | P |
+| TC-WAR-08 | Từ chối đổi trả | Return PENDING\_APPROVAL | 1. PATCH status=REJECTED, note="Lý do" | REJECTED. Lý do lưu. Không hoàn kho/tiền | N |
+| TC-WAR-09 | Đổi trả khi đơn chưa hoàn thành | Order status=DELIVERING | 1. POST /returns | Trả 400, "Chỉ đổi trả đơn đã hoàn thành" | N |
 
 ---
 
-## 7 Thiết kế dữ liệu
-
-### 7.1 Tổng quan mô hình dữ liệu
-
-Hệ thống quản lý **32 thực thể (Entity)** chính, được nhóm thành **7 nhóm nghiệp vụ**. Dưới đây là thiết kế lược đồ cơ sở dữ liệu chi tiết cho từng nhóm.
-
-### 7.2 Nhóm Phân quyền (Authentication & Authorization)
-
-#### 7.2.1 Account (Tài khoản)
-
-| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
-|:----|:--------------|:----------|:------|
-| id | BIGINT | PK, AUTO\_INCREMENT | Khóa chính |
-| email | VARCHAR(255) | UNIQUE, NOT NULL | Email đăng nhập |
-| password\_hash | VARCHAR(255) | NOT NULL | Mật khẩu mã hóa (BCrypt) |
-| is\_active | BOOLEAN | DEFAULT TRUE | Trạng thái hoạt động |
-| is\_verified | BOOLEAN | DEFAULT FALSE | Trạng thái xác minh email |
-| role\_id | BIGINT | FK → Role(id), NOT NULL | Vai trò |
-| last\_login\_at | TIMESTAMP | NULLABLE | Lần đăng nhập cuối |
-| created\_at | TIMESTAMP | DEFAULT NOW() | Ngày tạo |
-| updated\_at | TIMESTAMP | DEFAULT NOW() | Ngày cập nhật |
-
-#### 7.2.2 User / Profile (Thông tin cá nhân)
-
-| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
-|:----|:--------------|:----------|:------|
-| id | BIGINT | PK, AUTO\_INCREMENT | Khóa chính |
-| account\_id | BIGINT | FK → Account(id), UNIQUE, NOT NULL | Liên kết 1-1 với Account |
-| full\_name | VARCHAR(255) | NOT NULL | Họ và tên |
-| phone | VARCHAR(20) | UNIQUE, NOT NULL | Số điện thoại |
-| avatar\_url | VARCHAR(500) | NULLABLE | URL ảnh đại diện |
-| date\_of\_birth | DATE | NULLABLE | Ngày sinh |
-| gender | VARCHAR(10) | NULLABLE | Giới tính |
-| created\_at | TIMESTAMP | DEFAULT NOW() | Ngày tạo |
-| updated\_at | TIMESTAMP | DEFAULT NOW() | Ngày cập nhật |
-
-#### 7.2.3 Address (Địa chỉ giao hàng)
-
-| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
-|:----|:--------------|:----------|:------|
-| id | BIGINT | PK, AUTO\_INCREMENT | Khóa chính |
-| user\_id | BIGINT | FK → User(id), NOT NULL | Người dùng sở hữu |
-| label | VARCHAR(50) | NULLABLE | Nhãn (Nhà, Cơ quan, ...) |
-| receiver\_name | VARCHAR(255) | NOT NULL | Tên người nhận |
-| receiver\_phone | VARCHAR(20) | NOT NULL | SĐT người nhận |
-| province | VARCHAR(100) | NOT NULL | Tỉnh/Thành phố |
-| district | VARCHAR(100) | NOT NULL | Quận/Huyện |
-| ward | VARCHAR(100) | NOT NULL | Phường/Xã |
-| street | VARCHAR(255) | NOT NULL | Số nhà, đường |
-| is\_default | BOOLEAN | DEFAULT FALSE | Địa chỉ mặc định |
-| created\_at | TIMESTAMP | DEFAULT NOW() | Ngày tạo |
-| updated\_at | TIMESTAMP | DEFAULT NOW() | Ngày cập nhật |
-
-> **Giới hạn vùng giao hàng:** Hiện tại chỉ hỗ trợ giao hàng tại **Hà Nội** (12 Quận, 17 Huyện, 1 Thị xã).
-
-#### 7.2.4 Role (Vai trò)
-
-| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
-|:----|:--------------|:----------|:------|
-| id | BIGINT | PK, AUTO\_INCREMENT | Khóa chính |
-| name | VARCHAR(50) | UNIQUE, NOT NULL | Tên vai trò (Admin, Sales, Warehouse, Customer) |
-| description | VARCHAR(255) | NULLABLE | Mô tả |
-
-#### 7.2.5 Permission (Quyền hạn)
-
-| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
-|:----|:--------------|:----------|:------|
-| id | BIGINT | PK, AUTO\_INCREMENT | Khóa chính |
-| code | VARCHAR(100) | UNIQUE, NOT NULL | Mã quyền |
-| description | VARCHAR(255) | NULLABLE | Mô tả quyền |
-
-#### 7.2.6 Role\_Permission (Phân quyền)
-
-| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
-|:----|:--------------|:----------|:------|
-| role\_id | BIGINT | PK, FK → Role(id) | Vai trò |
-| permission\_id | BIGINT | PK, FK → Permission(id) | Quyền |
-
-#### 7.2.7 Token (Phiên xác thực)
-
-| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
-|:----|:--------------|:----------|:------|
-| id | BIGINT | PK, AUTO\_INCREMENT | Khóa chính |
-| account\_id | BIGINT | FK → Account(id), NOT NULL | Tài khoản |
-| token\_type | VARCHAR(20) | NOT NULL | Loại: REFRESH, RESET\_PASSWORD, OTP |
-| token\_value | VARCHAR(500) | NOT NULL | Giá trị token |
-| expires\_at | TIMESTAMP | NOT NULL | Thời gian hết hạn |
-| created\_at | TIMESTAMP | DEFAULT NOW() | Ngày tạo |
-
-### 7.3 Nhóm Sản phẩm (Product Catalog)
-
-#### 7.3.1 Category (Danh mục)
-
-| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
-|:----|:--------------|:----------|:------|
-| id | BIGINT | PK, AUTO\_INCREMENT | Khóa chính |
-| name | VARCHAR(255) | UNIQUE, NOT NULL | Tên danh mục |
-| description | TEXT | NULLABLE | Mô tả |
-| parent\_id | BIGINT | FK → Category(id), NULLABLE | Danh mục cha (self-referencing) |
-| level | INT | DEFAULT 0 | Cấp độ phân cấp |
-| created\_at | TIMESTAMP | DEFAULT NOW() | Ngày tạo |
-| updated\_at | TIMESTAMP | DEFAULT NOW() | Ngày cập nhật |
-
-#### 7.3.2 Brand (Thương hiệu)
-
-| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
-|:----|:--------------|:----------|:------|
-| id | BIGINT | PK, AUTO\_INCREMENT | Khóa chính |
-| name | VARCHAR(255) | UNIQUE, NOT NULL | Tên thương hiệu |
-| logo\_url | VARCHAR(500) | NULLABLE | Logo |
-| description | TEXT | NULLABLE | Mô tả |
-
-#### 7.3.3 Product (Sản phẩm)
-
-| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
-|:----|:--------------|:----------|:------|
-| id | BIGINT | PK, AUTO\_INCREMENT | Khóa chính |
-| name | VARCHAR(255) | NOT NULL | Tên sản phẩm |
-| sku | VARCHAR(100) | UNIQUE, NOT NULL | Mã SKU |
-| slug | VARCHAR(255) | UNIQUE, NOT NULL | Slug cho URL thân thiện |
-| original\_price | DECIMAL(15,2) | NOT NULL | Giá gốc |
-| selling\_price | DECIMAL(15,2) | NOT NULL | Giá bán |
-| description | TEXT | NULLABLE | Mô tả chi tiết |
-| category\_id | BIGINT | FK → Category(id), NOT NULL | Danh mục |
-| brand\_id | BIGINT | FK → Brand(id), NOT NULL | Thương hiệu |
-| condition | VARCHAR(20) | NOT NULL | NEW, BOX, TRAY, SECOND\_HAND |
-| status | VARCHAR(20) | DEFAULT 'ACTIVE' | ACTIVE, INACTIVE, DISCONTINUED |
-| created\_at | TIMESTAMP | DEFAULT NOW() | Ngày tạo |
-| updated\_at | TIMESTAMP | DEFAULT NOW() | Ngày cập nhật |
-
-#### 7.3.4 – 7.3.7 Attribute, Attribute\_Value, Product\_Attribute, Product\_Image
-
-*(Xem mô tả chi tiết tại Phần 2.2 — Biểu đồ lớp Module Product Catalog và trong tài liệu SRS.)*
-
-| Bảng | Khóa chính | Liên kết | Mô tả |
-|:-----|:-----------|:---------|:------|
-| Attribute | id (PK) | FK → Category(id) | Thuộc tính kỹ thuật (Socket, Bus RAM...) |
-| Attribute\_Value | id (PK) | FK → Attribute(id) | Giá trị thuộc tính (LGA 1700, DDR5...) |
-| Product\_Attribute | product\_id + attribute\_id (PK) | FK → Product, Attribute, Attribute\_Value | Gắn giá trị thuộc tính cho sản phẩm |
-| Product\_Image | id (PK) | FK → Product(id) | Hình ảnh sản phẩm (is\_primary, sort\_order) |
-
-### 7.4 Nhóm Kho hàng (Inventory)
-
-| Bảng | Mô tả |
-|:-----|:------|
-| Supplier | Nhà cung cấp (name, contact\_person, phone, email, address) |
-| Inventory | Kho hàng: product\_id (1-1), quantity, low\_stock\_threshold, supplier\_id |
-| Inventory\_Log | Lịch sử kho: product\_id, type (IMPORT/SELL/RETURN/ADJUSTMENT), quantity\_change, performed\_by, note |
-
-### 7.5 Nhóm Mua sắm (Shopping)
-
-| Bảng | Mô tả |
-|:-----|:------|
-| Cart | Giỏ hàng: user\_id (nullable), session\_id (nullable). Merge logic khi đăng nhập. |
-| Cart\_Item | Chi tiết: cart\_id, product\_id, quantity |
-| Wishlist | Yêu thích: user\_id, product\_id. UNIQUE(user\_id, product\_id) |
-
-### 7.6 Nhóm Đơn hàng & Thanh toán (Order & Payment)
-
-| Bảng | Mô tả |
-|:-----|:------|
-| Coupon | Mã giảm giá: code, discount\_type (PERCENT/FIXED), discount\_value, min\_order, max\_discount, max\_uses, used\_count, start/end\_date |
-| Order | Đơn hàng: user\_id, address\_id, subtotal, discount\_amount, total\_amount, status, coupon\_id |
-| Order\_Detail | Chi tiết: order\_id, product\_id, quantity, unit\_price (snapshot), line\_total |
-| Payment | Thanh toán: order\_id, method (COD/VNPAY/MOMO/BANK\_TRANSFER), amount, status, transaction\_id |
-| Shipping | Vận chuyển: order\_id (1-1), provider, tracking\_number, shipping\_fee, status, estimated/delivered\_date |
-| Coupon\_Usage | Lịch sử dùng mã: coupon\_id, user\_id, order\_id. UNIQUE(coupon\_id, user\_id) |
-| Order\_Status\_History | Lịch sử trạng thái: order\_id, old/new\_status, changed\_by, note |
-
-### 7.7 Nhóm Tương tác (Interaction)
-
-| Bảng | Mô tả |
-|:-----|:------|
-| Review | Đánh giá: user\_id, product\_id, order\_id, rating (1-5), content |
-| Review\_Image | Ảnh đánh giá: review\_id, image\_url |
-
-### 7.8 Nhóm Bảo hành & Đổi trả (Warranty & Return)
-
-| Bảng | Mô tả |
-|:-----|:------|
-| Warranty\_Policy | Chính sách BH: category\_id/product\_id, duration\_months, conditions. Ưu tiên Product > Category. |
-| Warranty\_Ticket | Phiếu BH: user\_id, product\_id, order\_id, serial\_number, issue\_description, status (RECEIVED→PROCESSING→REPAIRED/REJECTED→RETURNED) |
-| Return | Đổi trả: user\_id, order\_id, order\_detail\_id, type (EXCHANGE/REFUND), reason, status (PENDING\_APPROVAL/APPROVED/REJECTED), refund\_amount |
-
-### 7.9 Tổng hợp quan hệ giữa các thực thể
-
-| Quan hệ | Loại | Mô tả |
-|:---------|:-----|:------|
-| Account ↔ Role | N-1 | Mỗi Account có 1 Role |
-| Role ↔ Permission | N-N | Qua Role\_Permission |
-| Account ↔ User | 1-1 | Mỗi Account có 1 Profile |
-| User ↔ Address | 1-N | Nhiều địa chỉ |
-| Category ↔ Category | 1-N (self) | Phân cấp đa tầng |
-| Category ↔ Product | 1-N | Danh mục chứa sản phẩm |
-| Category ↔ Attribute | 1-N | Thuộc tính riêng theo danh mục |
-| Brand ↔ Product | 1-N | Thương hiệu có nhiều sản phẩm |
-| Product ↔ Attribute | N-N | Qua Product\_Attribute |
-| Product ↔ Product\_Image | 1-N | Nhiều ảnh |
-| Product ↔ Inventory | 1-1 | Mỗi SP có 1 Inventory |
-| User ↔ Cart | 1-1 | Mỗi User/Session có 1 Cart |
-| Cart ↔ Product | N-N | Qua Cart\_Item |
-| User ↔ Order | 1-N | Nhiều đơn hàng |
-| Order ↔ Product | N-N | Qua Order\_Detail (snapshot giá) |
-| Order ↔ Payment | 1-N | Cho phép retry |
-| Order ↔ Shipping | 1-1 | 1 đơn 1 vận chuyển |
-| Coupon ↔ Order | 1-N | 1 mã nhiều đơn |
-| User ↔ Review ↔ Product | N-N | Chỉ khi đơn "Hoàn thành" |
-| User ↔ Warranty\_Ticket | 1-N | Phiếu bảo hành |
-| User ↔ Return | 1-N | Yêu cầu đổi trả |
-
-### 7.10 Danh sách Enum Values
-
-| Enum | Giá trị |
-|:-----|:--------|
-| Product.condition | `NEW`, `BOX`, `TRAY`, `SECOND_HAND` |
-| Product.status | `ACTIVE`, `INACTIVE`, `DISCONTINUED` |
-| Order.status | `PENDING`, `DELIVERING`, `COMPLETED`, `CANCELLED` |
-| Payment.method | `COD`, `VNPAY`, `MOMO`, `BANK_TRANSFER` |
-| Payment.status | `PENDING`, `SUCCESS`, `FAILED`, `REFUNDED` |
-| Shipping.status | `WAITING_PICKUP`, `IN_TRANSIT`, `DELIVERED`, `FAILED` |
-| Inventory\_Log.type | `IMPORT`, `SELL`, `RETURN`, `ADJUSTMENT` |
-| Token.token\_type | `REFRESH`, `RESET_PASSWORD`, `OTP` |
-| Warranty\_Ticket.status | `RECEIVED`, `PROCESSING`, `REPAIRED`, `REJECTED`, `RETURNED` |
-| Return.type | `EXCHANGE`, `REFUND` |
-| Return.status | `PENDING_APPROVAL`, `APPROVED`, `REJECTED` |
-| Coupon.discount\_type | `PERCENT`, `FIXED` |
-| Role.name | `ADMIN`, `SALES`, `WAREHOUSE`, `CUSTOMER` |
-
-### 7.11 Công nghệ đề xuất (Technology Stack Summary)
-
-| Layer | Công nghệ |
-|:------|:----------|
-| **Frontend Framework** | Next.js (App Router) |
-| Frontend Language | TypeScript (bắt buộc) |
-| UI / CSS | Tailwind CSS + shadcn/ui + Lucide Icons |
-| Form Management | React Hook Form + Zod |
-| Client State | Zustand + TanStack Query |
-| Server Data | React Server Components |
-| Loading UX | Skeleton Loading |
-| **Backend** | Spring Boot (Java) |
-| Database | PostgreSQL |
-| Cache | Redis |
-| API Documentation | Swagger / OpenAPI 3.0 |
-| Authentication | Spring Security + JWT |
-| File Storage | MinIO |
-| CI/CD | GitHub Actions |
-| Containerization | Docker + Docker Compose |
-| Reverse Proxy | Nginx |
-| Monitoring | Prometheus + Grafana |
-| Logging | ELK Stack |
-| Email | SMTP (SendGrid / AWS SES) |
-| Payment Gateway | VNPay SDK, MoMo SDK |
-| AI Integration | LLM API (provider-agnostic) |
-
----
-
-*Hết tài liệu — Software Design Description v1.0*
+*Hết tài liệu — Software Design Description v1.1*

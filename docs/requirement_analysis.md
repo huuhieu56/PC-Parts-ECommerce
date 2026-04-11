@@ -275,7 +275,233 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 ![][image1]  
 **4\. Đặc tả Use Case**
 
-   **4.1. Tìm kiếm và lọc sản phẩm**
+   **4.1. Đăng ký**
+
+1\.    Mã UC, tên UC: UC-CUS-04: Đăng ký
+
+2\.    Actor: Khách vãng lai – Guest
+
+3\.    Mô tả: Cho phép người dùng mới tạo tài khoản trên hệ thống.
+
+4\.    Tiền điều kiện: Người dùng chưa có tài khoản (chưa đăng nhập).
+
+5\.    Luồng chính:
+
+\-        Người dùng nhấn "Đăng ký", hệ thống hiển thị form: Họ tên, Email, SĐT, Mật khẩu, Xác nhận mật khẩu
+
+\-        Hệ thống kiểm tra tính hợp lệ (định dạng email, độ dài mật khẩu, mật khẩu khớp)
+
+\-        Hệ thống kiểm tra bảng Account xem Email đã tồn tại chưa, kiểm tra bảng User xem SĐT đã tồn tại chưa
+
+\-        Nếu hợp lệ: tạo Account (password\_hash, Role \= Customer, is\_active \= true) và User/Profile (họ tên, SĐT)
+
+\-        Hiển thị "Đăng ký thành công" và chuyển hướng trang đăng nhập
+
+6\.    Luồng ngoại lệ:
+
+\-        Trường bắt buộc để trống → Báo lỗi cụ thể
+
+\-        Email/SĐT sai định dạng → Báo lỗi
+
+\-        Mật khẩu xác nhận không khớp → Báo lỗi
+
+\-        Email hoặc SĐT đã tồn tại → Báo lỗi "Email/SĐT đã được sử dụng"
+
+7\.    Hậu điều kiện:
+
+\-        Account mới (Role \= Customer) và User/Profile được tạo trong CSDL
+
+   **4.2. Đăng nhập**
+
+1\.    Mã UC, tên UC: UC-CUS-05: Đăng nhập
+
+2\.    Actor: Khách vãng lai – Guest
+
+3\.    Mô tả: Xác thực người dùng qua Email và Mật khẩu. Sinh Token/Session để duy trì phiên, merge giỏ hàng Session vào Cart database.
+
+4\.    Tiền điều kiện: Người dùng đã có tài khoản (đã đăng ký).
+
+5\.    Luồng chính:
+
+\-        Người dùng nhập Email và Mật khẩu, nhấn "Đăng nhập"
+
+\-        Hệ thống truy xuất Account, kiểm tra Email tồn tại và password\_hash khớp
+
+\-        Kiểm tra is\_active \= true (chưa bị khóa)
+
+\-        Sinh Token/Session (lưu vào bảng Token/Session) và trả về trình duyệt
+
+\-        Merge giỏ hàng Session vào Cart database (theo UC-CUS-03)
+
+\-        Chuyển hướng theo Role (Customer/Admin/Sales/Warehouse)
+
+6\.    Luồng ngoại lệ:
+
+\-        Email không tồn tại hoặc Mật khẩu sai → "Email hoặc mật khẩu không đúng"
+
+\-        Tài khoản bị khóa (is\_active \= false) → "Tài khoản đã bị khóa. Liên hệ quản trị viên"
+
+\-        Trường bắt buộc để trống → Báo lỗi
+
+7\.    Hậu điều kiện:
+
+\-        Token/Session mới được tạo trong CSDL
+
+\-        Giỏ hàng Session được merge vào Cart database rồi xóa
+
+\-        Phiên duy trì cho đến khi Token hết hạn hoặc đăng xuất
+
+   **4.3. Đăng xuất**
+
+1\.    Mã UC, tên UC: UC-CUS-06: Đăng xuất
+
+2\.    Actor: Customer / Admin / Sales / Warehouse
+
+3\.    Mô tả: Kết thúc phiên làm việc hiện tại.
+
+4\.    Tiền điều kiện: Người dùng đang đăng nhập (có Token/Session hợp lệ).
+
+5\.    Luồng chính:
+
+\-        Người dùng nhấn "Đăng xuất"
+
+\-        Hệ thống xóa Token/Session trong CSDL
+
+\-        Xóa giỏ hàng Session trên trình duyệt
+
+\-        Chuyển hướng về trang chủ (giao diện Guest)
+
+6\.    Luồng ngoại lệ:
+
+\-        Token đã hết hạn → Tự động chuyển về trang đăng nhập kèm thông báo
+
+7\.    Hậu điều kiện:
+
+\-        Token/Session bị xóa, giỏ hàng Session bị xóa, Cart database vẫn được lưu
+
+   **4.4. Thay đổi mật khẩu**
+
+1\.    Mã UC, tên UC: UC-CUS-16: Thay đổi mật khẩu
+
+2\.    Actor: Khách hàng – Customer
+
+3\.    Mô tả: Cho phép Customer đổi mật khẩu hiện tại sang mật khẩu mới khi đang đăng nhập.
+
+4\.    Tiền điều kiện: Customer đã đăng nhập (có Token/Session hợp lệ).
+
+5\.    Luồng chính:
+
+\-        Customer truy cập "Tài khoản của tôi" → "Đổi mật khẩu"
+
+\-        Hệ thống hiển thị form: Mật khẩu hiện tại, Mật khẩu mới, Xác nhận mật khẩu mới
+
+\-        Customer nhập đầy đủ thông tin và nhấn "Đổi mật khẩu"
+
+\-        Hệ thống kiểm tra mật khẩu hiện tại khớp với Account.password\_hash
+
+\-        Nếu đúng: cập nhật password\_hash mới. Xóa toàn bộ Token/Session cũ (buộc đăng nhập lại trên mọi thiết bị)
+
+\-        Hệ thống tạo Token/Session mới cho phiên hiện tại
+
+6\.    Luồng ngoại lệ:
+
+\-        Mật khẩu hiện tại không đúng → Báo lỗi "Mật khẩu hiện tại không đúng"
+
+\-        Mật khẩu mới và xác nhận không khớp → Báo lỗi "Mật khẩu xác nhận không khớp"
+
+\-        Mật khẩu mới trùng mật khẩu cũ → Báo lỗi "Mật khẩu mới phải khác mật khẩu cũ"
+
+\-        Mật khẩu mới không đủ độ mạnh → Báo lỗi
+
+7\.    Hậu điều kiện: Account.password\_hash được cập nhật. Token/Session cũ bị xóa, Token/Session mới được tạo cho phiên hiện tại
+   **4.5. Quên / Thiết lập lại mật khẩu**
+
+1\.    Mã UC, tên UC: UC-CUS-15: Quên / Thiết lập lại mật khẩu
+
+2\.    Actor: Khách vãng lai (Guest) / Khách hàng (Customer)
+
+3\.    Mô tả: Cho phép người dùng khôi phục quyền truy cập tài khoản khi quên mật khẩu, thông qua liên kết đặt lại mật khẩu gửi qua email.
+
+4\.    Tiền điều kiện:
+
+\-        Người dùng đã có tài khoản (đã đăng ký)
+
+\-        Người dùng chưa đăng nhập
+
+5\.    Luồng chính:
+
+\-        Người dùng nhấn "Quên mật khẩu" trên trang đăng nhập
+
+\-        Hệ thống hiển thị form nhập Email
+
+\-        Người dùng nhập Email đã đăng ký và nhấn "Gửi"
+
+\-        Hệ thống kiểm tra Email tồn tại trong bảng Account
+
+\-        Nếu tồn tại: tạo Reset Password Token (lưu vào bảng Token/Session với thời hạn hết hạn) và gửi email chứa liên kết đặt lại mật khẩu
+
+\-        Người dùng nhấn liên kết trong email → hệ thống xác minh Token còn hiệu lực
+
+\-        Hiển thị form: Mật khẩu mới, Xác nhận mật khẩu mới
+
+\-        Người dùng nhập mật khẩu mới và nhấn "Đặt lại mật khẩu"
+
+\-        Hệ thống cập nhật Account.password\_hash, xóa Reset Password Token, xóa toàn bộ Token/Session cũ (buộc đăng nhập lại với mật khẩu mới)
+
+6\.    Luồng ngoại lệ:
+
+\-        Email không tồn tại → Hệ thống vẫn hiển thị thông báo "Nếu email tồn tại, bạn sẽ nhận được liên kết đặt lại mật khẩu" (tránh lộ thông tin)
+
+\-        Token hết hạn hoặc không hợp lệ → Báo "Liên kết đã hết hạn. Vui lòng yêu cầu lại"
+
+\-        Mật khẩu mới và xác nhận không khớp → Báo lỗi
+
+\-        Mật khẩu mới không đủ độ mạnh → Báo lỗi "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số"
+
+7\.    Hậu điều kiện:
+
+\-        Account.password\_hash được cập nhật. Reset Password Token bị xóa. Toàn bộ Token/Session cũ bị xóa
+   **4.6. Quản lý thông tin cá nhân**
+
+1\.    Mã UC, tên UC: UC-CUS-14: Quản lý thông tin cá nhân
+
+2\.    Actor: Khách hàng – Customer
+
+3\.    Mô tả: Cho phép Customer cập nhật thông tin cá nhân (User/Profile) và đổi mật khẩu (Account).
+
+4\.    Tiền điều kiện: Customer đã đăng nhập.
+
+5\.    Luồng chính:
+
+   Sửa thông tin cá nhân:
+
+\-        Customer truy cập "Tài khoản của tôi" → "Thông tin cá nhân"
+
+\-        Hệ thống hiển thị form với dữ liệu hiện tại: Họ tên, SĐT, ảnh đại diện, ngày sinh, giới tính
+
+\-        Customer sửa thông tin, nhấn "Cập nhật". Hệ thống lưu vào bảng User
+
+   Đổi mật khẩu:
+
+\-        Customer nhấn "Đổi mật khẩu"
+
+\-        Nhập: Mật khẩu hiện tại, Mật khẩu mới, Xác nhận mật khẩu mới
+
+\-        Hệ thống kiểm tra mật khẩu hiện tại khớp với Account.password\_hash
+
+\-        Nếu đúng: cập nhật password\_hash mới. Xóa toàn bộ Token/Session cũ (buộc đăng nhập lại)
+
+6\.    Luồng ngoại lệ:
+
+\-        SĐT đã tồn tại ở User khác → Báo lỗi "SĐT đã được sử dụng"
+
+\-        Mật khẩu hiện tại không đúng → Báo lỗi "Mật khẩu hiện tại không đúng"
+
+\-        Mật khẩu mới và xác nhận không khớp → Báo lỗi
+
+7\.    Hậu điều kiện: User/Profile hoặc Account.password\_hash được cập nhật. Nếu đổi mật khẩu: Token/Session cũ bị xóa
+
+   **4.7. Tìm kiếm và lọc sản phẩm**
 
 1\.    Mã UC, tên UC: UC-CUS-01: Tìm kiếm và lọc sản phẩm
 
@@ -307,7 +533,43 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Hệ thống hiển thị danh sách sản phẩm khớp với điều kiện tìm kiếm/lọc của người dùng trên giao diện
 
-   **4.2. Tạo đơn hàng và thanh toán**
+   **4.8. Quản lý giỏ hàng**
+
+1\.    Mã UC, tên UC: UC-CUS-03: Quản lý giỏ hàng
+
+2\.    Actor: Khách vãng lai (Guest) / Khách hàng (Customer)
+
+3\.    Mô tả: Cho phép người dùng thêm, xem, sửa số lượng và xóa sản phẩm trong giỏ hàng. Guest dùng giỏ Session, Customer dùng giỏ database (Cart). Khi đăng nhập, merge giỏ Session vào Cart.
+
+4\.    Tiền điều kiện: Người dùng đang truy cập hệ thống.
+
+5\.    Luồng chính:
+
+\-        Thêm sản phẩm: Người dùng nhấn "Thêm vào giỏ" trên trang sản phẩm. Hệ thống kiểm tra Inventory.quantity, nếu đủ hàng thì thêm Cart\_Item vào Cart (database) hoặc Session
+
+\-        Xem giỏ hàng: Hệ thống truy xuất Cart/Cart\_Item, join với Product và Product\_Image để hiển thị tên, ảnh, giá, số lượng, Condition và tổng tiền
+
+\-        Sửa số lượng: Hệ thống kiểm tra Inventory, cập nhật Cart\_Item và tính lại tổng tiền
+
+\-        Xóa sản phẩm: Hệ thống xóa Cart\_Item tương ứng
+
+\-        Merge giỏ hàng khi đăng nhập: Merge giỏ Session vào Cart database. Nếu trùng Product, cộng dồn số lượng. Xóa giỏ Session sau merge
+
+\-        Đăng xuất: Xóa giỏ Session, giữ nguyên Cart database
+
+6\.    Luồng ngoại lệ:
+
+\-        Giỏ hàng trống → Ẩn nút Thanh toán
+
+\-        Số lượng vượt Inventory.quantity → Giới hạn ở mức tối đa
+
+\-        Merge cộng dồn vượt Inventory → Giới hạn và thông báo
+
+7\.    Hậu điều kiện:
+
+\-        Cart\_Item được thêm/sửa/xóa trong CSDL hoặc Session. Tổng tiền được tính lại
+
+   **4.9. Tạo đơn hàng và thanh toán**
 
 1\.    Mã UC, tên UC: UC-CUS-02: Tạo đơn hàng và thanh toán
 
@@ -375,147 +637,141 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Coupon\_Usage được ghi nhận (nếu có)
 
-   **4.3. Quản lý giỏ hàng**
+   **4.10. Quản lý địa chỉ giao hàng**
 
-1\.    Mã UC, tên UC: UC-CUS-03: Quản lý giỏ hàng
+1\.    Mã UC, tên UC: UC-CUS-12: Quản lý địa chỉ giao hàng
 
-2\.    Actor: Khách vãng lai (Guest) / Khách hàng (Customer)
+2\.    Actor: Khách hàng – Customer
 
-3\.    Mô tả: Cho phép người dùng thêm, xem, sửa số lượng và xóa sản phẩm trong giỏ hàng. Guest dùng giỏ Session, Customer dùng giỏ database (Cart). Khi đăng nhập, merge giỏ Session vào Cart.
+3\.    Mô tả: Cho phép Customer thêm, sửa, xóa và đặt mặc định cho các địa chỉ giao hàng (Address).
 
-4\.    Tiền điều kiện: Người dùng đang truy cập hệ thống.
-
-5\.    Luồng chính:
-
-\-        Thêm sản phẩm: Người dùng nhấn "Thêm vào giỏ" trên trang sản phẩm. Hệ thống kiểm tra Inventory.quantity, nếu đủ hàng thì thêm Cart\_Item vào Cart (database) hoặc Session
-
-\-        Xem giỏ hàng: Hệ thống truy xuất Cart/Cart\_Item, join với Product và Product\_Image để hiển thị tên, ảnh, giá, số lượng, Condition và tổng tiền
-
-\-        Sửa số lượng: Hệ thống kiểm tra Inventory, cập nhật Cart\_Item và tính lại tổng tiền
-
-\-        Xóa sản phẩm: Hệ thống xóa Cart\_Item tương ứng
-
-\-        Merge giỏ hàng khi đăng nhập: Merge giỏ Session vào Cart database. Nếu trùng Product, cộng dồn số lượng. Xóa giỏ Session sau merge
-
-\-        Đăng xuất: Xóa giỏ Session, giữ nguyên Cart database
-
-6\.    Luồng ngoại lệ:
-
-\-        Giỏ hàng trống → Ẩn nút Thanh toán
-
-\-        Số lượng vượt Inventory.quantity → Giới hạn ở mức tối đa
-
-\-        Merge cộng dồn vượt Inventory → Giới hạn và thông báo
-
-7\.    Hậu điều kiện:
-
-\-        Cart\_Item được thêm/sửa/xóa trong CSDL hoặc Session. Tổng tiền được tính lại
-
-   **4.4. Đăng ký**
-
-1\.    Mã UC, tên UC: UC-CUS-04: Đăng ký
-
-2\.    Actor: Khách vãng lai – Guest
-
-3\.    Mô tả: Cho phép người dùng mới tạo tài khoản trên hệ thống.
-
-4\.    Tiền điều kiện: Người dùng chưa có tài khoản (chưa đăng nhập).
+4\.    Tiền điều kiện: Customer đã đăng nhập.
 
 5\.    Luồng chính:
 
-\-        Người dùng nhấn "Đăng ký", hệ thống hiển thị form: Họ tên, Email, SĐT, Mật khẩu, Xác nhận mật khẩu
+\-        Customer truy cập "Tài khoản của tôi" → "Sổ địa chỉ"
 
-\-        Hệ thống kiểm tra tính hợp lệ (định dạng email, độ dài mật khẩu, mật khẩu khớp)
+\-        Hệ thống hiển thị danh sách Address (label, tên người nhận, SĐT, tỉnh/quận/phường/đường, cờ mặc định)
 
-\-        Hệ thống kiểm tra bảng Account xem Email đã tồn tại chưa, kiểm tra bảng User xem SĐT đã tồn tại chưa
+\-        Thêm: Customer nhấn "Thêm địa chỉ mới", nhập đầy đủ thông tin, nhấn "Lưu"
 
-\-        Nếu hợp lệ: tạo Account (password\_hash, Role \= Customer, is\_active \= true) và User/Profile (họ tên, SĐT)
+\-        Sửa: Customer chọn Address → "Sửa" → cập nhật thông tin
 
-\-        Hiển thị "Đăng ký thành công" và chuyển hướng trang đăng nhập
+\-        Xóa: Customer chọn Address → "Xóa" → xác nhận
+
+\-        Đặt mặc định: Customer nhấn "Sử dụng làm mặc định" → hệ thống cập nhật is\_default
 
 6\.    Luồng ngoại lệ:
 
-\-        Trường bắt buộc để trống → Báo lỗi cụ thể
+\-        Thiếu trường bắt buộc → Báo lỗi cụ thể
 
-\-        Email/SĐT sai định dạng → Báo lỗi
+\-        Xóa Address duy nhất (mặc định) → Cảnh báo "Bạn cần tạo địa chỉ mới trước khi xóa"
 
-\-        Mật khẩu xác nhận không khớp → Báo lỗi
+7\.    Hậu điều kiện: Address được tạo/sửa/xóa trong CSDL
 
-\-        Email hoặc SĐT đã tồn tại → Báo lỗi "Email/SĐT đã được sử dụng"
+   **4.11. Xem lịch sử đơn hàng và theo dõi vận chuyển**
 
-7\.    Hậu điều kiện:
+1\.    Mã UC, tên UC: UC-CUS-13: Xem lịch sử đơn hàng và theo dõi vận chuyển
 
-\-        Account mới (Role \= Customer) và User/Profile được tạo trong CSDL
+2\.    Actor: Khách hàng – Customer
 
-   **4.5. Đăng nhập**
+3\.    Mô tả: Cho phép Customer xem danh sách đơn hàng đã đặt, xem chi tiết từng đơn và theo dõi trạng thái vận chuyển.
 
-1\.    Mã UC, tên UC: UC-CUS-05: Đăng nhập
-
-2\.    Actor: Khách vãng lai – Guest
-
-3\.    Mô tả: Xác thực người dùng qua Email và Mật khẩu. Sinh Token/Session để duy trì phiên, merge giỏ hàng Session vào Cart database.
-
-4\.    Tiền điều kiện: Người dùng đã có tài khoản (đã đăng ký).
+4\.    Tiền điều kiện: Customer đã đăng nhập.
 
 5\.    Luồng chính:
 
-\-        Người dùng nhập Email và Mật khẩu, nhấn "Đăng nhập"
+\-        Customer truy cập "Lịch sử đơn hàng"
 
-\-        Hệ thống truy xuất Account, kiểm tra Email tồn tại và password\_hash khớp
+\-        Hệ thống hiển thị danh sách Order (mã đơn, ngày đặt, tổng tiền, trạng thái). Có thể lọc theo trạng thái, khoảng thời gian
 
-\-        Kiểm tra is\_active \= true (chưa bị khóa)
+\-        Customer nhấn vào một Order → xem chi tiết: danh sách Order\_Detail (Product, số lượng, đơn giá), Address, Payment (phương thức, trạng thái, transaction\_id)
 
-\-        Sinh Token/Session (lưu vào bảng Token/Session) và trả về trình duyệt
+\-        Hệ thống hiển thị Shipping: đơn vị vận chuyển, mã vận đơn (tracking\_number), trạng thái, ngày giao dự kiến/thực tế
 
-\-        Merge giỏ hàng Session vào Cart database (theo UC-CUS-03)
-
-\-        Chuyển hướng theo Role (Customer/Admin/Sales/Warehouse)
+\-        Hệ thống hiển thị Order\_Status\_History: danh sách các lần đổi trạng thái (thời gian, trạng thái cũ → mới)
 
 6\.    Luồng ngoại lệ:
 
-\-        Email không tồn tại hoặc Mật khẩu sai → "Email hoặc mật khẩu không đúng"
+\-        Không có đơn hàng nào → Hiển thị "Bạn chưa có đơn hàng nào"
 
-\-        Tài khoản bị khóa (is\_active \= false) → "Tài khoản đã bị khóa. Liên hệ quản trị viên"
+7\.    Hậu điều kiện: Không thay đổi CSDL. Chỉ hiển thị thông tin
 
-\-        Trường bắt buộc để trống → Báo lỗi
+   **4.12. Yêu cầu đổi trả**
 
-7\.    Hậu điều kiện:
+1\.    Mã UC, tên UC: UC-CUS-11: Yêu cầu đổi trả
 
-\-        Token/Session mới được tạo trong CSDL
+2\.    Actor: Khách hàng – Customer
 
-\-        Giỏ hàng Session được merge vào Cart database rồi xóa
+3\.    Mô tả: Cho phép Customer gửi yêu cầu đổi hàng hoặc hoàn tiền cho sản phẩm trong đơn hàng đã hoàn thành, gắn với Order\_Detail cụ thể.
 
-\-        Phiên duy trì cho đến khi Token hết hạn hoặc đăng xuất
+4\.    Tiền điều kiện:
 
-   **4.6. Đăng xuất**
+\-        Customer đã đăng nhập
 
-1\.    Mã UC, tên UC: UC-CUS-06: Đăng xuất
+\-        Order ở trạng thái "Hoàn thành"
 
-2\.    Actor: Customer / Admin / Sales / Warehouse
-
-3\.    Mô tả: Kết thúc phiên làm việc hiện tại.
-
-4\.    Tiền điều kiện: Người dùng đang đăng nhập (có Token/Session hợp lệ).
+\-        Thời gian yêu cầu nằm trong thời hạn đổi trả cho phép (theo chính sách cửa hàng)
 
 5\.    Luồng chính:
 
-\-        Người dùng nhấn "Đăng xuất"
+\-        Customer truy cập "Lịch sử đơn hàng", chọn Order → chọn sản phẩm cần đổi trả → nhấn "Yêu cầu đổi trả"
 
-\-        Hệ thống xóa Token/Session trong CSDL
+\-        Hệ thống hiển thị form: chọn loại (Đổi hàng / Hoàn tiền), nhập lý do, upload ảnh (tùy chọn)
 
-\-        Xóa giỏ hàng Session trên trình duyệt
+\-        Customer nhấn "Gửi yêu cầu"
 
-\-        Chuyển hướng về trang chủ (giao diện Guest)
+\-        Hệ thống tạo Return/Refund (trạng thái "Chờ duyệt") gắn với Order\_Detail
 
 6\.    Luồng ngoại lệ:
 
-\-        Token đã hết hạn → Tự động chuyển về trang đăng nhập kèm thông báo
+\-        Quá thời hạn đổi trả → Báo "Đã quá thời hạn đổi trả cho đơn hàng này"
+
+\-        Thiếu lý do → Báo lỗi "Vui lòng nhập lý do đổi trả"
 
 7\.    Hậu điều kiện:
 
-\-        Token/Session bị xóa, giỏ hàng Session bị xóa, Cart database vẫn được lưu
+\-        Return/Refund được tạo trong CSDL với trạng thái "Chờ duyệt"
 
-   **4.7. Đánh giá sản phẩm**
+**4.13. Yêu cầu bảo hành**
+
+1\.    Mã UC, tên UC: UC-CUS-10: Yêu cầu bảo hành
+
+2\.    Actor: Khách hàng – Customer
+
+3\.    Mô tả: Cho phép Customer tạo phiếu bảo hành (Warranty\_Ticket) cho sản phẩm đã mua, gắn với Order cụ thể. Hệ thống kiểm tra Warranty\_Policy trước khi tiếp nhận.
+
+4\.    Tiền điều kiện:
+
+\-        Customer đã đăng nhập
+
+\-        Customer có Order ở trạng thái "Hoàn thành" chứa Product cần bảo hành
+
+5\.    Luồng chính:
+
+\-        Customer truy cập "Lịch sử đơn hàng", chọn Order → chọn Product cần bảo hành → nhấn "Yêu cầu bảo hành"
+
+\-        Hệ thống kiểm tra Warranty\_Policy (theo Product hoặc Category): thời hạn bảo hành còn hiệu lực không (so sánh Order.created\_at \+ duration\_months với ngày hiện tại)
+
+\-        Nếu còn hạn: hiển thị form nhập Số Serial, Mô tả tình trạng lỗi
+
+\-        Customer nhập thông tin và nhấn "Gửi yêu cầu"
+
+\-        Hệ thống tạo Warranty\_Ticket (trạng thái "Tiếp nhận")
+
+6\.    Luồng ngoại lệ:
+
+\-        Sản phẩm hết hạn bảo hành → Báo "Sản phẩm đã hết hạn bảo hành"
+
+\-        Sản phẩm không có Warranty\_Policy → Báo "Sản phẩm này không có chính sách bảo hành"
+
+\-        Thiếu Số Serial → Báo lỗi "Vui lòng nhập Số Serial"
+
+7\.    Hậu điều kiện:
+
+\-        Warranty\_Ticket được tạo trong CSDL với trạng thái "Tiếp nhận"
+
+   **4.14. Đánh giá sản phẩm**
 
 1\.    Mã UC, tên UC: UC-CUS-07: Đánh giá sản phẩm
 
@@ -559,7 +815,39 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Review và Review\_Image được tạo trong CSDL
 
-   **4.8. Xây dựng cấu hình PC (Build PC)**
+   **4.15. Quản lý danh sách yêu thích**
+
+1\.    Mã UC, tên UC: UC-CUS-09: Quản lý danh sách yêu thích
+
+2\.    Actor: Khách hàng – Customer
+
+3\.    Mô tả: Cho phép Customer lưu sản phẩm quan tâm vào Wishlist để xem lại sau, và xóa khỏi Wishlist khi không còn quan tâm.
+
+4\.    Tiền điều kiện: Customer đã đăng nhập.
+
+5\.    Luồng chính:
+
+\-        Customer nhấn biểu tượng "Yêu thích" (trái tim) trên trang sản phẩm hoặc danh sách sản phẩm
+
+\-        Hệ thống kiểm tra UNIQUE(user\_id, product\_id) trong Wishlist
+
+\-        Nếu chưa có: tạo Wishlist entry mới
+
+\-        Nếu đã có: xóa Wishlist entry (toggle yêu thích)
+
+\-        Customer truy cập trang "Danh sách yêu thích" → Hệ thống hiển thị danh sách Product đã lưu kèm ảnh, giá, tình trạng Inventory
+
+\-        Customer có thể nhấn "Thêm vào giỏ" trực tiếp từ Wishlist
+
+6\.    Luồng ngoại lệ:
+
+\-        Sản phẩm đã bị ngừng kinh doanh (status \= Discontinued) → Gắn nhãn "Ngừng kinh doanh" trong Wishlist
+
+7\.    Hậu điều kiện:
+
+\-        Wishlist entry được tạo hoặc xóa trong CSDL
+
+   **4.16. Xây dựng cấu hình PC (Build PC)**
 
 1\.    Mã UC, tên UC: UC-CUS-08: Xây dựng cấu hình PC (Build PC)
 
@@ -606,213 +894,41 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 - Nếu xuất báo giá: file PDF được tạo (không thay đổi CSDL  
 - Nếu thêm vào giỏ: linh kiện được thêm vào Cart dưới dạng Cart\\\_Item riêng lẻ (yêu cầu đã đăng nhập)
 
-   **4.9. Quản lý danh sách yêu thích**
+   **4.17. Nhận thông báo trạng thái đơn hàng**
 
-1\.    Mã UC, tên UC: UC-CUS-09: Quản lý danh sách yêu thích
-
-2\.    Actor: Khách hàng – Customer
-
-3\.    Mô tả: Cho phép Customer lưu sản phẩm quan tâm vào Wishlist để xem lại sau, và xóa khỏi Wishlist khi không còn quan tâm.
-
-4\.    Tiền điều kiện: Customer đã đăng nhập.
-
-5\.    Luồng chính:
-
-\-        Customer nhấn biểu tượng "Yêu thích" (trái tim) trên trang sản phẩm hoặc danh sách sản phẩm
-
-\-        Hệ thống kiểm tra UNIQUE(user\_id, product\_id) trong Wishlist
-
-\-        Nếu chưa có: tạo Wishlist entry mới
-
-\-        Nếu đã có: xóa Wishlist entry (toggle yêu thích)
-
-\-        Customer truy cập trang "Danh sách yêu thích" → Hệ thống hiển thị danh sách Product đã lưu kèm ảnh, giá, tình trạng Inventory
-
-\-        Customer có thể nhấn "Thêm vào giỏ" trực tiếp từ Wishlist
-
-6\.    Luồng ngoại lệ:
-
-\-        Sản phẩm đã bị ngừng kinh doanh (status \= Discontinued) → Gắn nhãn "Ngừng kinh doanh" trong Wishlist
-
-7\.    Hậu điều kiện:
-
-\-        Wishlist entry được tạo hoặc xóa trong CSDL
-
-**4.10. Yêu cầu bảo hành**
-
-1\.    Mã UC, tên UC: UC-CUS-10: Yêu cầu bảo hành
+1\.    Mã UC, tên UC: UC-CUS-17: Nhận thông báo trạng thái đơn hàng
 
 2\.    Actor: Khách hàng – Customer
 
-3\.    Mô tả: Cho phép Customer tạo phiếu bảo hành (Warranty\_Ticket) cho sản phẩm đã mua, gắn với Order cụ thể. Hệ thống kiểm tra Warranty\_Policy trước khi tiếp nhận.
+3\.    Mô tả: Cho phép Customer nhận thông báo (email và in-app) khi trạng thái đơn hàng thay đổi, giúp theo dõi tiến trình xử lý đơn hàng.
 
 4\.    Tiền điều kiện:
 
 \-        Customer đã đăng nhập
 
-\-        Customer có Order ở trạng thái "Hoàn thành" chứa Product cần bảo hành
+\-        Customer có ít nhất một Order trong hệ thống
 
 5\.    Luồng chính:
 
-\-        Customer truy cập "Lịch sử đơn hàng", chọn Order → chọn Product cần bảo hành → nhấn "Yêu cầu bảo hành"
+\-        Khi Admin/Sales cập nhật Order.status (VD: Chờ xử lý → Đang xử lý → Đang giao → Hoàn thành), hệ thống tự động tạo bản ghi Notification cho Customer
 
-\-        Hệ thống kiểm tra Warranty\_Policy (theo Product hoặc Category): thời hạn bảo hành còn hiệu lực không (so sánh Order.created\_at \+ duration\_months với ngày hiện tại)
+\-        Hệ thống gửi email thông báo đến Account.email của Customer với nội dung: mã đơn hàng, trạng thái mới, thời gian cập nhật
 
-\-        Nếu còn hạn: hiển thị form nhập Số Serial, Mô tả tình trạng lỗi
+\-        Đồng thời, hệ thống tạo thông báo in-app (Notification) với trạng thái is\_read = false
 
-\-        Customer nhập thông tin và nhấn "Gửi yêu cầu"
+\-        Customer truy cập hệ thống → biểu tượng thông báo hiển thị số lượng thông báo chưa đọc
 
-\-        Hệ thống tạo Warranty\_Ticket (trạng thái "Tiếp nhận")
-
-6\.    Luồng ngoại lệ:
-
-\-        Sản phẩm hết hạn bảo hành → Báo "Sản phẩm đã hết hạn bảo hành"
-
-\-        Sản phẩm không có Warranty\_Policy → Báo "Sản phẩm này không có chính sách bảo hành"
-
-\-        Thiếu Số Serial → Báo lỗi "Vui lòng nhập Số Serial"
-
-7\.    Hậu điều kiện:
-
-\-        Warranty\_Ticket được tạo trong CSDL với trạng thái "Tiếp nhận"
-
-   **4.11. Yêu cầu đổi trả**
-
-1\.    Mã UC, tên UC: UC-CUS-11: Yêu cầu đổi trả
-
-2\.    Actor: Khách hàng – Customer
-
-3\.    Mô tả: Cho phép Customer gửi yêu cầu đổi hàng hoặc hoàn tiền cho sản phẩm trong đơn hàng đã hoàn thành, gắn với Order\_Detail cụ thể.
-
-4\.    Tiền điều kiện:
-
-\-        Customer đã đăng nhập
-
-\-        Order ở trạng thái "Hoàn thành"
-
-\-        Thời gian yêu cầu nằm trong thời hạn đổi trả cho phép (theo chính sách cửa hàng)
-
-5\.    Luồng chính:
-
-\-        Customer truy cập "Lịch sử đơn hàng", chọn Order → chọn sản phẩm cần đổi trả → nhấn "Yêu cầu đổi trả"
-
-\-        Hệ thống hiển thị form: chọn loại (Đổi hàng / Hoàn tiền), nhập lý do, upload ảnh (tùy chọn)
-
-\-        Customer nhấn "Gửi yêu cầu"
-
-\-        Hệ thống tạo Return/Refund (trạng thái "Chờ duyệt") gắn với Order\_Detail
+\-        Customer nhấn vào thông báo → xem chi tiết và chuyển hướng đến trang chi tiết đơn hàng. Hệ thống cập nhật Notification.is\_read = true
 
 6\.    Luồng ngoại lệ:
 
-\-        Quá thời hạn đổi trả → Báo "Đã quá thời hạn đổi trả cho đơn hàng này"
+\-        Gửi email thất bại → Hệ thống ghi log lỗi, thông báo in-app vẫn được tạo bình thường
 
-\-        Thiếu lý do → Báo lỗi "Vui lòng nhập lý do đổi trả"
+\-        Customer không có thông báo nào → Hiển thị "Bạn chưa có thông báo nào"
 
-7\.    Hậu điều kiện:
+7\.    Hậu điều kiện: Notification được tạo trong CSDL. Email thông báo được gửi đến Customer
 
-\-        Return/Refund được tạo trong CSDL với trạng thái "Chờ duyệt"
-
-   **4.12. Quản lý địa chỉ giao hàng**
-
-1\.    Mã UC, tên UC: UC-CUS-12: Quản lý địa chỉ giao hàng
-
-2\.    Actor: Khách hàng – Customer
-
-3\.    Mô tả: Cho phép Customer thêm, sửa, xóa và đặt mặc định cho các địa chỉ giao hàng (Address).
-
-4\.    Tiền điều kiện: Customer đã đăng nhập.
-
-5\.    Luồng chính:
-
-\-        Customer truy cập "Tài khoản của tôi" → "Sổ địa chỉ"
-
-\-        Hệ thống hiển thị danh sách Address (label, tên người nhận, SĐT, tỉnh/quận/phường/đường, cờ mặc định)
-
-\-        Thêm: Customer nhấn "Thêm địa chỉ mới", nhập đầy đủ thông tin, nhấn "Lưu"
-
-\-        Sửa: Customer chọn Address → "Sửa" → cập nhật thông tin
-
-\-        Xóa: Customer chọn Address → "Xóa" → xác nhận
-
-\-        Đặt mặc định: Customer nhấn "Sử dụng làm mặc định" → hệ thống cập nhật is\_default
-
-6\.    Luồng ngoại lệ:
-
-\-        Thiếu trường bắt buộc → Báo lỗi cụ thể
-
-\-        Xóa Address duy nhất (mặc định) → Cảnh báo "Bạn cần tạo địa chỉ mới trước khi xóa"
-
-7\.    Hậu điều kiện: Address được tạo/sửa/xóa trong CSDL
-
-   **4.13. Xem lịch sử đơn hàng và theo dõi vận chuyển**
-
-1\.    Mã UC, tên UC: UC-CUS-13: Xem lịch sử đơn hàng và theo dõi vận chuyển
-
-2\.    Actor: Khách hàng – Customer
-
-3\.    Mô tả: Cho phép Customer xem danh sách đơn hàng đã đặt, xem chi tiết từng đơn và theo dõi trạng thái vận chuyển.
-
-4\.    Tiền điều kiện: Customer đã đăng nhập.
-
-5\.    Luồng chính:
-
-\-        Customer truy cập "Lịch sử đơn hàng"
-
-\-        Hệ thống hiển thị danh sách Order (mã đơn, ngày đặt, tổng tiền, trạng thái). Có thể lọc theo trạng thái, khoảng thời gian
-
-\-        Customer nhấn vào một Order → xem chi tiết: danh sách Order\_Detail (Product, số lượng, đơn giá), Address, Payment (phương thức, trạng thái, transaction\_id)
-
-\-        Hệ thống hiển thị Shipping: đơn vị vận chuyển, mã vận đơn (tracking\_number), trạng thái, ngày giao dự kiến/thực tế
-
-\-        Hệ thống hiển thị Order\_Status\_History: danh sách các lần đổi trạng thái (thời gian, trạng thái cũ → mới)
-
-6\.    Luồng ngoại lệ:
-
-\-        Không có đơn hàng nào → Hiển thị "Bạn chưa có đơn hàng nào"
-
-7\.    Hậu điều kiện: Không thay đổi CSDL. Chỉ hiển thị thông tin
-
-   **4.14. Quản lý thông tin cá nhân**
-
-1\.    Mã UC, tên UC: UC-CUS-14: Quản lý thông tin cá nhân
-
-2\.    Actor: Khách hàng – Customer
-
-3\.    Mô tả: Cho phép Customer cập nhật thông tin cá nhân (User/Profile) và đổi mật khẩu (Account).
-
-4\.    Tiền điều kiện: Customer đã đăng nhập.
-
-5\.    Luồng chính:
-
-   Sửa thông tin cá nhân:
-
-\-        Customer truy cập "Tài khoản của tôi" → "Thông tin cá nhân"
-
-\-        Hệ thống hiển thị form với dữ liệu hiện tại: Họ tên, SĐT, ảnh đại diện, ngày sinh, giới tính
-
-\-        Customer sửa thông tin, nhấn "Cập nhật". Hệ thống lưu vào bảng User
-
-   Đổi mật khẩu:
-
-\-        Customer nhấn "Đổi mật khẩu"
-
-\-        Nhập: Mật khẩu hiện tại, Mật khẩu mới, Xác nhận mật khẩu mới
-
-\-        Hệ thống kiểm tra mật khẩu hiện tại khớp với Account.password\_hash
-
-\-        Nếu đúng: cập nhật password\_hash mới. Xóa toàn bộ Token/Session cũ (buộc đăng nhập lại)
-
-6\.    Luồng ngoại lệ:
-
-\-        SĐT đã tồn tại ở User khác → Báo lỗi "SĐT đã được sử dụng"
-
-\-        Mật khẩu hiện tại không đúng → Báo lỗi "Mật khẩu hiện tại không đúng"
-
-\-        Mật khẩu mới và xác nhận không khớp → Báo lỗi
-
-7\.    Hậu điều kiện: User/Profile hoặc Account.password\_hash được cập nhật. Nếu đổi mật khẩu: Token/Session cũ bị xóa
-
-   **4.15. (Admin) Quản lý danh mục và thuộc tính**
+   **4.18. (Admin) Quản lý danh mục và thuộc tính**
 
 1\.    Mã UC, tên UC: UC-AD-01: Quản lý danh mục và thuộc tính
 
@@ -842,7 +958,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 7\.    Hậu điều kiện: Category, Attribute, Attribute\_Value được tạo/sửa/xóa trong CSDL
 
-   **4.16. (Admin) Quản lý sản phẩm**
+   **4.19. (Admin) Quản lý sản phẩm**
 
 1\.    Mã UC, tên UC: UC-AD-02: Quản lý sản phẩm
 
@@ -892,7 +1008,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 ![][image2]
 
-   **4.17. (Admin/Sales) Quản lý đơn hàng**
+   **4.20. (Admin/Sales) Quản lý đơn hàng**
 
 1\.    Mã UC, tên UC: UC-AD-03: Quản lý đơn hàng
 
@@ -930,7 +1046,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 ![][image3]
 
-   **4.18. (Admin/Warehouse) Quản lý kho hàng**
+   **4.21. (Admin/Warehouse) Quản lý kho hàng**
 
 1\.    Mã UC, tên UC: UC-AD-04: Quản lý kho hàng
 
@@ -965,92 +1081,6 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 7\.    Hậu điều kiện: Inventory.quantity cập nhật, Inventory\_Log ghi nhận biến động, Supplier được tạo/sửa/xóa
 
 	![][image4]
-
-   **4.19. (Admin/Sales) Thống kê doanh thu**
-
-1\.    Mã UC, tên UC: UC-AD-05: Thống kê doanh thu
-
-2\.    Actor: Admin / Sales
-
-3\.    Mô tả: Cho phép xem báo cáo thống kê doanh thu theo khoảng thời gian, danh mục, trạng thái đơn hàng.
-
-4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
-
-5\.    Luồng chính:
-
-\-        Truy cập "Thống kê doanh thu", chọn bộ lọc (thời gian, Category, trạng thái Order)
-
-\-        Hệ thống truy xuất Order, Order\_Detail, Product, Category và tổng hợp
-
-\-        Hiển thị: Tổng doanh thu, Số đơn hàng, Số sản phẩm bán, Top bán chạy, Doanh thu theo Category
-
-6\.    Luồng ngoại lệ:
-
-\-        Khoảng thời gian không hợp lệ → Báo lỗi
-
-\-        Không có dữ liệu → Hiển thị thông báo
-
-7\.    Hậu điều kiện: Báo cáo hiển thị trên giao diện. Không thay đổi CSDL
-
-   **4.20. (Admin) Quản lý tài khoản**
-
-1\.    Mã UC, tên UC: UC-AD-06: Quản lý tài khoản
-
-2\.    Actor: Admin
-
-3\.    Mô tả: Cho phép Admin xem danh sách tài khoản, tạo tài khoản nội bộ, khóa/mở khóa và gán Role/Permission.
-
-4\.    Tiền điều kiện: Đăng nhập với Role Admin.
-
-5\.    Luồng chính:
-
-   Xem danh sách: Hiển thị Account \+ User (họ tên, email, SĐT, Role, trạng thái). Tìm kiếm/lọc theo Role
-
-   Tạo tài khoản nội bộ: Nhập thông tin, chọn Role (Sales/Warehouse). Tạo Account \+ User
-
-   Khóa/Mở khóa: Cập nhật is\_active. Nếu khóa → xóa toàn bộ Token/Session (buộc đăng xuất)
-
-   Gán Role/Permission: Chọn tài khoản → đổi Role hoặc gán Permission cụ thể qua Role\_Permission
-
-6\.    Luồng ngoại lệ:
-
-\-        Khóa chính mình → Chặn
-
-\-        Email trùng → Báo lỗi "Email đã tồn tại"
-
-7\.    Hậu điều kiện: Account/User cập nhật. Nếu khóa: Token/Session bị xóa
-
-   **4.21. (Admin/Sales) Quản lý mã giảm giá**
-
-1\.    Mã UC, tên UC: UC-AD-07: Quản lý mã giảm giá
-
-2\.    Actor: Admin / Sales
-
-3\.    Mô tả: Cho phép tạo, sửa, xóa mã giảm giá (Coupon). Khách nhập mã khi Checkout để được giảm giá.
-
-4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
-
-5\.    Luồng chính:
-
-\-        Truy cập "Quản lý mã giảm giá", nhấn "Tạo mới"
-
-\-        Nhập: Code, loại (PERCENT/FIXED), giá trị giảm, đơn tối thiểu, giảm tối đa, số lượt max, ngày bắt đầu/kết thúc
-
-\-        Nhấn "Lưu" → tạo Coupon
-
-\-        Sửa/Xóa: Chọn Coupon → "Sửa" hoặc "Xóa" (có xác nhận)
-
-6\.    Luồng ngoại lệ:
-
-\-        Code trùng → Báo lỗi "Mã giảm giá đã tồn tại"
-
-\-        Ngày kết thúc \< ngày bắt đầu → Báo lỗi
-
-\-        Sửa Coupon đã có used\_count \> 0 → Cảnh báo
-
-\-        Xóa Coupon đang hiệu lực → Cảnh báo "Mã đang hoạt động. Xóa sẽ ngừng áp dụng"
-
-7\.    Hậu điều kiện: Coupon được tạo/sửa/xóa trong CSDL
 
    **4.22. (Admin/Sales) Quản lý vận chuyển**
 
@@ -1155,6 +1185,138 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 \-        Sản phẩm thay thế hết hàng (khi đổi hàng) → Báo "Sản phẩm thay thế hiện hết hàng"
 
 7\.    Hậu điều kiện: Return/Refund cập nhật. Nếu duyệt: kho hoàn, Payment Refunded hoặc Order mới được tạo
+
+   **4.25. (Admin) Quản lý tài khoản**
+
+1\.    Mã UC, tên UC: UC-AD-06: Quản lý tài khoản
+
+2\.    Actor: Admin
+
+3\.    Mô tả: Cho phép Admin xem danh sách tài khoản, tạo tài khoản nội bộ, khóa/mở khóa và gán Role/Permission.
+
+4\.    Tiền điều kiện: Đăng nhập với Role Admin.
+
+5\.    Luồng chính:
+
+   Xem danh sách: Hiển thị Account \+ User (họ tên, email, SĐT, Role, trạng thái). Tìm kiếm/lọc theo Role
+
+   Tạo tài khoản nội bộ: Nhập thông tin, chọn Role (Sales/Warehouse). Tạo Account \+ User
+
+   Khóa/Mở khóa: Cập nhật is\_active. Nếu khóa → xóa toàn bộ Token/Session (buộc đăng xuất)
+
+   Gán Role/Permission: Chọn tài khoản → đổi Role hoặc gán Permission cụ thể qua Role\_Permission
+
+6\.    Luồng ngoại lệ:
+
+\-        Khóa chính mình → Chặn
+
+\-        Email trùng → Báo lỗi "Email đã tồn tại"
+
+7\.    Hậu điều kiện: Account/User cập nhật. Nếu khóa: Token/Session bị xóa
+
+   **4.26. (Admin/Sales) Quản lý mã giảm giá**
+
+1\.    Mã UC, tên UC: UC-AD-07: Quản lý mã giảm giá
+
+2\.    Actor: Admin / Sales
+
+3\.    Mô tả: Cho phép tạo, sửa, xóa mã giảm giá (Coupon). Khách nhập mã khi Checkout để được giảm giá.
+
+4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
+
+5\.    Luồng chính:
+
+\-        Truy cập "Quản lý mã giảm giá", nhấn "Tạo mới"
+
+\-        Nhập: Code, loại (PERCENT/FIXED), giá trị giảm, đơn tối thiểu, giảm tối đa, số lượt max, ngày bắt đầu/kết thúc
+
+\-        Nhấn "Lưu" → tạo Coupon
+
+\-        Sửa/Xóa: Chọn Coupon → "Sửa" hoặc "Xóa" (có xác nhận)
+
+6\.    Luồng ngoại lệ:
+
+\-        Code trùng → Báo lỗi "Mã giảm giá đã tồn tại"
+
+\-        Ngày kết thúc \< ngày bắt đầu → Báo lỗi
+
+\-        Sửa Coupon đã có used\_count \> 0 → Cảnh báo
+
+\-        Xóa Coupon đang hiệu lực → Cảnh báo "Mã đang hoạt động. Xóa sẽ ngừng áp dụng"
+
+7\.    Hậu điều kiện: Coupon được tạo/sửa/xóa trong CSDL
+
+   **4.27. (Admin/Sales) Thống kê doanh thu**
+
+1\.    Mã UC, tên UC: UC-AD-05: Thống kê doanh thu
+
+2\.    Actor: Admin / Sales
+
+3\.    Mô tả: Cho phép xem báo cáo thống kê doanh thu theo khoảng thời gian, danh mục, trạng thái đơn hàng.
+
+4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
+
+5\.    Luồng chính:
+
+\-        Truy cập "Thống kê doanh thu", chọn bộ lọc (thời gian, Category, trạng thái Order)
+
+\-        Hệ thống truy xuất Order, Order\_Detail, Product, Category và tổng hợp
+
+\-        Hiển thị: Tổng doanh thu, Số đơn hàng, Số sản phẩm bán, Top bán chạy, Doanh thu theo Category
+
+6\.    Luồng ngoại lệ:
+
+\-        Khoảng thời gian không hợp lệ → Báo lỗi
+
+\-        Không có dữ liệu → Hiển thị thông báo
+
+7\.    Hậu điều kiện: Báo cáo hiển thị trên giao diện. Không thay đổi CSDL
+
+   **4.28. (Admin) Quản lý banner / slider trang chủ**
+
+1\.    Mã UC, tên UC: UC-AD-11: Quản lý banner / slider trang chủ
+
+2\.    Actor: Admin
+
+3\.    Mô tả: Cho phép Admin tạo, sửa, xóa và sắp xếp các banner/slider hiển thị trên trang chủ, phục vụ quảng bá sản phẩm, chương trình khuyến mãi hoặc tin tức.
+
+4\.    Tiền điều kiện: Đăng nhập với Role Admin, Token/Session hợp lệ.
+
+5\.    Luồng chính:
+
+\-        Admin truy cập "Quản lý nội dung" → "Banner / Slider"
+
+\-        Hệ thống hiển thị danh sách banner hiện có (tiêu đề, hình ảnh, trạng thái Active/Inactive, thứ tự hiển thị, ngày bắt đầu, ngày kết thúc)
+
+   Thêm mới:
+
+\-        Admin nhấn "Thêm banner", nhập: tiêu đề, upload hình ảnh (MinIO), URL liên kết (trang sản phẩm, danh mục, khuyến mãi), thứ tự hiển thị, ngày bắt đầu, ngày kết thúc, trạng thái Active/Inactive
+
+\-        Nhấn "Lưu". Hệ thống lưu banner và upload hình ảnh lên MinIO
+
+   Sửa:
+
+\-        Admin chọn banner → "Sửa" → cập nhật thông tin
+
+   Xóa:
+
+\-        Admin chọn banner → "Xóa" → xác nhận
+
+   Sắp xếp:
+
+\-        Admin kéo thả để thay đổi thứ tự hiển thị các banner
+
+6\.    Luồng ngoại lệ:
+
+\-        Hình ảnh sai định dạng (chỉ chấp nhận JPG, PNG, WEBP) → Báo lỗi
+
+\-        Hình ảnh quá dung lượng (tối đa 5MB) → Báo lỗi
+
+\-        Thiếu trường bắt buộc (tiêu đề, hình ảnh) → Báo lỗi cụ thể
+
+\-        Ngày kết thúc trước ngày bắt đầu → Báo lỗi "Ngày kết thúc phải sau ngày bắt đầu"
+
+7\.    Hậu điều kiện: Banner được tạo/sửa/xóa trong CSDL. Hình ảnh được lưu trữ trên MinIO
 
 ![][image5]
 
