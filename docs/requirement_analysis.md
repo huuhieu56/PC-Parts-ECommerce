@@ -399,13 +399,11 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Hệ thống kiểm tra mật khẩu hiện tại khớp với Account.password\_hash
 
-\-        Nếu đúng: cập nhật password\_hash mới. Xóa toàn bộ Token/Session cũ (buộc đăng nhập lại trên mọi thiết bị)
-
-\-        Hệ thống tạo Token/Session mới cho phiên hiện tại
+\-        Nếu đúng: cập nhật password\_hash mới
 
 6\.    Luồng ngoại lệ:
 
-\-        Mật khẩu hiện tại không đúng → Báo lỗi "Mật khẩu hiện tại không đúng"
+\-        Mật khẩu hiện tại không đúng → Báo lỗi "Mật khẩu hiện tại không chính xác"
 
 \-        Mật khẩu mới và xác nhận không khớp → Báo lỗi "Mật khẩu xác nhận không khớp"
 
@@ -413,7 +411,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Mật khẩu mới không đủ độ mạnh → Báo lỗi
 
-7\.    Hậu điều kiện: Account.password\_hash được cập nhật. Token/Session cũ bị xóa, Token/Session mới được tạo cho phiên hiện tại
+7\.    Hậu điều kiện: Account.password\_hash được cập nhật
    **4.5. Quên / Thiết lập lại mật khẩu**
 
 1\.    Mã UC, tên UC: UC-CUS-15: Quên / Thiết lập lại mật khẩu
@@ -467,39 +465,23 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 2\.    Actor: Khách hàng – Customer
 
-3\.    Mô tả: Cho phép Customer cập nhật thông tin cá nhân (User/Profile) và đổi mật khẩu (Account).
+3\.    Mô tả: Cho phép Customer cập nhật thông tin cá nhân (User/Profile).
 
 4\.    Tiền điều kiện: Customer đã đăng nhập.
 
 5\.    Luồng chính:
 
-   Sửa thông tin cá nhân:
-
 \-        Customer truy cập "Tài khoản của tôi" → "Thông tin cá nhân"
 
-\-        Hệ thống hiển thị form với dữ liệu hiện tại: Họ tên, SĐT, ảnh đại diện, ngày sinh, giới tính
+\-        Hệ thống hiển thị form với dữ liệu hiện tại: Họ tên, ảnh đại diện, ngày sinh, giới tính
 
 \-        Customer sửa thông tin, nhấn "Cập nhật". Hệ thống lưu vào bảng User
 
-   Đổi mật khẩu:
-
-\-        Customer nhấn "Đổi mật khẩu"
-
-\-        Nhập: Mật khẩu hiện tại, Mật khẩu mới, Xác nhận mật khẩu mới
-
-\-        Hệ thống kiểm tra mật khẩu hiện tại khớp với Account.password\_hash
-
-\-        Nếu đúng: cập nhật password\_hash mới. Xóa toàn bộ Token/Session cũ (buộc đăng nhập lại)
-
 6\.    Luồng ngoại lệ:
 
-\-        SĐT đã tồn tại ở User khác → Báo lỗi "SĐT đã được sử dụng"
+\-        Dữ liệu không hợp lệ → Báo lỗi cụ thể
 
-\-        Mật khẩu hiện tại không đúng → Báo lỗi "Mật khẩu hiện tại không đúng"
-
-\-        Mật khẩu mới và xác nhận không khớp → Báo lỗi
-
-7\.    Hậu điều kiện: User/Profile hoặc Account.password\_hash được cập nhật. Nếu đổi mật khẩu: Token/Session cũ bị xóa
+7\.    Hậu điều kiện: User/Profile được cập nhật
 
    **4.7. Tìm kiếm và lọc sản phẩm**
 
@@ -1026,11 +1008,13 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Cập nhật trạng thái:
 
-   \+ "Chờ xử lý" → "Đang giao": đã bàn giao cho đơn vị vận chuyển
+   \+ "Chờ xử lý" → "Đã xác nhận": xác nhận đơn hàng
+
+   \+ "Đã xác nhận" → "Đang giao": đã bàn giao cho đơn vị vận chuyển
 
    \+ "Đang giao" → "Hoàn thành": khách đã nhận hàng
 
-   \+ Bất kỳ → "Đã hủy": hủy đơn
+   \+ Bất kỳ (trừ Hoàn thành, Đã hủy) → "Đã hủy": hủy đơn
 
 \-        Hệ thống tạo Order\_Status\_History (trạng thái cũ → mới, người thao tác, thời gian)
 
