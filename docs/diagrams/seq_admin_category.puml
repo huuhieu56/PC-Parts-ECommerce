@@ -1,0 +1,43 @@
+@startuml seq_admin_category
+title Hình 3.23 — Sequence Diagram — Admin quản lý danh mục
+
+actor Admin
+participant "Next.js\n(Admin CMS)" as FE
+participant "Spring Boot\n(Backend)" as BE
+database "PostgreSQL" as DB
+
+== Xem cây danh mục ==
+Admin -> FE : Mở trang quản lý danh mục
+FE -> BE : GET /api/v1/admin/categories?tree=true
+BE -> DB : SELECT Category\nORDER BY level, name
+BE -> BE : Build tree structure\n(parent-child)
+BE --> FE : 200 {categories[\n{id, name, children[]}]}
+FE --> Admin : Hiển thị cây danh mục
+
+== Thêm danh mục ==
+Admin -> FE : Nhập tên, mô tả,\nchọn danh mục cha
+FE -> BE : POST /api/v1/admin/categories\n{name, description, parentId}
+BE -> DB : SELECT Category\nWHERE parent_id = ? → tính level
+BE -> DB : INSERT Category\n(name, description, parent_id, level)
+BE --> FE : 201 {category}
+
+== Quản lý thuộc tính (Attribute) theo danh mục ==
+Admin -> FE : Thêm thuộc tính cho\ndanh mục "CPU"
+FE -> BE : POST /api/v1/admin/categories/{id}/attributes\n{name: "Socket"}
+BE -> DB : INSERT Attribute\n(name, category_id)
+FE -> BE : POST /api/v1/admin/attributes/{id}/values\n{value: "LGA1700"}
+BE -> DB : INSERT Attribute_Value\n(attribute_id, value)
+BE --> FE : 201 {attribute, values[]}
+
+== Cập nhật / Xóa danh mục ==
+Admin -> FE : Sửa hoặc xóa danh mục
+FE -> BE : PUT|DELETE\n/api/v1/admin/categories/{id}
+BE -> DB : SELECT Product\nWHERE category_id = ?
+alt Có sản phẩm → không cho xóa
+    BE --> FE : 409 {message: "Danh mục\nđang có sản phẩm, không thể xóa"}
+else Không có sản phẩm
+    BE -> DB : DELETE Category WHERE id = ?
+    BE --> FE : 204 No Content
+end
+
+@enduml

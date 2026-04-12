@@ -1,0 +1,48 @@
+@startuml deployment_diagram
+title Hình 2.3 — Deployment Diagram\nHệ thống PC Parts E-Commerce
+
+skinparam node {
+    BackgroundColor #E8F0FE
+    BorderColor #1A73E8
+}
+skinparam artifact {
+    BackgroundColor #FFF8E1
+    BorderColor #F57F17
+}
+
+node "<<device>>\nClient Device" as client {
+    artifact "Web Browser" as browser
+}
+
+node "<<execution environment>>\nApplication Server" as appserver {
+    node "<<device>>\nDocker Host" as docker {
+        artifact "Nginx\n<<reverse proxy>>" as nginx
+        artifact "Next.js App\n<<frontend>>" as frontend
+        artifact "Spring Boot App\n<<backend>>" as backend
+        artifact "PostgreSQL\n<<database>>" as postgres
+        artifact "Redis\n<<cache>>" as redis
+        artifact "MinIO\n<<file storage>>" as minio
+    }
+}
+
+node "<<device>>\nExternal Services" as ext {
+    artifact "VNPay Gateway" as vnpay
+    artifact "MoMo Gateway" as momo
+    artifact "LLM API Provider" as llm
+    artifact "Email Service" as smtp
+}
+
+browser --> nginx : <<HTTPS>>
+nginx --> frontend : <<HTTP>>
+nginx --> backend : <<HTTP>>
+
+backend --> postgres : <<JDBC>>
+backend --> redis : <<TCP>>
+backend --> minio : <<S3 API>>
+
+backend --> vnpay : <<HTTPS>>
+backend --> momo : <<HTTPS>>
+backend --> llm : <<HTTPS>>
+backend --> smtp : <<SMTP>>
+
+@enduml

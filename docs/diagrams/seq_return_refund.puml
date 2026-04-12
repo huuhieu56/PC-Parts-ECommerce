@@ -1,0 +1,30 @@
+@startuml seq_return_refund
+title Hình 3.17 — Sequence Diagram — Đổi trả & Hoàn tiền
+
+actor Customer
+participant "Next.js" as FE
+participant "Spring Boot" as BE
+database "PostgreSQL" as DB
+
+Customer -> FE : Tạo yêu cầu đổi trả
+FE -> BE : POST /api/v1/returns\n{order_id, order_detail_id, type, reason}
+BE -> BE : Validate\n(đơn hàng COMPLETED,\ntrong thời gian cho phép)
+BE -> DB : INSERT Return\n(status=PENDING_APPROVAL)
+BE --> FE : 201 {returnId}
+
+note over BE, DB : Admin/Sales duyệt
+
+alt Duyệt - REFUND
+    BE -> DB : UPDATE Return\nSET status=APPROVED
+    BE -> DB : INSERT Payment\n(status=REFUNDED, amount=refund_amount)
+    BE -> DB : UPDATE Inventory\nSET quantity += ?
+    BE -> DB : INSERT Inventory_Log\n(type=RETURN)
+else Duyệt - EXCHANGE
+    BE -> DB : UPDATE Return\nSET status=APPROVED
+    BE -> DB : UPDATE Inventory\n(hoàn kho SP cũ)
+    BE -> DB : INSERT Order mới\n(SP thay thế)
+else Từ chối
+    BE -> DB : UPDATE Return\nSET status=REJECTED, note="Lý do"
+end
+
+@enduml

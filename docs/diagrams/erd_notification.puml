@@ -1,0 +1,20 @@
+@startuml erd_notification
+title Hình 3.33 — ERD — Nhóm Thông báo (Notification)
+
+skinparam class {
+    BackgroundColor #E8F0FE
+    BorderColor #1A73E8
+}
+
+entity "NOTIFICATION" as notification {
+    * id : bigint <<PK>>
+    --
+    * user_id : bigint <<FK>>
+    * title : varchar
+    * message : text
+    * type : varchar
+    * is_read : boolean
+    * created_at : timestamp
+}
+
+@enduml

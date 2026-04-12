@@ -1,0 +1,160 @@
+@startuml erd_shopping_order
+title Hình 3.31 — ERD — Nhóm Mua sắm & Đơn hàng (Shopping & Order)
+
+skinparam class {
+    BackgroundColor #E8F0FE
+    BorderColor #1A73E8
+}
+
+entity "CART" as cart {
+    * id : bigint <<PK>>
+    --
+    user_id : bigint <<FK>>
+    session_id : varchar
+    * created_at : timestamp
+    * updated_at : timestamp
+}
+
+entity "CART_ITEM" as cart_item {
+    * id : bigint <<PK>>
+    --
+    * cart_id : bigint <<FK>>
+    * product_id : bigint <<FK>>
+    * quantity : int
+}
+
+entity "WISHLIST" as wishlist {
+    * id : bigint <<PK>>
+    --
+    * user_id : bigint <<FK>>
+    * product_id : bigint <<FK>>
+    * created_at : timestamp
+}
+
+entity "COUPON" as coupon {
+    * id : bigint <<PK>>
+    --
+    * code : varchar <<UK>>
+    * discount_type : varchar
+    * discount_value : decimal
+    min_order_value : decimal
+    max_discount : decimal
+    * max_uses : int
+    * used_count : int
+    * start_date : timestamp
+    * end_date : timestamp
+    * created_at : timestamp
+}
+
+entity "ORDERS" as orders {
+    * id : bigint <<PK>>
+    --
+    * user_id : bigint <<FK>>
+    * address_id : bigint <<FK>>
+    * subtotal : decimal
+    discount_amount : decimal
+    * total_amount : decimal
+    * status : varchar
+    note : text
+    coupon_id : bigint <<FK>>
+    * created_at : timestamp
+    * updated_at : timestamp
+}
+
+entity "ORDER_DETAIL" as order_detail {
+    * id : bigint <<PK>>
+    --
+    * order_id : bigint <<FK>>
+    * product_id : bigint <<FK>>
+    * quantity : int
+    * unit_price : decimal
+    * line_total : decimal
+}
+
+entity "PAYMENT" as payment {
+    * id : bigint <<PK>>
+    --
+    * order_id : bigint <<FK>>
+    * method : varchar
+    * amount : decimal
+    * status : varchar
+    transaction_id : varchar
+    paid_at : timestamp
+    * created_at : timestamp
+}
+
+entity "SHIPPING" as shipping {
+    * id : bigint <<PK>>
+    --
+    * order_id : bigint <<FK>>
+    provider : varchar
+    tracking_number : varchar
+    * shipping_fee : decimal
+    * status : varchar
+    estimated_date : date
+    delivered_date : date
+    * created_at : timestamp
+    * updated_at : timestamp
+}
+
+entity "COUPON_USAGE" as coupon_usage {
+    * id : bigint <<PK>>
+    --
+    * coupon_id : bigint <<FK>>
+    * user_id : bigint <<FK>>
+    * order_id : bigint <<FK>>
+    * used_at : timestamp
+}
+
+entity "ORDER_STATUS_HISTORY" as order_history {
+    * id : bigint <<PK>>
+    --
+    * order_id : bigint <<FK>>
+    * old_status : varchar
+    * new_status : varchar
+    * changed_by : bigint <<FK>>
+    note : text
+    * created_at : timestamp
+}
+
+entity "SUPPLIER" as supplier {
+    * id : bigint <<PK>>
+    --
+    * name : varchar
+    contact_person : varchar
+    phone : varchar
+    email : varchar
+    address : text
+}
+
+entity "INVENTORY" as inventory {
+    * id : bigint <<PK>>
+    --
+    * product_id : bigint <<FK>>
+    * quantity : int
+    * low_stock_threshold : int
+    supplier_id : bigint <<FK>>
+    * updated_at : timestamp
+}
+
+entity "INVENTORY_LOG" as inv_log {
+    * id : bigint <<PK>>
+    --
+    * product_id : bigint <<FK>>
+    * type : varchar
+    * quantity_change : int
+    * performed_by : bigint <<FK>>
+    note : text
+    * created_at : timestamp
+}
+
+cart ||--o{ cart_item : "contains"
+orders ||--o{ order_detail : "contains"
+orders ||--o{ payment : "has"
+orders ||--|| shipping : "has one"
+orders ||--o{ order_history : "has history"
+coupon ||--o{ coupon_usage : "tracked by"
+coupon ||--o{ orders : "applied to"
+supplier ||--o{ inventory : "supplies"
+
+@enduml

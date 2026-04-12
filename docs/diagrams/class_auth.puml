@@ -1,0 +1,78 @@
+@startuml class_auth
+title Hình 3.1 — Class Diagram — Module Authentication & Authorization
+
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #E8F0FE
+    BorderColor #1A73E8
+    ArrowColor #333333
+}
+
+class Account {
+    - id : Long
+    - email : String
+    - passwordHash : String
+    - isActive : Boolean
+    - isVerified : Boolean
+    - role : Role
+    - lastLoginAt : LocalDateTime
+    - createdAt : LocalDateTime
+    - updatedAt : LocalDateTime
+    + login(email, password) : TokenPair
+    + logout() : void
+    + changePassword(oldPwd, newPwd) : void
+}
+
+class User {
+    - id : Long
+    - account : Account
+    - fullName : String
+    - phone : String
+    - avatarUrl : String
+    - dateOfBirth : LocalDate
+    - gender : String
+    - addresses : List<Address>
+    + updateProfile(dto) : User
+}
+
+class Address {
+    - id : Long
+    - user : User
+    - label : String
+    - receiverName : String
+    - receiverPhone : String
+    - province : String
+    - district : String
+    - ward : String
+    - street : String
+    - isDefault : Boolean
+}
+
+class Role {
+    - id : Long
+    - name : String
+    - description : String
+    - permissions : Set<Permission>
+}
+
+class Permission {
+    - id : Long
+    - code : String
+    - description : String
+}
+
+class Token {
+    - id : Long
+    - account : Account
+    - tokenType : String
+    - tokenValue : String
+    - expiresAt : LocalDateTime
+}
+
+Account "1" --> "1" Role
+Account "1" --> "1" User
+Account "1" --> "*" Token
+User "1" --> "*" Address
+Role "*" --> "*" Permission
+
+@enduml

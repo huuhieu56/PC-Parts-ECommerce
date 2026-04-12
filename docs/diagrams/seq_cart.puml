@@ -1,0 +1,61 @@
+@startuml seq_cart
+title Hình 3.12 — Sequence Diagram — Quản lý giỏ hàng (Guest & Customer)
+
+actor User
+participant "Next.js\n(Frontend)" as FE
+participant "Spring Boot\n(Backend)" as BE
+database "Redis" as Cache
+database "PostgreSQL" as DB
+
+== Thêm sản phẩm vào giỏ ==
+User -> FE : Nhấn "Thêm vào giỏ"\n(product_id, quantity)
+
+alt Chưa đăng nhập (Guest)
+    FE -> BE : POST /api/v1/cart/items\n{sessionId, productId, quantity}
+    BE -> DB : SELECT Inventory WHERE product_id = ?
+    alt Hết hàng
+        BE --> FE : 409 {message: "Sản phẩm đã hết hàng"}
+    else Còn hàng
+        BE -> Cache : HSET cart:{sessionId}\nproductId quantity
+        BE -> Cache : EXPIRE cart:{sessionId} 7d
+        BE --> FE : 200 {cartItem}
+    end
+else Đã đăng nhập (Customer)
+    FE -> BE : POST /api/v1/cart/items\n{productId, quantity}
+    BE -> BE : Validate JWT → user_id
+    BE -> DB : SELECT Inventory WHERE product_id = ?
+    alt Hết hàng
+        BE --> FE : 409 {message: "Sản phẩm đã hết hàng"}
+    else Còn hàng
+        BE -> DB : SELECT Cart WHERE user_id = ?
+        opt Chưa có Cart
+            BE -> DB : INSERT Cart (user_id)
+        end
+        BE -> DB : SELECT Cart_Item\nWHERE cart_id = ? AND product_id = ?
+        alt Đã có trong giỏ
+            BE -> DB : UPDATE Cart_Item\nSET quantity += ?
+        else Chưa có
+            BE -> DB : INSERT Cart_Item\n(cart_id, product_id, quantity)
+        end
+        BE --> FE : 200 {cartItem}
+    end
+end
+
+FE --> User : Cập nhật icon giỏ hàng
+
+== Cập nhật số lượng ==
+User -> FE : Thay đổi số lượng
+FE -> BE : PATCH /api/v1/cart/items/{id}\n{quantity}
+BE -> DB : SELECT Inventory WHERE product_id = ?
+BE -> BE : quantity = MIN(requested,\ninventory.quantity)
+BE -> DB : UPDATE Cart_Item SET quantity = ?
+BE --> FE : 200 {updatedItem, warning?}
+
+== Xóa sản phẩm ==
+User -> FE : Nhấn "Xóa"
+FE -> BE : DELETE /api/v1/cart/items/{id}
+BE -> DB : DELETE Cart_Item WHERE id = ?
+BE --> FE : 204 No Content
+FE --> User : Cập nhật giỏ hàng
+
+@enduml

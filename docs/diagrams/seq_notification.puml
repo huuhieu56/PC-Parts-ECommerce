@@ -1,0 +1,34 @@
+@startuml seq_notification
+title Hình 3.28 — Sequence Diagram — Gửi thông báo
+
+participant "Spring Boot\n(Backend)" as BE
+database "PostgreSQL" as DB
+participant "Email Service\n(SMTP)" as Email
+participant "Next.js\n(Frontend)" as FE
+actor Customer
+
+== Trigger: Đơn hàng được tạo thành công ==
+BE -> DB : INSERT Notification\n(user_id, title="Đơn hàng mới",\nmessage="Đơn #id đã tạo", type='ORDER')
+BE -> DB : SELECT Account JOIN User_Profile\nWHERE id = user_id
+BE -> Email : Gửi email xác nhận đơn hàng\n(template: order_confirmation)
+Email --> Customer : Email: "Xác nhận đơn hàng #id"
+
+== Trigger: Trạng thái đơn thay đổi ==
+BE -> DB : INSERT Notification\n(user_id, title="Cập nhật đơn hàng",\nmessage="Đơn #id đang giao", type='ORDER')
+BE -> Email : Gửi email cập nhật trạng thái
+Email --> Customer : Email: "Đơn hàng #id\nđang được giao"
+
+== Customer xem thông báo ==
+Customer -> FE : Nhấn icon 🔔
+FE -> BE : GET /api/v1/notifications?\npage=1&size=20
+BE -> DB : SELECT Notification\nWHERE user_id = ?\nORDER BY created_at DESC
+BE --> FE : 200 {notifications[], unreadCount}
+FE --> Customer : Hiển thị danh sách thông báo\n(badge số chưa đọc)
+
+Customer -> FE : Nhấn vào thông báo
+FE -> BE : PATCH /api/v1/notifications/{id}/read
+BE -> DB : UPDATE Notification\nSET is_read = true WHERE id = ?
+BE --> FE : 200 OK
+FE --> Customer : Đánh dấu đã đọc,\nredirect đến link liên quan
+
+@enduml

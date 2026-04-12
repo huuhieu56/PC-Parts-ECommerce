@@ -1,0 +1,44 @@
+@startuml seq_login
+title Hình 3.5 — Sequence Diagram — Đăng nhập & Merge giỏ hàng
+
+actor Customer
+participant "Next.js\n(Frontend)" as FE
+participant "Spring Boot\n(Backend)" as BE
+database "PostgreSQL" as DB
+database "Redis" as Cache
+
+Customer -> FE : Nhập email + password
+FE -> BE : POST /api/v1/auth/login\n{email, password}
+BE -> DB : SELECT Account WHERE email = ?
+DB --> BE : Account record
+BE -> BE : Verify BCrypt(password, hash)
+
+alt Sai mật khẩu
+    BE --> FE : 401 Unauthorized
+    FE --> Customer : Hiển thị lỗi
+else Đúng mật khẩu
+    BE -> DB : INSERT Token (Refresh Token)
+    BE -> BE : Sinh JWT Access Token (15 phút)
+
+    note over BE, Cache : Merge giỏ hàng Guest → DB
+    BE -> Cache : GET cart:{session_id}
+    Cache --> BE : Guest cart items (hoặc empty)
+
+    opt Có giỏ Guest
+        BE -> DB : SELECT Cart WHERE user_id = ?
+        loop Mỗi Guest Cart Item
+            alt Trùng product_id → cộng dồn quantity
+                BE -> DB : UPDATE Cart_Item SET quantity += ?
+            else Mới → tạo Cart_Item
+                BE -> DB : INSERT Cart_Item
+            end
+        end
+        BE -> Cache : DEL cart:{session_id}
+    end
+
+    BE --> FE : 200 {accessToken, refreshToken, user}
+    FE -> FE : Lưu token, cập nhật Zustand store
+    FE --> Customer : Redirect về trang trước đó
+end
+
+@enduml

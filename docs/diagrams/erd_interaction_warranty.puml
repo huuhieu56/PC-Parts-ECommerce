@@ -1,0 +1,70 @@
+@startuml erd_interaction_warranty
+title Hình 3.32 — ERD — Nhóm Tương tác & Bảo hành (Interaction & Warranty)
+
+skinparam class {
+    BackgroundColor #E8F0FE
+    BorderColor #1A73E8
+}
+
+entity "REVIEW" as review {
+    * id : bigint <<PK>>
+    --
+    * user_id : bigint <<FK>>
+    * product_id : bigint <<FK>>
+    * order_id : bigint <<FK>>
+    * rating : int
+    content : text
+    * created_at : timestamp
+}
+
+entity "REVIEW_IMAGE" as review_img {
+    * id : bigint <<PK>>
+    --
+    * review_id : bigint <<FK>>
+    * image_url : varchar
+}
+
+entity "WARRANTY_POLICY" as warranty_policy {
+    * id : bigint <<PK>>
+    --
+    category_id : bigint <<FK>>
+    product_id : bigint <<FK>>
+    * duration_months : int
+    conditions : text
+    description : text
+}
+
+entity "WARRANTY_TICKET" as warranty_ticket {
+    * id : bigint <<PK>>
+    --
+    * user_id : bigint <<FK>>
+    * product_id : bigint <<FK>>
+    * order_id : bigint <<FK>>
+    serial_number : varchar
+    * issue_description : text
+    * status : varchar
+    resolution : text
+    resolved_at : timestamp
+    * created_at : timestamp
+    * updated_at : timestamp
+}
+
+entity "RETURN_REQUEST" as return_req {
+    * id : bigint <<PK>>
+    --
+    * user_id : bigint <<FK>>
+    * order_id : bigint <<FK>>
+    * order_detail_id : bigint <<FK>>
+    * type : varchar
+    * reason : text
+    * status : varchar
+    refund_amount : decimal
+    resolved_at : timestamp
+    * created_at : timestamp
+    * updated_at : timestamp
+}
+
+review ||--o{ review_img : "has images"
+warranty_policy ||--o{ warranty_ticket : "governs"
+
+@enduml

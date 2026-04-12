@@ -1,0 +1,87 @@
+@startuml erd_auth
+title Hình 3.29 — ERD — Nhóm Phân quyền (Auth & User)
+
+skinparam class {
+    BackgroundColor #E8F0FE
+    BorderColor #1A73E8
+}
+
+entity "ACCOUNT" as account {
+    * id : bigint <<PK>>
+    --
+    * email : varchar <<UK>>
+    * password_hash : varchar
+    * is_active : boolean
+    * is_verified : boolean
+    * role_id : bigint <<FK>>
+    last_login_at : timestamp
+    * created_at : timestamp
+    * updated_at : timestamp
+}
+
+entity "USER_PROFILE" as user_profile {
+    * id : bigint <<PK>>
+    --
+    * account_id : bigint <<FK>>
+    * full_name : varchar
+    phone : varchar <<UK>>
+    avatar_url : varchar
+    date_of_birth : date
+    gender : varchar
+    * created_at : timestamp
+    * updated_at : timestamp
+}
+
+entity "ADDRESS" as address {
+    * id : bigint <<PK>>
+    --
+    * user_id : bigint <<FK>>
+    label : varchar
+    * receiver_name : varchar
+    * receiver_phone : varchar
+    * province : varchar
+    * district : varchar
+    * ward : varchar
+    * street : varchar
+    * is_default : boolean
+    * created_at : timestamp
+    * updated_at : timestamp
+}
+
+entity "ROLE" as role {
+    * id : bigint <<PK>>
+    --
+    * name : varchar <<UK>>
+    description : varchar
+}
+
+entity "PERMISSION" as permission {
+    * id : bigint <<PK>>
+    --
+    * code : varchar <<UK>>
+    description : varchar
+}
+
+entity "ROLE_PERMISSION" as role_perm {
+    * role_id : bigint <<PK, FK>>
+    * permission_id : bigint <<PK, FK>>
+}
+
+entity "TOKEN" as token {
+    * id : bigint <<PK>>
+    --
+    * account_id : bigint <<FK>>
+    * token_type : varchar
+    * token_value : varchar
+    * expires_at : timestamp
+    * created_at : timestamp
+}
+
+role ||--o{ account
+account ||--|| user_profile
+account ||--o{ token
+user_profile ||--o{ address
+role ||--o{ role_perm
+permission ||--o{ role_perm
+
+@enduml

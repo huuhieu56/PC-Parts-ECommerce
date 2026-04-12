@@ -1,0 +1,38 @@
+@startuml seq_update_profile
+title Hình 3.9 — Sequence Diagram — Cập nhật thông tin cá nhân
+
+actor Customer
+participant "Next.js\n(Frontend)" as FE
+participant "Spring Boot\n(Backend)" as BE
+database "PostgreSQL" as DB
+participant "MinIO" as Storage
+
+Customer -> FE : Mở trang Profile
+FE -> BE : GET /api/v1/users/me
+BE -> DB : SELECT User_Profile + Address\nWHERE account_id = ?
+BE --> FE : 200 {fullName, phone, avatar, addresses[]}
+FE --> Customer : Hiển thị thông tin hiện tại
+
+Customer -> FE : Sửa thông tin + upload avatar mới
+FE -> BE : PUT /api/v1/users/me\n{fullName, phone, gender, dateOfBirth}
+BE -> DB : UPDATE User_Profile SET ...
+BE --> FE : 200 {updatedProfile}
+
+opt Upload avatar
+    FE -> BE : POST /api/v1/users/me/avatar\n(multipart/form-data)
+    BE -> Storage : PUT object\n(avatars/{user_id}/avatar.jpg)
+    Storage --> BE : Object URL
+    BE -> DB : UPDATE User_Profile\nSET avatar_url = ?
+    BE --> FE : 200 {avatarUrl}
+end
+
+opt Quản lý địa chỉ
+    Customer -> FE : Thêm / Sửa / Xóa địa chỉ
+    FE -> BE : POST|PUT|DELETE\n/api/v1/users/me/addresses/{id?}
+    BE -> DB : INSERT|UPDATE|DELETE Address
+    BE --> FE : 200 {address}
+end
+
+FE --> Customer : Cập nhật giao diện
+
+@enduml

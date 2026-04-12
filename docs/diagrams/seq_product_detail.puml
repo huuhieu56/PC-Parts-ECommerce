@@ -1,0 +1,36 @@
+@startuml seq_product_detail
+title Hình 3.11 — Sequence Diagram — Xem chi tiết sản phẩm
+
+actor User
+participant "Next.js\n(Frontend)" as FE
+participant "Spring Boot\n(Backend)" as BE
+database "Redis" as Cache
+database "PostgreSQL" as DB
+
+User -> FE : Nhấn vào sản phẩm (slug)
+FE -> BE : GET /api/v1/products/{slug}
+
+BE -> Cache : GET product_detail:{slug}
+alt Cache hit
+    Cache --> BE : Cached product detail
+else Cache miss
+    BE -> DB : SELECT Product JOIN Category JOIN Brand\nWHERE slug = ? AND status = 'ACTIVE'
+    BE -> DB : SELECT Product_Image\nWHERE product_id = ? ORDER BY sort_order
+    BE -> DB : SELECT Product_Attribute JOIN Attribute\nJOIN Attribute_Value WHERE product_id = ?
+    BE -> DB : SELECT Inventory WHERE product_id = ?
+    BE -> DB : SELECT AVG(rating), COUNT(*)\nFROM Review WHERE product_id = ?
+    DB --> BE : Product + Images + Attributes\n+ Inventory + Rating
+    BE -> Cache : SETEX product_detail:{slug} TTL=600s
+end
+
+BE --> FE : 200 {product, images[], attributes[],\ninventory, averageRating, reviewCount}
+FE --> User : Hiển thị chi tiết SP\n(ảnh, giá, thông số, tồn kho, đánh giá)
+
+opt Xem đánh giá sản phẩm
+    FE -> BE : GET /api/v1/products/{id}/reviews?\npage=1&size=10
+    BE -> DB : SELECT Review JOIN User_Profile\nJOIN Review_Image WHERE product_id = ?
+    BE --> FE : 200 {reviews[], totalItems}
+    FE --> User : Hiển thị danh sách đánh giá
+end
+
+@enduml
