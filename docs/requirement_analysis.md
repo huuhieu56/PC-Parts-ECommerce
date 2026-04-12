@@ -1,1193 +1,907 @@
-**I. Mô tả hệ thống**
+# TÀI LIỆU ĐẶC TẢ YÊU CẦU PHẦN MỀM
 
-**1\. Mô tả chung về hệ thống, lý do lựa chọn**
+**(Software Requirement Specification – SRS)**
 
-* **Mô tả chung (System Overview):**  
-  * **Tên dự án:** Hệ thống Website thương mại điện tử phân phối linh kiện máy tính, PC lắp ráp và thiết bị công nghệ.  
-  * **Mục tiêu cốt lõi:** Cung cấp nền tảng mua sắm trực tuyến tối ưu, tích hợp công cụ hỗ trợ người dùng tự xây dựng cấu hình (Build PC) với thuật toán kiểm tra tính tương thích, hệ thống tra cứu bảo hành minh bạch và thanh toán đa kênh.  
-  * **Đối tượng người dùng (Target Audience):** Khách hàng cá nhân (Gamers, người dùng văn phòng, thiết kế đồ họa), Khách hàng doanh nghiệp (SME mua sắm thiết bị).  
-  * **Đội ngũ vận hành:** Quản trị viên (Admin), Nhân viên bán hàng (Sales), Nhân viên kho (Warehouse).  
-  * **Phạm vi hệ thống (In-scope):** Quản lý danh mục sản phẩm phức tạp (nhiều thuộc tính kỹ thuật), Quản lý đơn hàng/vận chuyển, Công cụ Build PC với AI, Quản lý khách hàng (CRM cơ bản), Cổng thanh toán đa phương thức, Hệ thống mã giảm giá (Coupon), Quản lý kho hàng và nhà cung cấp, Bảo hành và đổi trả.
+**Hệ thống Website Thương mại Điện tử Phân phối Linh kiện Máy tính**
 
-* **Lý do lựa chọn (Business Case / Problem Statement):**  
-  * **Bối cảnh:** Nhu cầu cá nhân hóa máy tính (tự chọn linh kiện) của người dùng công nghệ và game thủ đang tăng mạnh.  
-  * **Vấn đề (Pain points):** Trên các website hiện tại, người dùng thiếu kinh nghiệm thường gặp khó khăn trong việc kiểm tra tính tương thích giữa các linh kiện (ví dụ: Mainboard có hỗ trợ dòng CPU không, kích thước VGA có vừa Case không, nguồn điện có đủ công suất không). Giao diện của nhiều bên còn cũ, tốc độ tải trang chậm và trải nghiệm Mobile chưa tốt.  
-  * **Cơ hội/Giá trị mang lại:** Việc xây dựng hệ thống mới giải quyết triệt để các pain points trên (tối ưu UI/UX, thuật toán Build PC thông minh) sẽ giúp tăng trải nghiệm khách hàng, giảm thiểu thời gian tư vấn của nhân viên Sales và tăng tỷ lệ chuyển đổi (Conversion Rate).
+---
 
-**2\. Khảo sát hệ thống tương tự (Competitor Analysis)**
+## Mục lục
 
-* **Hệ thống 1: HACOM (hacom.vn)**  
-  * **Điểm mạnh:** Bộ lọc sản phẩm cực kỳ chi tiết theo từng thông số kỹ thuật ngách; dữ liệu sản phẩm phong phú; tính năng Build PC cho phép xuất file báo giá định dạng chuẩn.  
-  * **Điểm yếu:** Giao diện (UI) khá cũ, nhồi nhét quá nhiều thông tin gây rối mắt; tốc độ tải trang đôi lúc chậm do xử lý nhiều banner quảng cáo; trải nghiệm trên thiết bị di động (Mobile Web) chưa được tối ưu tốt.  
-* **Hệ thống 2: An Phát PC (anphatpc.com.vn)**  
-  * **Điểm mạnh:** Thường xuyên chạy các chiến dịch Flash Sale, Combo PC có sẵn với giá cạnh tranh; luồng thanh toán (Checkout flow) tương đối ngắn gọn.  
-  * **Điểm yếu:** Công cụ Build PC có giao diện chưa trực quan; phần tra cứu trạng thái đơn hàng cho khách hàng vãng lai còn nhiều bất tiện.  
-* **Hệ thống 3: GearVN (gearvn.com)**  
-  * **Điểm mạnh:** Giao diện hiện đại, định vị thương hiệu tốt với tệp khách hàng trẻ/Gamer; hình ảnh sản phẩm đồng nhất; hệ sinh thái nội dung (Blog, Youtube) liên kết mượt mà với trang bán hàng.  
-  * **Điểm yếu:** Bộ lọc thông số kỹ thuật chưa sâu bằng HACOM; mức giá đôi khi cao hơn mặt bằng chung.  
-* **Kết luận rút ra cho hệ thống (Key Takeaways & Competitive Advantage):**  
-  * **Tính năng cốt lõi:** Tập trung phát triển **Công cụ Build PC thông minh** (LLM đề xuất, gợi ý).  
-  * **Trải nghiệm người dùng:** Thiết kế theo phong cách hiện đại, tối giản thông tin thừa, ưu tiên tốc độ tải trang. Cho phép khách vãng lai thêm sản phẩm vào giỏ hàng mà không cần đăng nhập.  
-  * **Quản lý chuyên nghiệp:** Phân quyền rõ ràng cho đội ngũ vận hành (Admin, Sales, Warehouse) giúp tối ưu quy trình nội bộ. Hệ thống bảo hành và đổi trả minh bạch.
+- **1 Giới thiệu**
+  - 1.1 Mục đích
+  - 1.2 Phạm vi
+  - 1.3 Từ điển thuật ngữ
+  - 1.4 Tài liệu tham khảo
+  - 1.5 Tổng quát
+- **2 Mô tả hệ thống**
+  - 2.1 Mô tả chung về hệ thống
+  - 2.2 Lý do lựa chọn
+  - 2.3 Khảo sát hệ thống tương tự
+- **3 Thu thập yêu cầu**
+  - 3.1 Mô hình nghiệp vụ bằng ngôn ngữ tự nhiên
+    - 3.1.1 Mục tiêu và phạm vi hệ thống
+    - 3.1.2 Ai có thể sử dụng phần mềm?
+    - 3.1.3 Người dùng có những chức năng gì?
+    - 3.1.4 Mỗi chức năng hoạt động ra sao?
+    - 3.1.5 Những thông tin/đối tượng mà hệ thống cần xử lý?
+    - 3.1.6 Quan hệ giữa các đối tượng?
+  - 3.2 Biểu đồ use case tổng quan
+  - 3.3 Đặc tả các Use Case
+    - 3.3.1 Bảng tổng hợp Use Case
+    - 3.3.2 Chi tiết Use Case
+  - 3.4 Bảng yêu cầu người dùng
+- **4 Yêu cầu phi chức năng**
+  - 4.1 Giao diện người dùng
+  - 4.2 Tính bảo mật
+  - 4.3 Hiệu năng và khả năng mở rộng
+  - 4.4 Ràng buộc kỹ thuật
 
-**II. Thu thập yêu cầu**  
-**1\. Bảng thuật ngữ**
+---
 
-1. Nhóm thuật ngữ về Thương mại điện tử & Bán hàng  
-   
+## Danh mục hình ảnh, bảng biểu
+
+| Ký hiệu | Mô tả |
+| :--- | :--- |
+| Bảng 1-1 | Bảng thuật ngữ thương mại điện tử |
+| Bảng 1-2 | Bảng thuật ngữ linh kiện máy tính |
+| Bảng 1-3 | Bảng thuật ngữ hệ thống & phần mềm |
+| Bảng 3-1 | Bảng tổng hợp Use Case |
+| Bảng 3-2 | Bảng yêu cầu người dùng |
+| Hình 3-1 | Biểu đồ use case tổng quan |
+| Hình 3-2 | Sơ đồ hoạt động – Quản lý sản phẩm |
+| Hình 3-3 | Sơ đồ hoạt động – Quản lý đơn hàng |
+| Hình 3-4 | Sơ đồ hoạt động – Quản lý kho hàng |
+| Hình 3-5 | Sơ đồ tổng hợp luồng nghiệp vụ |
+
+---
+
+## 1 Giới thiệu
+
+### 1.1 Mục đích
+
+Tài liệu Đặc tả Yêu cầu Phần mềm (SRS – Software Requirement Specification) này mô tả chi tiết các yêu cầu chức năng và phi chức năng của **Hệ thống Website Thương mại Điện tử Phân phối Linh kiện Máy tính, PC Lắp ráp và Thiết bị Công nghệ**. Tài liệu này nhằm mục đích cung cấp thông tin đầy đủ cho đội ngũ phát triển, kiểm thử và các bên liên quan để hiểu rõ hệ thống cần xây dựng.
+
+### 1.2 Phạm vi
+
+Hệ thống Website thương mại điện tử này được phát triển để:
+
+- Cung cấp nền tảng mua sắm trực tuyến cho linh kiện máy tính
+- Tích hợp công cụ Build PC thông minh với AI kiểm tra tương thích
+- Quản lý đơn hàng, thanh toán đa phương thức (VNPay, MoMo, ZaloPay, Chuyển khoản, COD)
+- Quản lý kho hàng, nhà cung cấp với audit trail đầy đủ
+- Hệ thống bảo hành và đổi trả minh bạch
+- Phân quyền rõ ràng cho Admin, Sales Staff, Warehouse Staff
+
+**Đối tượng sử dụng:** Khách hàng cá nhân (Gamers, người dùng văn phòng, thiết kế đồ họa), Khách hàng doanh nghiệp (SME mua sắm thiết bị), và Đội ngũ vận hành (Admin, Sales, Warehouse).
+
+### 1.3 Từ điển thuật ngữ
+
+#### 1. Nhóm thuật ngữ về Thương mại điện tử & Bán hàng
+
+**Bảng 1-1:** Bảng thuật ngữ thương mại điện tử
 
 | Thuật ngữ | Viết tắt / Tiếng Anh | Định nghĩa |
-| :---- | :---- | :---- |
+| :--- | :--- | :--- |
 | Mã quản lý kho | SKU (Stock Keeping Unit) | Mã định danh duy nhất cho từng phân loại sản phẩm để theo dõi chính xác lượng hàng tồn kho. |
 | Thanh toán khi nhận hàng | COD (Cash On Delivery) | Phương thức thanh toán mà người mua sẽ trả tiền mặt cho nhân viên giao hàng khi nhận được linh kiện. |
 | Mã giảm giá | Voucher / Coupon | Mã ký tự do cửa hàng phát hành để khách hàng nhập vào khi thanh toán nhằm được giảm giá. |
 | Đơn vị vận chuyển | Shipping Provider | Các bên thứ ba chịu trách nhiệm giao hàng (ví dụ: GHTK, GHN, Viettel Post) được tích hợp vào hệ thống tính phí ship. |
-| Nhà cung cấp | 	Supplier | Đối tác cung cấp nguồn linh kiện cho cửa hàng, được quản lý trong thực thể Supplier. |
+| Nhà cung cấp | Supplier | Đối tác cung cấp nguồn linh kiện cho cửa hàng, được quản lý trong thực thể Supplier. |
 | Thương hiệu | Brand | Hãng sản xuất linh kiện (Intel, AMD, ASUS...), mỗi Product thuộc một Brand duy nhất. |
 | Danh sách yêu thích | Wishlist | Cho phép Customer lưu lại sản phẩm quan tâm để xem lại sau mà không cần thêm vào giỏ hàng. |
 
-   
+#### 2. Nhóm thuật ngữ chuyên ngành Linh kiện máy tính
 
-2. Nhóm thuật ngữ chuyên ngành Linh kiện máy tính  
-   
+**Bảng 1-2:** Bảng thuật ngữ linh kiện máy tính
 
 | Thuật ngữ | Định nghĩa |
-| :---- | :---- |
+| :--- | :--- |
 | Xây dựng cấu hình (Build PC) | Tính năng cốt lõi cho phép khách hàng tự chọn từng linh kiện (CPU, Main, RAM, VGA...) để ghép thành một bộ máy tính hoàn chỉnh. Hệ thống sẽ tự tính tổng giá. |
 | Tính tương thích (Compatibility) | Khả năng hoạt động chung giữa các linh kiện. Hệ thống sử dụng AI (LLM) để phân tích và cảnh báo về khả năng tương thích. |
 | Thông số kỹ thuật (Specs) | Các chỉ số chi tiết của linh kiện (Xung nhịp, Socket, Bus RAM, PCIe). Quản lý qua Attribute, Attribute\_Value và Product\_Attribute. |
 | Hàng Box / Hàng Tray | Thuật ngữ chỉ tình trạng đóng gói (thường dùng cho CPU). Hàng Box có đầy đủ hộp, quạt tản nhiệt, bảo hành chính hãng. Hàng Tray thường chỉ có linh kiện trần, giá rẻ hơn. |
 | Sản phẩm đã qua sử dụng (2nd hand) | Linh kiện cũ được cửa hàng thu mua và bán lại. Cần có cờ (flag) phân biệt rõ ràng với linh kiện mới 100% trên giao diện. |
 
-3. Nhóm thuật ngữ Hệ thống & Phần mềm  
-   
+#### 3. Nhóm thuật ngữ Hệ thống & Phần mềm
+
+**Bảng 1-3:** Bảng thuật ngữ hệ thống & phần mềm
 
 | Thuật ngữ | Định nghĩa |
-| :---- | :---- |
+| :--- | :--- |
 | Hệ quản trị nội dung (CMS) | Giao diện dành riêng cho đội ngũ vận hành (Admin/Sales/Warehouse) để quản lý sản phẩm, đơn hàng, kho hàng và nội dung website. |
 | Giao diện lập trình ứng dụng (API) | Cổng giao tiếp để hệ thống kết nối với hệ thống bên ngoài (cổng thanh toán VNPay, API LLM, tra cứu mã vận đơn). |
 | Bộ lọc động (Dynamic Filter) | Chức năng lọc danh sách sản phẩm tự động thay đổi dựa trên danh mục. Ví dụ: Đang ở danh mục "Ổ cứng" thì hiển thị bộ lọc "Dung lượng 512GB/1TB", "Chuẩn SATA/NVMe". |
 | Phiên làm việc (Session/Cookie) | Cơ chế lưu trữ tạm thời, giúp hệ thống nhớ Giỏ hàng của Khách vãng lai khi chưa đăng nhập. |
 | Mã xác thực (Token/Session) | Chuỗi ký tự (refresh token, access token, OTP) để duy trì phiên đăng nhập và xác thực quyền truy cập API. |
-| Tồn kho & Lịch sử kho | Inventory: lưu tồn kho hiện tại \+ ngưỡng cảnh báo. Inventory\_Log: ghi nhận mọi biến động (nhập, bán, hoàn trả, điều chỉnh). |
+| Tồn kho & Lịch sử kho | Inventory: lưu tồn kho hiện tại + ngưỡng cảnh báo. Inventory\_Log: ghi nhận mọi biến động (nhập, bán, hoàn trả, điều chỉnh). |
 | Phân quyền (RBAC) | Role-Based Access Control. Phân quyền dựa trên Role và Permission, liên kết qua Role\_Permission. |
 | Bảo hành | Warranty\_Policy (chính sách theo Category/Product) và Warranty\_Ticket (phiếu khi khách gửi yêu cầu). |
 | Đổi trả | Return/Refund: Quản lý yêu cầu đổi hàng hoặc hoàn tiền, gắn với Order\_Detail cụ thể. |
 
-   
+### 1.4 Tài liệu tham khảo
 
-   
+- IEEE Recommended Practice for Software Requirements Specifications, IEEE Std 830-1998.
+- IEEE Guide for Developing System Requirements Specifications, IEEE Std 1233-1996.
+- IT4490: Software Design and Construction – Nguyen Thi Thu Trang, trangntt@soict.hust.edu.vn.
 
-**2\. Mô hình nghiệp vụ bằng ngôn ngữ tự nhiên**
+### 1.5 Tổng quát
 
-1. #### **Mục tiêu và phạm vi hệ thống**
+Tài liệu này được viết dựa theo chuẩn của Tài liệu đặc tả yêu cầu phần mềm (Software Requirements Specifications – SRS), bao gồm:
 
-* *Mục tiêu*: Xây dựng một nền tảng thương mại điện tử chuyên biệt cho linh kiện máy tính, giúp khách hàng tìm kiếm, so sánh thông số kỹ thuật, và mua sắm dễ dàng. Tích hợp công cụ Build PC với AI đánh giá tương thích. Đồng thời, cung cấp công cụ phân quyền chi tiết (RBAC) cho đội ngũ vận hành (Admin, Sales, Warehouse) để quản lý kho hàng, đơn hàng, bảo hành, đổi trả và doanh thu một cách hiệu quả.  
-* *Phạm vi*:  Hệ thống tập trung vào việc hiển thị danh mục linh kiện theo các thông số kỹ thuật chi tiết, quản lý giỏ hàng (bao gồm giỏ hàng khách vãng lai), thanh toán đa phương thức qua cổng thanh toán, theo dõi vận chuyển, công cụ Build PC, quản lý kho hàng và nhà cung cấp, mã giảm giá (Coupon), bảo hành/đổi trả và quản trị nội dung cửa hàng.
+1. **Phần 1 – Giới thiệu:** Cung cấp cái nhìn tổng quan về mục đích, phạm vi, thuật ngữ và cấu trúc tài liệu.
+2. **Phần 2 – Mô tả hệ thống:** Trình bày bối cảnh hệ thống, lý do lựa chọn, và phân tích các hệ thống tương tự trên thị trường.
+3. **Phần 3 – Thu thập yêu cầu:** Mô hình hóa nghiệp vụ bằng ngôn ngữ tự nhiên, biểu đồ UML, đặc tả chi tiết 25 Use Case và bảng yêu cầu người dùng.
+4. **Phần 4 – Yêu cầu phi chức năng:** Các ràng buộc về giao diện, bảo mật, hiệu năng và công nghệ.
 
-2. #### **Ai có thể sử dụng phần mềm?**
+---
+
+## 2 Mô tả hệ thống
+
+### 2.1 Mô tả chung về hệ thống
+
+- **Tên dự án:** Hệ thống Website thương mại điện tử phân phối linh kiện máy tính, PC lắp ráp và thiết bị công nghệ.
+- **Mục tiêu cốt lõi:** Cung cấp nền tảng mua sắm trực tuyến tối ưu, tích hợp công cụ hỗ trợ người dùng tự xây dựng cấu hình (Build PC) với thuật toán kiểm tra tính tương thích, hệ thống tra cứu bảo hành minh bạch và thanh toán đa kênh.
+- **Đối tượng người dùng (Target Audience):** Khách hàng cá nhân (Gamers, người dùng văn phòng, thiết kế đồ họa), Khách hàng doanh nghiệp (SME mua sắm thiết bị).
+- **Đội ngũ vận hành:** Quản trị viên (Admin), Nhân viên bán hàng (Sales), Nhân viên kho (Warehouse).
+- **Phạm vi hệ thống (In-scope):** Quản lý danh mục sản phẩm phức tạp (nhiều thuộc tính kỹ thuật), Quản lý đơn hàng/vận chuyển, Công cụ Build PC với AI, Quản lý khách hàng (CRM cơ bản), Cổng thanh toán đa phương thức, Hệ thống mã giảm giá (Coupon), Quản lý kho hàng và nhà cung cấp, Bảo hành và đổi trả.
+
+### 2.2 Lý do lựa chọn
+
+- **Bối cảnh:** Nhu cầu cá nhân hóa máy tính (tự chọn linh kiện) của người dùng công nghệ và game thủ đang tăng mạnh.
+- **Vấn đề (Pain points):** Trên các website hiện tại, người dùng thiếu kinh nghiệm thường gặp khó khăn trong việc kiểm tra tính tương thích giữa các linh kiện (ví dụ: Mainboard có hỗ trợ dòng CPU không, kích thước VGA có vừa Case không, nguồn điện có đủ công suất không). Giao diện của nhiều bên còn cũ, tốc độ tải trang chậm và trải nghiệm Mobile chưa tốt.
+- **Cơ hội/Giá trị mang lại:** Việc xây dựng hệ thống mới giải quyết triệt để các pain points trên (tối ưu UI/UX, thuật toán Build PC thông minh) sẽ giúp tăng trải nghiệm khách hàng, giảm thiểu thời gian tư vấn của nhân viên Sales và tăng tỷ lệ chuyển đổi (Conversion Rate).
+
+### 2.3 Khảo sát hệ thống tương tự
+
+- **Hệ thống 1: HACOM (hacom.vn)**
+  - *Điểm mạnh:* Bộ lọc sản phẩm cực kỳ chi tiết theo từng thông số kỹ thuật ngách; dữ liệu sản phẩm phong phú; tính năng Build PC cho phép xuất file báo giá định dạng chuẩn.
+  - *Điểm yếu:* Giao diện (UI) khá cũ, nhồi nhét quá nhiều thông tin gây rối mắt; tốc độ tải trang đôi lúc chậm do xử lý nhiều banner quảng cáo; trải nghiệm trên thiết bị di động (Mobile Web) chưa được tối ưu tốt.
+- **Hệ thống 2: An Phát PC (anphatpc.com.vn)**
+  - *Điểm mạnh:* Thường xuyên chạy các chiến dịch Flash Sale, Combo PC có sẵn với giá cạnh tranh; luồng thanh toán (Checkout flow) tương đối ngắn gọn.
+  - *Điểm yếu:* Công cụ Build PC có giao diện chưa trực quan; phần tra cứu trạng thái đơn hàng cho khách hàng vãng lai còn nhiều bất tiện.
+- **Hệ thống 3: GearVN (gearvn.com)**
+  - *Điểm mạnh:* Giao diện hiện đại, định vị thương hiệu tốt với tệp khách hàng trẻ/Gamer; hình ảnh sản phẩm đồng nhất; hệ sinh thái nội dung (Blog, Youtube) liên kết mượt mà với trang bán hàng.
+  - *Điểm yếu:* Bộ lọc thông số kỹ thuật chưa sâu bằng HACOM; mức giá đôi khi cao hơn mặt bằng chung.
+- **Kết luận rút ra cho hệ thống:**
+  - *Tính năng cốt lõi:* Tập trung phát triển **Công cụ Build PC thông minh** (LLM đề xuất, gợi ý).
+  - *Trải nghiệm người dùng:* Thiết kế theo phong cách hiện đại, tối giản thông tin thừa, ưu tiên tốc độ tải trang. Cho phép khách vãng lai thêm sản phẩm vào giỏ hàng mà không cần đăng nhập.
+  - *Quản lý chuyên nghiệp:* Phân quyền rõ ràng cho đội ngũ vận hành (Admin, Sales, Warehouse) giúp tối ưu quy trình nội bộ. Hệ thống bảo hành và đổi trả minh bạch.
+
+---
+
+## 3 Thu thập yêu cầu
+
+### 3.1 Mô hình nghiệp vụ bằng ngôn ngữ tự nhiên
+
+#### 3.1.1 Mục tiêu và phạm vi hệ thống
+
+- **Mục tiêu:** Xây dựng một nền tảng thương mại điện tử chuyên biệt cho linh kiện máy tính, giúp khách hàng tìm kiếm, so sánh thông số kỹ thuật, và mua sắm dễ dàng. Tích hợp công cụ Build PC với AI đánh giá tương thích. Đồng thời, cung cấp công cụ phân quyền chi tiết (RBAC) cho đội ngũ vận hành (Admin, Sales, Warehouse) để quản lý kho hàng, đơn hàng, bảo hành, đổi trả và doanh thu một cách hiệu quả.
+- **Phạm vi:** Hệ thống tập trung vào việc hiển thị danh mục linh kiện theo các thông số kỹ thuật chi tiết, quản lý giỏ hàng (bao gồm giỏ hàng khách vãng lai), thanh toán đa phương thức qua cổng thanh toán, theo dõi vận chuyển, công cụ Build PC, quản lý kho hàng và nhà cung cấp, mã giảm giá (Coupon), bảo hành/đổi trả và quản trị nội dung cửa hàng.
+
+#### 3.1.2 Ai có thể sử dụng phần mềm?
 
 Hệ thống có 5 nhóm người dùng chính (Actors):
 
-* *Khách vãng lai (Guest): Xem, tìm kiếm thông tin sản phẩm, thêm sản phẩm vào giỏ hàng tạm (lưu bằng Session) và sử dụng công cụ Build PC (chọn linh kiện, xem tổng giá, xuất báo giá). Không cần đăng nhập.*  
-* *Khách hàng (Customer): Người dùng đã đăng nhập. Thực hiện các giao dịch mua bán, sử dụng AI kiểm tra tương thích trong Build PC, thêm cấu hình vào giỏ hàng/tạo đơn hàng, đánh giá sản phẩm, quản lý Wishlist, yêu cầu bảo hành và đổi trả*  
-* *Quản trị viên (Admin): Có toàn quyền quản lý hệ thống, bao gồm phân quyền (gán Role, Permission) cho các tài khoản khác.*  
-* *Nhân viên bán hàng (Sales): Quản lý đơn hàng, vận chuyển, xem thống kê doanh thu, thiết lập mã giảm giá, xử lý bảo hành và đổi trả.*  
-* *Nhân viên kho (Warehouse): Quản lý tồn kho (nhập hàng, kiểm kê), cập nhật số lượng sản phẩm thông qua Inventory và Inventory\_Log.*
+- *Khách vãng lai (Guest):* Xem, tìm kiếm thông tin sản phẩm, thêm sản phẩm vào giỏ hàng tạm (lưu bằng Session) và sử dụng công cụ Build PC (chọn linh kiện, xem tổng giá, xuất báo giá). Không cần đăng nhập.
+- *Khách hàng (Customer):* Người dùng đã đăng nhập. Thực hiện các giao dịch mua bán, sử dụng AI kiểm tra tương thích trong Build PC, thêm cấu hình vào giỏ hàng/tạo đơn hàng, đánh giá sản phẩm, quản lý Wishlist, yêu cầu bảo hành và đổi trả.
+- *Quản trị viên (Admin):* Có toàn quyền quản lý hệ thống, bao gồm phân quyền (gán Role, Permission) cho các tài khoản khác.
+- *Nhân viên bán hàng (Sales):* Quản lý đơn hàng, vận chuyển, xem thống kê doanh thu, thiết lập mã giảm giá, xử lý bảo hành và đổi trả.
+- *Nhân viên kho (Warehouse):* Quản lý tồn kho (nhập hàng, kiểm kê), cập nhật số lượng sản phẩm thông qua Inventory và Inventory\_Log.
 
+#### 3.1.3 Người dùng có những chức năng gì?
 
-3. #### **Người dùng có những chức năng gì?**
+- **Đối với Khách vãng lai (Guest):**
+  - Xem danh sách sản phẩm và chi tiết linh kiện.
+  - Tìm kiếm và lọc linh kiện theo bộ lọc thông minh (ví dụ: lọc RAM theo chuẩn DDR4/DDR5, lọc CPU theo Socket) dựa trên Attribute.
+  - Thêm sản phẩm vào giỏ hàng (lưu bằng Session/Cookie).
+  - Sử dụng công cụ Build PC: chọn linh kiện, xem tổng giá và xuất báo giá. Khi muốn kiểm tra tương thích AI, thêm vào giỏ hàng hoặc tạo đơn hàng → hệ thống yêu cầu đăng nhập.
+  - Đăng ký tài khoản mới và đăng nhập.
+  - Quên / đặt lại mật khẩu khi không đăng nhập (nhận email reset).
+- **Đối với Khách hàng (Customer):**
+  - Tất cả các chức năng của Khách vãng lai.
+  - Khi đăng nhập, giỏ hàng tạm (Session) được tự động merge với giỏ hàng cũ trên tài khoản.
+  - Quản lý nhiều địa chỉ giao hàng (Address).
+  - Tiến hành thanh toán (Checkout) và đặt hàng.
+  - Theo dõi trạng thái đơn hàng và vận chuyển.
+  - Xem lịch sử mua hàng.
+  - Hủy đơn hàng khi đơn ở trạng thái "Chờ xử lý" (Pending).
+  - Đánh giá sản phẩm đã mua (Review) kèm hình ảnh thực tế (Review\_Image). Chỉnh sửa hoặc xóa đánh giá đã viết.
+  - Quản lý danh sách yêu thích (Wishlist).
+  - Sử dụng AI kiểm tra tương thích trong Build PC, thêm cấu hình vào giỏ hàng (Cart) hoặc tạo đơn hàng trực tiếp.
+  - Gửi yêu cầu bảo hành (Warranty\_Ticket) và đổi trả (Return/Refund).
+- **Đối với Quản trị viên (Admin):**
+  - Quản lý danh mục linh kiện (Category) và thuộc tính kỹ thuật (Attribute, Attribute\_Value).
+  - Quản lý sản phẩm (CRUD Product, Product\_Image), Thương hiệu (Brand) và Nhà cung cấp (Supplier).
+  - Quản lý tài khoản người dùng (tạo Account nội bộ, khóa/mở khóa, gán Role và Permission).
+  - Toàn bộ chức năng của Sales và Warehouse.
+- **Đối với Nhân viên bán hàng (Sales):**
+  - Quản lý đơn hàng (duyệt đơn, cập nhật trạng thái, xem chi tiết Payment).
+  - Quản lý vận chuyển (tạo Shipping, cập nhật tracking, trạng thái giao hàng).
+  - Thiết lập mã giảm giá (Coupon).
+  - Xem thống kê báo cáo doanh thu.
+  - Xử lý yêu cầu bảo hành (Warranty\_Ticket) và đổi trả (Return/Refund).
+- **Đối với Nhân viên kho (Warehouse):**
+  - Quản lý kho hàng: Xem tồn kho (Inventory), nhập hàng, kiểm kê, ghi nhận biến động qua Inventory\_Log.
+  - Xem tồn kho thực tế của từng Product.
 
-* *Đối với Khách vãng lai (Guest):*  
-  * Xem danh sách sản phẩm và chi tiết linh kiện.  
-  * Tìm kiếm và lọc linh kiện theo bộ lọc thông minh (ví dụ: lọc RAM theo chuẩn DDR4/DDR5, lọc CPU theo Socket) dựa trên Attribute.  
-  * Thêm sản phẩm vào giỏ hàng (lưu bằng Session/Cookie).  
-  * Sử dụng công cụ Build PC: chọn linh kiện, xem tổng giá và xuất báo giá. Khi muốn kiểm tra tương thích AI, thêm vào giỏ hàng hoặc tạo đơn hàng → hệ thống yêu cầu đăng nhập.    
-  * Đăng ký tài khoản mới và đăng nhập.  
-* *Đối với Khách hàng (Customer):*  
-  * *Tất cả các chức năng của Khách vãng lai.*  
-  * *Khi đăng nhập, giỏ hàng tạm (Session) được tự động merge với giỏ hàng cũ trên tài khoản.*  
-  * *Quản lý nhiều địa chỉ giao hàng (Address).*  
-  * *Tiến hành thanh toán (Checkout) và đặt hàng.*  
-  * *Theo dõi trạng thái đơn hàng và vận chuyển.*  
-  * *Xem lịch sử mua hàng.*  
-  * *Đánh giá sản phẩm đã mua (Review) kèm hình ảnh thực tế (Review\_Image).*  
-  * *Quản lý danh sách yêu thích (Wishlist).*  
-  * *Sử dụng AI kiểm tra tương thích trong Build PC, thêm cấu hình vào giỏ hàng (Cart) hoặc tạo đơn hàng trực tiếp.*  
-  * *Gửi yêu cầu bảo hành (Warranty\_Ticket) và đổi trả (Return/Refund).*  
-* *Đối với Quản trị viên*:  
-  * Quản lý danh mục linh kiện (Category) và thuộc tính kỹ thuật (Attribute, Attribute\_Value).  
-  * Quản lý sản phẩm (CRUD Product, Product\_Image), Thương hiệu (Brand) và Nhà cung cấp (Supplier).  
-  * Quản lý tài khoản người dùng (tạo Account nội bộ, khóa/mở khóa, gán Role và Permission).  
-  * Toàn bộ chức năng của Sales và Warehouse.  
-* Đối với Nhân viên bán hàng (Sales):  
-  * Quản lý đơn hàng (duyệt đơn, cập nhật trạng thái, xem chi tiết Payment).  
-  * Quản lý vận chuyển (tạo Shipping, cập nhật tracking, trạng thái giao hàng).  
-  * Thiết lập mã giảm giá (Coupon).  
-  * Xem thống kê báo cáo doanh thu.  
-  * Xử lý yêu cầu bảo hành (Warranty\_Ticket) và đổi trả (Return/Refund).  
-* Đối với Nhân viên kho (Warehouse):  
-  * Quản lý kho hàng: Xem tồn kho (Inventory), nhập hàng, kiểm kê, ghi nhận biến động qua Inventory\_Log.  
-  * Xem tồn kho thực tế của từng Product.  
-    
+#### 3.1.4 Mỗi chức năng hoạt động ra sao?
 
-4. #### **Mỗi chức năng hoạt động ra sao?**
+> **Lưu ý:** Dưới đây là mô tả luồng hoạt động của một số chức năng cốt lõi nhất.
 
-Lưu ý: Dưới đây là mô tả luồng hoạt động của một số chức năng cốt lõi nhất.
+- **Chức năng Lọc và Tìm kiếm sản phẩm:** Khách hàng (hoặc khách vãng lai) nhập từ khóa hoặc chọn các tiêu chí từ bộ lọc động (Giá, Brand, Thông số kỹ thuật theo Attribute). Hệ thống truy vấn cơ sở dữ liệu và trả về danh sách các linh kiện khớp với yêu cầu, cập nhật giao diện ngay lập tức.
+- **Chức năng Giỏ hàng:** Khách vãng lai thêm sản phẩm vào giỏ hàng tạm (lưu qua Session/Cookie). Khi khách đăng nhập, hệ thống tự động merge giỏ hàng tạm vào giỏ hàng database (Cart) của tài khoản đó. Nếu có sản phẩm trùng, hệ thống cộng dồn số lượng. Khi đăng xuất, giỏ hàng tạm (Session) được xóa trắng.
+- **Chức năng Đặt hàng (Checkout):** 1. Khách hàng (đã đăng nhập) xem lại giỏ hàng và nhấn "Thanh toán". 2. Hệ thống yêu cầu chọn Address giao hàng (hoặc thêm mới). 3. Khách hàng chọn phương thức thanh toán (COD, VNPay, MoMo, ZaloPay, Chuyển khoản) và nhập mã Coupon (nếu có). 4. Hệ thống kiểm tra tồn kho qua Inventory, tạo Order, Order\_Detail, Payment (trạng thái "Pending") và Shipping, trừ kho qua Inventory\_Log, và gửi email xác nhận.
+- **Chức năng Xử lý đơn hàng (Sales/Admin):** Sales truy cập bảng điều khiển, xem danh sách đơn hàng. Sales kiểm tra và chuyển trạng thái đơn hàng (Chờ xử lý → Đang giao → Hoàn thành hoặc Đã hủy). Mỗi lần chuyển trạng thái, hệ thống ghi nhận vào Order\_Status\_History và gửi thông báo đến email khách hàng.
+- **Chức năng Xây dựng cấu hình (Build PC):** Người dùng (Guest hoặc Customer) chọn tuần tự các linh kiện vào form Build PC (Frontend). Giao diện hiển thị tổng giá. Người dùng có thể xuất báo giá PDF mà không cần đăng nhập. Khi nhấn "Kiểm tra tương thích (AI)", "Thêm vào giỏ hàng" hoặc "Tạo đơn hàng", nếu chưa đăng nhập → hệ thống yêu cầu đăng nhập trước.
+- **Chức năng Bảo hành:** Khách hàng tạo Warranty\_Ticket gắn với Product và Order đã mua. Hệ thống kiểm tra Warranty\_Policy (thời hạn, điều kiện). Sales/Admin xử lý phiếu và cập nhật trạng thái.
+- **Chức năng Đổi trả:** Khách hàng tạo yêu cầu Return/Refund gắn với Order\_Detail cụ thể. Sales/Admin duyệt, nếu hoàn tiền → tạo Payment với status Refunded. Nếu đổi hàng → tạo Order mới.
 
-* *Chức năng Lọc và Tìm kiếm sản phẩm: Khách hàng (hoặc khách vãng lai) nhập từ khóa hoặc chọn các tiêu chí từ bộ lọc động (Giá, Brand, Thông số kỹ thuật theo Attribute). Hệ thống truy vấn cơ sở dữ liệu và trả về danh sách các linh kiện khớp với yêu cầu, cập nhật giao diện ngay lập tức.*  
-* *Chức năng Giỏ hàng: Khách vãng lai thêm sản phẩm vào giỏ hàng tạm (lưu qua Session/Cookie). Khi khách đăng nhập, hệ thống tự động merge giỏ hàng tạm vào giỏ hàng database (Cart) của tài khoản đó. Nếu có sản phẩm trùng, hệ thống cộng dồn số lượng. Khi đăng xuất, giỏ hàng tạm (Session) được xóa trắng.*  
-* *Chức năng Đặt hàng (Checkout): 1\. Khách hàng (đã đăng nhập) xem lại giỏ hàng và nhấn "Thanh toán". 2\. Hệ thống yêu cầu chọn Address giao hàng (hoặc thêm mới). 3\. Khách hàng chọn phương thức thanh toán (COD, VNPay, MoMo, Chuyển khoản) và nhập mã Coupon (nếu có). 4\. Hệ thống kiểm tra tồn kho qua Inventory, tạo Order, Order\_Detail, Payment (trạng thái "Pending") và Shipping, trừ kho qua Inventory\_Log, và gửi email xác nhận.*  
-* *Chức năng Xử lý đơn hàng (Sales/Admin): Sales truy cập bảng điều khiển, xem danh sách đơn hàng. Sales kiểm tra và chuyển trạng thái đơn hàng (Chờ xử lý → Đang giao → Hoàn thành hoặc Đã hủy). Mỗi lần chuyển trạng thái, hệ thống ghi nhận vào Order\_Status\_History và gửi thông báo đến email khách hàng.*  
-* *Chức năng Xây dựng cấu hình (Build PC): Người dùng (Guest hoặc Customer) chọn tuần tự các linh kiện vào form Build PC (Frontend). Giao diện hiển thị tổng giá. Người dùng có thể xuất báo giá PDF mà không cần đăng nhập. Khi nhấn "Kiểm tra tương thích (AI)", "Thêm vào giỏ hàng" hoặc "Tạo đơn hàng", nếu chưa đăng nhập → hệ thống yêu cầu đăng nhập trước.*  
-* *Chức năng Bảo hành: Khách hàng tạo Warranty\_Ticket gắn với Product và Order đã mua. Hệ thống kiểm tra Warranty\_Policy (thời hạn, điều kiện). Sales/Admin xử lý phiếu và cập nhật trạng thái.*  
-* *Chức năng Đổi trả: Khách hàng tạo yêu cầu Return/Refund gắn với Order\_Detail cụ thể. Sales/Admin duyệt, nếu hoàn tiền → tạo Payment với status Refunded. Nếu đổi hàng → tạo Order mới.*
-
-
-5. #### **Những thông tin/đối tượng mà hệ thống cần xử lý?**
+#### 3.1.5 Những thông tin/đối tượng mà hệ thống cần xử lý?
 
 Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, được nhóm theo nghiệp vụ:
 
-* ***Nhóm Phân quyền:***  
-  * Tài khoản (Account): *Email, mật khẩu mã hóa, trạng thái hoạt động, trạng thái xác minh, vai trò, lần đăng nhập cuối.*  
-  * Người dùng (User/Profile): *Thông tin cá nhân (họ tên, SĐT, ảnh đại diện, ngày sinh, giới tính), liên kết 1-1 với Account.*  
-  * Địa chỉ (Address): *Địa chỉ giao hàng (nhiều địa chỉ/user): nhãn, tên người nhận, SĐT, tỉnh/quận/phường/đường, cờ mặc định.*  
-  * Vai trò (Role): *Admin, Sales, Warehouse, Customer.*  
-  * Quyền hạn (Permission): *Các quyền cụ thể (VD: product.create, order.update).*  
-  * Phân quyền (Role\_Permission): *Bảng trung gian gán Permission cho Role.*  
-  * Token / Phiên (Session): *Refresh token, reset password token, OTP, thời gian hết hạn.*  
-* ***Nhóm Sản phẩm:***  
-  * Sản phẩm (Product): *Tên, SKU, slug, giá gốc, giá bán, mô tả, danh mục, thương hiệu, tình trạng (Condition: Mới/Box/Tray/2nd\_Hand), trạng thái (Active/Inactive/Discontinued).*  
-  * Danh mục (Category): *Phân cấp đa tầng (parent\_id self-referencing), tên, mô tả, level.*  
-  * Thương hiệu (Brand): *Tên, logo, mô tả.*  
-  * Thuộc tính (Attribute): *Tên thuộc tính kỹ thuật gắn với Category (VD: Socket, Bus RAM).*  
-  * Giá trị thuộc tính (Attribute\_Value): *Giá trị cụ thể của thuộc tính (VD: LGA 1700, DDR5).*  
-  * Chi tiết thông số (Product\_Attribute): *Gắn kết Product ↔ Attribute ↔ Attribute\_Value.*  
-  * Hình ảnh (Product\_Image): *Hình ảnh/video cho Product, cờ ảnh chính, thứ tự sắp xếp.*  
-* ***Nhóm Kho hàng:***  
-  * Kho hàng (Inventory): *Số lượng tồn kho hiện tại, ngưỡng cảnh báo, nhà cung cấp chính, liên kết 1-1 với Product.*  
-  * Nhà cung cấp (Supplier): *Tên, người liên hệ, SĐT, email, địa chỉ.*  
-  * Lịch sử kho (Inventory\_Log): *Loại biến động (Nhập/Bán/Hoàn trả/Điều chỉnh), số lượng thay đổi, người thực hiện, thời gian, ghi chú.*  
-* ***Nhóm Mua sắm:***  
-  * Giỏ hàng (Cart): *Mã giỏ, user\_id hoặc session\_id.*  
-  * *Chi tiết giỏ hàng (Cart\_Item): Product, số lượng.*  
-  * Yêu thích (Wishlist): *User ↔ Product (UNIQUE).*  
-* ***Nhóm Đơn hàng & Thanh toán:***  
-  * Đơn hàng (Order): *User, Address, tổng tiền hàng, tiền giảm, tổng thanh toán, trạng thái, ghi chú, Coupon.*  
-  * Chi tiết đơn hàng (Order\_Detail): *Product, số lượng, đơn giá snapshot, thành tiền.*  
-  * Thanh toán (Payment): *Phương thức (COD/VNPay/MoMo/Chuyển khoản), số tiền, trạng thái (Pending/Success/Failed/Refunded), mã giao dịch, thời gian.*  
-  * Vận chuyển (Shipping): *Đơn vị vận chuyển, mã vận đơn, trạng thái, phí ship, ngày giao dự kiến/thực tế.*  
-  * Khuyến mãi (Coupon): *Code, loại giảm (PERCENT/FIXED), giá trị, đơn tối thiểu, giảm tối đa, số lượt, ngày hiệu lực.*  
-  * Lịch sử sử dụng mã (Coupon\_Usage): *User ↔ Coupon ↔ Order, thời gian sử dụng.*  
-  * Lịch sử trạng thái đơn hàng (Order\_Status\_History): *Trạng thái cũ → mới, người thao tác, thời gian, ghi chú.*  
-* ***Nhóm Tương tác:***  
-  * Đánh giá (Review): *User, Product, Order, số sao (1-5), nội dung.*  
-  * Ảnh đánh giá (Review\_Image): *Hình ảnh thực tế kèm Review.*  
-  * *Nhóm Bảo hành & Đổi trả:*  
-  * Chính sách bảo hành (Warranty\_Policy): *Gắn theo Category hoặc Product, thời hạn (tháng), điều kiện.*  
-  * Phiếu bảo hành (Warranty\_Ticket): *User, Product, Order, Serial Number, mô tả lỗi, trạng thái xử lý, kết quả.*  
-  * Đổi trả (Return/Refund): *Order, Order\_Detail, lý do, loại (đổi hàng/hoàn tiền), trạng thái, số tiền hoàn.*
-
-
-  
-
-6. #### **Quan hệ giữa các đối tượng?**
-
-* ***Phân quyền:***  
-  * Account \- Role: *Một Account có một Role duy nhất. Một Role gán cho nhiều Account (N-1).*  
-  * Role \- Permission: *Quan hệ N-N qua bảng trung gian Role\_Permission.*  
-  * Account \- User*: Quan hệ 1-1. Mỗi Account có đúng một User/Profile.*  
-  * User \- Address: *Một User có nhiều Address (1-N). Một Address có cờ is\_default.*  
-* ***Sản phẩm:***  
-  * Category \- Category: *Self-referencing (parent\_id) hỗ trợ phân cấp đa tầng (1-N).*  
-  * Category \- Product: *Một Category chứa nhiều Product, một Product thuộc một Category (1-N).*  
-  * Category \- Attribute: *Một Category có nhiều Attribute riêng (1-N).*  
-  * Brand \- Product: *Một Brand có nhiều Product, một Product thuộc một Brand (1-N).*  
-  * Attribute \- Attribute\_Value*: Một Attribute có nhiều giá trị (1-N).*  
-  * Product \- Attribute*: Quan hệ N-N qua Product\_Attribute (gắn kết với Attribute\_Value).*  
-  * Product \- Product\_Image: *Một Product có nhiều hình ảnh (1-N).*  
-* ***Kho hàng:***  
-  * Product \- Inventory: *Quan hệ 1-1. Mỗi Product có đúng một bản ghi Inventory.*  
-  * Supplier \- Inventory: *Một Supplier cung cấp cho nhiều Inventory (1-N).*  
-  * Product \- Inventory\_Log: *Một Product có nhiều bản ghi lịch sử kho (1-N).*  
-* ***Mua sắm:***  
-  * User \- Cart: *Một User (hoặc Session) có một Cart. Cart chứa nhiều Cart\_Item (1-N).*  
-  * Cart \- Product: *Quan hệ N-N qua Cart\_Item.*  
-  * User \- Wishlist: *Một User có nhiều Wishlist entry (1-N). UNIQUE(user\_id, product\_id).*  
-* ***Đơn hàng & Thanh toán:***  
-  * User \- Order*: Một User tạo nhiều Order (1-N).*  
-  * Address \- Order: *Một Address dùng cho nhiều Order (1-N).*  
-  * Order \- Product: *Quan hệ N-N qua Order\_Detail (lưu giá snapshot).*  
-  * Order \- Payment*: Một Order có nhiều Payment (1-N, cho phép thử lại khi thất bại hoặc hoàn tiền).*  
-  * Order \- Shipping: *Một Order có một Shipping (1-1).*  
-  * Coupon \- Order: *Một Coupon áp dụng cho nhiều Order (1-N, nullable).*  
-  * Coupon \- Coupon\_Usage: *Một Coupon có nhiều bản ghi sử dụng (1-N). UNIQUE(coupon\_id, user\_id) nếu giới hạn 1 lần/người.*  
-  * Order \- Order\_Status\_History: *Một Order có nhiều bản ghi lịch sử trạng thái (1-N).*  
-* ***Tương tác:***  
-  * User \- Review \- Product: *Một User đánh giá nhiều Product, một Product có nhiều Review (N-N qua Review). Ràng buộc: chỉ đánh giá khi Order chứa Product ở trạng thái "Hoàn thành".*  
-  * Review \- Review\_Image: *Một Review có nhiều ảnh (1-N).*  
-* ***Bảo hành & Đổi trả:***  
-  * Category/Product \- Warranty\_Policy: *Gán chính sách theo Category (1-N) hoặc Product cụ thể (1-N). Ưu tiên Product.*  
-  * User \- Warranty\_Ticket: *Một User tạo nhiều phiếu bảo hành (1-N).*  
-  * Product \- Warranty\_Ticket: *Một Product có nhiều phiếu bảo hành (1-N).*  
-  * Order \- Warranty\_Ticket: *Một Order liên quan nhiều phiếu (1-N).*  
-  * User \- Return: *Một User tạo nhiều yêu cầu đổi trả (1-N).*  
-  * Order \- Return: *Một Order có nhiều yêu cầu đổi trả (1-N).*  
-  * Order\_Detail \- Return: *Một Order\_Detail có nhiều yêu cầu đổi trả (1-N).*
-
-**3\. Mô hình nghiệp vụ bằng UML**
-
-1. **Actor \- Guest (Khách vãng lai):**  
-- Xem và tìm kiếm sản phẩm (theo Attribute)  
-- Thêm sản phẩm vào giỏ hàng tạm (Session)  
-- Sử dụng Build PC: chọn linh kiện, xem tổng giá, xuất báo giá (không cần đăng nhập)    
-- Đăng ký tài khoản  
-2. **Actor \- Customer (Khách hàng):**  
-- Đăng nhập, đăng xuất (kèm merge/xóa giỏ hàng Session)  
-- Tìm kiếm và lọc sản phẩm (theo Attribute)  
-- Quản lý giỏ hàng (Cart, Cart\_Item)  
-- Tạo đơn hàng và thanh toán (Order, Payment, Shipping)  
-- Quản lý danh sách yêu thích (Wishlist)  
-- Đánh giá sản phẩm (Review, Review\_Image)  
-- Build PC: kiểm tra tương thích AI, thêm cấu hình vào Cart hoặc tạo Order (yêu cầu đăng nhập)    
-- Quản lý địa chỉ giao hàng (Address)  
-- Xem lịch sử đơn hàng và theo dõi vận chuyển (Order, Shipping, Order\_Status\_History)  
-- Quản lý thông tin cá nhân (User/Profile, Account)  
-- Yêu cầu bảo hành (Warranty\_Ticket)  
-- Yêu cầu đổi trả (Return/Refund)  
-3. **Actor \- Admin (Quản trị viên):**  
-- Toàn quyền: bao gồm tất cả chức năng của Sales và Warehouse  
-- CRUD danh mục và thuộc tính (Category, Attribute, Attribute\_Value)  
-- CRUD sản phẩm (Product, Product\_Image, Brand)  
-- Quản lý nhà cung cấp (Supplier)  
-- Quản lý tài khoản (Account, User, Role, Permission)  
-- Quản lý chính sách bảo hành (Warranty\_Policy)  
-4. **Actor \- Sales (Nhân viên bán hàng):**  
-- Quản lý đơn hàng (Order, Order\_Status\_History)  
-- Quản lý vận chuyển (Shipping)  
-- Thiết lập mã giảm giá (Coupon)  
-- Xem thống kê doanh thu  
-- Xử lý bảo hành (Warranty\_Ticket) và đổi trả (Return/Refund)  
-5. **Actor \- Warehouse (Nhân viên kho):**  
-- Quản lý kho (Inventory, Inventory\_Log): nhập hàng, kiểm kê, ghi nhận biến động  
-- Xem tồn kho thực tế theo Product
-
-![][image1]  
-**4\. Đặc tả Use Case**
-
-   **4.1. Tìm kiếm và lọc sản phẩm**
-
-1\.    Mã UC, tên UC: UC-CUS-01: Tìm kiếm và lọc sản phẩm
-
-2\.    Actor: Khách vãng lai (Guest) / Khách hàng (Customer)
-
-3\.    Mô tả: Cho phép người dùng tìm kiếm linh kiện theo từ khóa hoặc lọc chi tiết theo các thuộc tính kỹ thuật động (Attribute) tương ứng với từng danh mục sản phẩm, giúp tiếp cận nhanh nhất sản phẩm phù hợp nhu cầu.
-
-4\.    Tiền điều kiện: Không yêu cầu đăng nhập, chỉ cần truy cập trang web.
-
-5\.    Luồng chính:
-
-\-        Người dùng lựa chọn 1 danh mục (Category) từ menu điều hướng
-
-\-        Hệ thống truy xuất bảng Attribute để hiển thị các bộ lọc tương ứng với danh mục đó (VD: Category RAM → bộ lọc Bus, Dung lượng, Loại DDR)
-
-\-        Người dùng chọn tiêu chí lọc (Attribute\_Value) và/hoặc nhận từ khóa tìm kiếm, có thể lọc thêm theo Brand, sau đó nhấn nút Tìm kiếm
-
-\-        Hệ thống truy xuất Product, Product\_Attribute và kiểm tra tồn kho qua Inventory để trả về danh sách kết quả. Sản phẩm nào có Inventory.quantity \= 0 sẽ bị làm mờ và gắn nhãn "Hết hàng"
-
-\-        Hệ thống hiển thị kết quả lên giao diện kèm thông tin: tên, ảnh chính (Product\_Image), giá bán, Brand, tình trạng hàng (Condition)
-
-6\.    Luồng ngoại lệ:
-
-\-        Nếu không có kết quả nào khớp với bộ lọc → Hệ thống hiển thị thông báo "Không tìm thấy sản phẩm phù hợp" và gợi ý khách hàng xóa bớt bộ lọc
-
-\-        Nếu không kết nối được với cơ sở dữ liệu → Hệ thống hiển thị thông báo lỗi "Không kết nối được với máy chủ"
-
-7\.    Hậu điều kiện:
-
-\-        Hệ thống hiển thị danh sách sản phẩm khớp với điều kiện tìm kiếm/lọc của người dùng trên giao diện
-
-   **4.2. Tạo đơn hàng và thanh toán**
-
-1\.    Mã UC, tên UC: UC-CUS-02: Tạo đơn hàng và thanh toán
-
-2\.    Actor: Khách hàng – Customer
-
-3\.    Mô tả: Cho phép khách hàng tiến hành đặt hàng từ giỏ hàng, chọn Address giao hàng, áp dụng mã Coupon và chọn phương thức thanh toán. Hệ thống tạo Order, Order\_Detail, Payment và Shipping tương ứng.
-
-4\.    Tiền điều kiện:
-
-\-        Customer đã đăng nhập (có Token/Session hợp lệ)
-
-\-        Giỏ hàng (Cart) không trống (phải có ít nhất 1 Cart\_Item)
-
-5\.    Luồng chính:
-
-\-        Customer nhấn nút "Thanh toán" từ trang giỏ hàng
-
-\-        Hệ thống hiển thị trang Checkout với danh sách sản phẩm, tổng tiền tạm tính
-
-\-        Customer chọn Address giao hàng từ danh sách Address đã lưu, hoặc thêm Address mới
-
-\-        Customer nhập mã Coupon (nếu có). Hệ thống kiểm tra tính hợp lệ (Code đúng, còn hạn, chưa vượt max\_uses, chưa dùng bởi User này qua Coupon\_Usage) và tính lại tổng tiền
-
-\-        Customer chọn phương thức thanh toán (COD / VNPay / MoMo / Chuyển khoản)
-
-\-        Customer nhấn "Xác nhận đặt hàng"
-
-\-        Hệ thống kiểm tra tồn kho qua Inventory cho từng Cart\_Item. Nếu đủ hàng:
-
-   \+ Tạo Order (trạng thái "Chờ xử lý") và các Order\_Detail với đơn giá snapshot
-
-   \+ Tạo Payment (trạng thái "Pending") với phương thức đã chọn
-
-   \+ Tạo Shipping (trạng thái "Chờ lấy hàng")
-
-   \+ Tạo Order\_Status\_History (ghi nhận trạng thái "Chờ xử lý")
-
-   \+ Nếu thanh toán online (VNPay/MoMo): chuyển hướng sang cổng thanh toán → cập nhật Payment.status và transaction\_id
-
-   \+ Nếu COD: Payment giữ trạng thái Pending
-
-\-        Hệ thống trừ kho: cập nhật Inventory.quantity và tạo Inventory\_Log (loại: Bán)
-
-\-        Nếu có Coupon: tạo Coupon\_Usage và tăng Coupon.used\_count
-
-\-        Hệ thống xóa các Cart\_Item đã thanh toán
-
-\-        Hệ thống gửi email xác nhận đơn hàng
-
-6\.    Luồng ngoại lệ:
-
-\-        Mã Coupon không hợp lệ → Hệ thống báo lỗi cụ thể và giữ nguyên giá gốc
-
-\-        Tồn kho không đủ (Inventory.quantity \< số lượng yêu cầu) → Hệ thống thông báo sản phẩm nào hết hàng
-
-\-        Thanh toán trực tuyến thất bại (Payment.status \= Failed) → Hệ thống giữ Order, cho phép tạo Payment mới hoặc chuyển COD
-
-7\.    Hậu điều kiện:
-
-\-        Order, Order\_Detail, Payment, Shipping, Order\_Status\_History được tạo trong CSDL
-
-\-        Inventory.quantity giảm, Inventory\_Log được ghi nhận
-
-\-        Cart\_Item đã thanh toán bị xóa
-
-\-        Coupon\_Usage được ghi nhận (nếu có)
-
-   **4.3. Quản lý giỏ hàng**
-
-1\.    Mã UC, tên UC: UC-CUS-03: Quản lý giỏ hàng
-
-2\.    Actor: Khách vãng lai (Guest) / Khách hàng (Customer)
-
-3\.    Mô tả: Cho phép người dùng thêm, xem, sửa số lượng và xóa sản phẩm trong giỏ hàng. Guest dùng giỏ Session, Customer dùng giỏ database (Cart). Khi đăng nhập, merge giỏ Session vào Cart.
-
-4\.    Tiền điều kiện: Người dùng đang truy cập hệ thống.
-
-5\.    Luồng chính:
-
-\-        Thêm sản phẩm: Người dùng nhấn "Thêm vào giỏ" trên trang sản phẩm. Hệ thống kiểm tra Inventory.quantity, nếu đủ hàng thì thêm Cart\_Item vào Cart (database) hoặc Session
-
-\-        Xem giỏ hàng: Hệ thống truy xuất Cart/Cart\_Item, join với Product và Product\_Image để hiển thị tên, ảnh, giá, số lượng, Condition và tổng tiền
-
-\-        Sửa số lượng: Hệ thống kiểm tra Inventory, cập nhật Cart\_Item và tính lại tổng tiền
-
-\-        Xóa sản phẩm: Hệ thống xóa Cart\_Item tương ứng
-
-\-        Merge giỏ hàng khi đăng nhập: Merge giỏ Session vào Cart database. Nếu trùng Product, cộng dồn số lượng. Xóa giỏ Session sau merge
-
-\-        Đăng xuất: Xóa giỏ Session, giữ nguyên Cart database
-
-6\.    Luồng ngoại lệ:
-
-\-        Giỏ hàng trống → Ẩn nút Thanh toán
-
-\-        Số lượng vượt Inventory.quantity → Giới hạn ở mức tối đa
-
-\-        Merge cộng dồn vượt Inventory → Giới hạn và thông báo
-
-7\.    Hậu điều kiện:
-
-\-        Cart\_Item được thêm/sửa/xóa trong CSDL hoặc Session. Tổng tiền được tính lại
-
-   **4.4. Đăng ký**
-
-1\.    Mã UC, tên UC: UC-CUS-04: Đăng ký
-
-2\.    Actor: Khách vãng lai – Guest
-
-3\.    Mô tả: Cho phép người dùng mới tạo tài khoản trên hệ thống.
-
-4\.    Tiền điều kiện: Người dùng chưa có tài khoản (chưa đăng nhập).
-
-5\.    Luồng chính:
-
-\-        Người dùng nhấn "Đăng ký", hệ thống hiển thị form: Họ tên, Email, SĐT, Mật khẩu, Xác nhận mật khẩu
-
-\-        Hệ thống kiểm tra tính hợp lệ (định dạng email, độ dài mật khẩu, mật khẩu khớp)
-
-\-        Hệ thống kiểm tra bảng Account xem Email đã tồn tại chưa, kiểm tra bảng User xem SĐT đã tồn tại chưa
-
-\-        Nếu hợp lệ: tạo Account (password\_hash, Role \= Customer, is\_active \= true) và User/Profile (họ tên, SĐT)
-
-\-        Hiển thị "Đăng ký thành công" và chuyển hướng trang đăng nhập
-
-6\.    Luồng ngoại lệ:
-
-\-        Trường bắt buộc để trống → Báo lỗi cụ thể
-
-\-        Email/SĐT sai định dạng → Báo lỗi
-
-\-        Mật khẩu xác nhận không khớp → Báo lỗi
-
-\-        Email hoặc SĐT đã tồn tại → Báo lỗi "Email/SĐT đã được sử dụng"
-
-7\.    Hậu điều kiện:
-
-\-        Account mới (Role \= Customer) và User/Profile được tạo trong CSDL
-
-   **4.5. Đăng nhập**
-
-1\.    Mã UC, tên UC: UC-CUS-05: Đăng nhập
-
-2\.    Actor: Khách vãng lai – Guest
-
-3\.    Mô tả: Xác thực người dùng qua Email và Mật khẩu. Sinh Token/Session để duy trì phiên, merge giỏ hàng Session vào Cart database.
-
-4\.    Tiền điều kiện: Người dùng đã có tài khoản (đã đăng ký).
-
-5\.    Luồng chính:
-
-\-        Người dùng nhập Email và Mật khẩu, nhấn "Đăng nhập"
-
-\-        Hệ thống truy xuất Account, kiểm tra Email tồn tại và password\_hash khớp
-
-\-        Kiểm tra is\_active \= true (chưa bị khóa)
-
-\-        Sinh Token/Session (lưu vào bảng Token/Session) và trả về trình duyệt
-
-\-        Merge giỏ hàng Session vào Cart database (theo UC-CUS-03)
-
-\-        Chuyển hướng theo Role (Customer/Admin/Sales/Warehouse)
-
-6\.    Luồng ngoại lệ:
-
-\-        Email không tồn tại hoặc Mật khẩu sai → "Email hoặc mật khẩu không đúng"
-
-\-        Tài khoản bị khóa (is\_active \= false) → "Tài khoản đã bị khóa. Liên hệ quản trị viên"
-
-\-        Trường bắt buộc để trống → Báo lỗi
-
-7\.    Hậu điều kiện:
-
-\-        Token/Session mới được tạo trong CSDL
-
-\-        Giỏ hàng Session được merge vào Cart database rồi xóa
-
-\-        Phiên duy trì cho đến khi Token hết hạn hoặc đăng xuất
-
-   **4.6. Đăng xuất**
-
-1\.    Mã UC, tên UC: UC-CUS-06: Đăng xuất
-
-2\.    Actor: Customer / Admin / Sales / Warehouse
-
-3\.    Mô tả: Kết thúc phiên làm việc hiện tại.
-
-4\.    Tiền điều kiện: Người dùng đang đăng nhập (có Token/Session hợp lệ).
-
-5\.    Luồng chính:
-
-\-        Người dùng nhấn "Đăng xuất"
-
-\-        Hệ thống xóa Token/Session trong CSDL
-
-\-        Xóa giỏ hàng Session trên trình duyệt
-
-\-        Chuyển hướng về trang chủ (giao diện Guest)
-
-6\.    Luồng ngoại lệ:
-
-\-        Token đã hết hạn → Tự động chuyển về trang đăng nhập kèm thông báo
-
-7\.    Hậu điều kiện:
-
-\-        Token/Session bị xóa, giỏ hàng Session bị xóa, Cart database vẫn được lưu
-
-   **4.7. Đánh giá sản phẩm**
-
-1\.    Mã UC, tên UC: UC-CUS-07: Đánh giá sản phẩm
-
-2\.    Actor: Khách hàng – Customer
-
-3\.    Mô tả: Cho phép Customer viết đánh giá, chọn số sao và tải ảnh thực tế cho sản phẩm đã mua thành công.
-
-4\.    Tiền điều kiện:
-
-\-        Customer đã đăng nhập
-
-\-        Customer có ít nhất một Order chứa Product này ở trạng thái "Hoàn thành"
-
-5\.    Luồng chính:
-
-\-        Customer truy cập trang chi tiết sản phẩm, nhấn "Viết đánh giá"
-
-\-        Hệ thống kiểm tra Order và Order\_Detail xác nhận Customer đã mua và đơn "Hoàn thành"
-
-\-        Hiển thị form: số sao (1-5), nội dung bình luận, upload ảnh (tùy chọn)
-
-\-        Customer nhập thông tin và nhấn "Gửi đánh giá"
-
-\-        Hệ thống tạo Review (liên kết User, Product, Order) và Review\_Image (nếu có ảnh)
-
-\-        Đánh giá hiển thị ngay trên trang chi tiết sản phẩm
-
-6\.    Luồng ngoại lệ:
-
-\-        Chưa mua sản phẩm → Ẩn nút "Viết đánh giá" hoặc báo "Bạn cần mua sản phẩm này để đánh giá"
-
-\-        Chưa chọn số sao → Báo lỗi "Vui lòng chọn số sao"
-
-\-        Ảnh sai định dạng (chỉ chấp nhận JPG, PNG, WEBP) → Báo lỗi "Chỉ chấp nhận ảnh JPG, PNG, WEBP"
-
-\-        Ảnh quá dung lượng (tối đa 5MB/ảnh) → Báo lỗi "Ảnh tối đa 5MB"
-
-\-        Vượt số lượng ảnh (tối đa 5 ảnh) → Báo lỗi "Tối đa 5 ảnh"
-
-7\.    Hậu điều kiện:
-
-\-        Review và Review\_Image được tạo trong CSDL
-
-   **4.8. Xây dựng cấu hình PC (Build PC)**
-
-1\.    Mã UC, tên UC: UC-CUS-08: Xây dựng cấu hình PC (Build PC)
-
-2\.    Actor: Khách vãng lai (Guest) / Khách hàng (Customer)
-
-3\.    Mô tả: Cho phép người dùng (Guest hoặc Customer) chọn tuần tự các linh kiện để lắp thành bộ PC. Đây là form phía Frontend (không lưu DB). Hệ thống hiển thị tổng giá và xuất báo giá mà không cần đăng nhập. Khi muốn sử dụng AI kiểm tra tương thích, thêm vào giỏ hàng hoặc tạo đơn hàng, hệ thống yêu cầu đăng nhập.
-
-4\.    Tiền điều kiện:
-
-\-        Không yêu cầu đăng nhập để chọn linh kiện và xuất báo giá
-
-\-        Yêu cầu đăng nhập để sử dụng AI và thêm vào giỏ hàng/tạo đơn hàng
-
-\-        Hệ thống có sản phẩm thuộc các Category linh kiện PC
-
-5\.    Luồng chính:
-
-\-        Người dùng truy cập trang "Build PC"
-
-\-        Hệ thống hiển thị các slot: CPU, Mainboard, RAM, VGA, PSU, Case, SSD/HDD, Tản nhiệt
-
-\-        Người dùng nhấn vào từng slot, hệ thống hiển thị danh sách Product thuộc Category tương ứng (có thể lọc theo Attribute, Brand)
-
-\-        Người dùng chọn linh kiện. Hệ thống cập nhật tổng giá
-
-\-        Người dùng nhấn "Xuất báo giá" → Hệ thống tạo file báo giá PDF (không cần đăng nhập)
-
-\-        Người dùng nhấn "Kiểm tra tương thích (AI)" → Hệ thống kiểm tra đăng nhập. Nếu chưa đăng nhập → yêu cầu đăng nhập. Sau khi đăng nhập → gửi thông số kỹ thuật qua API LLM → LLM trả về phân tích và gợi ý
-
-\-        Người dùng nhấn "Thêm vào giỏ hàng" hoặc "Tạo đơn hàng" → Hệ thống kiểm tra đăng nhập. Nếu chưa đăng nhập → chuyển hướng trang đăng nhập (lưu tạm cấu hình vào Session). Sau khi đăng nhập → thêm tất cả linh kiện vào Cart dưới dạng Cart\\\_Item riêng lẻ
-
-6\.    Luồng ngoại lệ:
-
-\-        Chưa chọn đủ linh kiện tối thiểu (CPU, Mainboard) → Báo "Vui lòng chọn ít nhất CPU và Mainboard"
-
-\-        API LLM lỗi → "Dịch vụ AI tạm không khả dụng. Bạn vẫn có thể tiếp tục"
-
-\-        Linh kiện hết hàng (Inventory.quantity \= 0\) → Đánh dấu "Hết hàng", yêu cầu chọn thay thế
-
-\-	Chưa đăng nhập khi nhấn "Kiểm tra AI" / "Thêm vào giỏ hàng" / "Tạo đơn hàng" → Yêu cầu đăng nhập, lưu cấu hình vào Session
-
-7\.    Hậu điều kiện:
-
-- Nếu xuất báo giá: file PDF được tạo (không thay đổi CSDL  
-- Nếu thêm vào giỏ: linh kiện được thêm vào Cart dưới dạng Cart\\\_Item riêng lẻ (yêu cầu đã đăng nhập)
-
-   **4.9. Quản lý danh sách yêu thích**
-
-1\.    Mã UC, tên UC: UC-CUS-09: Quản lý danh sách yêu thích
-
-2\.    Actor: Khách hàng – Customer
-
-3\.    Mô tả: Cho phép Customer lưu sản phẩm quan tâm vào Wishlist để xem lại sau, và xóa khỏi Wishlist khi không còn quan tâm.
-
-4\.    Tiền điều kiện: Customer đã đăng nhập.
-
-5\.    Luồng chính:
-
-\-        Customer nhấn biểu tượng "Yêu thích" (trái tim) trên trang sản phẩm hoặc danh sách sản phẩm
-
-\-        Hệ thống kiểm tra UNIQUE(user\_id, product\_id) trong Wishlist
-
-\-        Nếu chưa có: tạo Wishlist entry mới
-
-\-        Nếu đã có: xóa Wishlist entry (toggle yêu thích)
-
-\-        Customer truy cập trang "Danh sách yêu thích" → Hệ thống hiển thị danh sách Product đã lưu kèm ảnh, giá, tình trạng Inventory
-
-\-        Customer có thể nhấn "Thêm vào giỏ" trực tiếp từ Wishlist
-
-6\.    Luồng ngoại lệ:
-
-\-        Sản phẩm đã bị ngừng kinh doanh (status \= Discontinued) → Gắn nhãn "Ngừng kinh doanh" trong Wishlist
-
-7\.    Hậu điều kiện:
-
-\-        Wishlist entry được tạo hoặc xóa trong CSDL
-
-**4.10. Yêu cầu bảo hành**
-
-1\.    Mã UC, tên UC: UC-CUS-10: Yêu cầu bảo hành
-
-2\.    Actor: Khách hàng – Customer
-
-3\.    Mô tả: Cho phép Customer tạo phiếu bảo hành (Warranty\_Ticket) cho sản phẩm đã mua, gắn với Order cụ thể. Hệ thống kiểm tra Warranty\_Policy trước khi tiếp nhận.
-
-4\.    Tiền điều kiện:
-
-\-        Customer đã đăng nhập
-
-\-        Customer có Order ở trạng thái "Hoàn thành" chứa Product cần bảo hành
-
-5\.    Luồng chính:
-
-\-        Customer truy cập "Lịch sử đơn hàng", chọn Order → chọn Product cần bảo hành → nhấn "Yêu cầu bảo hành"
-
-\-        Hệ thống kiểm tra Warranty\_Policy (theo Product hoặc Category): thời hạn bảo hành còn hiệu lực không (so sánh Order.created\_at \+ duration\_months với ngày hiện tại)
-
-\-        Nếu còn hạn: hiển thị form nhập Số Serial, Mô tả tình trạng lỗi
-
-\-        Customer nhập thông tin và nhấn "Gửi yêu cầu"
-
-\-        Hệ thống tạo Warranty\_Ticket (trạng thái "Tiếp nhận")
-
-6\.    Luồng ngoại lệ:
-
-\-        Sản phẩm hết hạn bảo hành → Báo "Sản phẩm đã hết hạn bảo hành"
-
-\-        Sản phẩm không có Warranty\_Policy → Báo "Sản phẩm này không có chính sách bảo hành"
-
-\-        Thiếu Số Serial → Báo lỗi "Vui lòng nhập Số Serial"
-
-7\.    Hậu điều kiện:
-
-\-        Warranty\_Ticket được tạo trong CSDL với trạng thái "Tiếp nhận"
-
-   **4.11. Yêu cầu đổi trả**
-
-1\.    Mã UC, tên UC: UC-CUS-11: Yêu cầu đổi trả
-
-2\.    Actor: Khách hàng – Customer
-
-3\.    Mô tả: Cho phép Customer gửi yêu cầu đổi hàng hoặc hoàn tiền cho sản phẩm trong đơn hàng đã hoàn thành, gắn với Order\_Detail cụ thể.
-
-4\.    Tiền điều kiện:
-
-\-        Customer đã đăng nhập
-
-\-        Order ở trạng thái "Hoàn thành"
-
-\-        Thời gian yêu cầu nằm trong thời hạn đổi trả cho phép (theo chính sách cửa hàng)
-
-5\.    Luồng chính:
-
-\-        Customer truy cập "Lịch sử đơn hàng", chọn Order → chọn sản phẩm cần đổi trả → nhấn "Yêu cầu đổi trả"
-
-\-        Hệ thống hiển thị form: chọn loại (Đổi hàng / Hoàn tiền), nhập lý do, upload ảnh (tùy chọn)
-
-\-        Customer nhấn "Gửi yêu cầu"
-
-\-        Hệ thống tạo Return/Refund (trạng thái "Chờ duyệt") gắn với Order\_Detail
-
-6\.    Luồng ngoại lệ:
-
-\-        Quá thời hạn đổi trả → Báo "Đã quá thời hạn đổi trả cho đơn hàng này"
-
-\-        Thiếu lý do → Báo lỗi "Vui lòng nhập lý do đổi trả"
-
-7\.    Hậu điều kiện:
-
-\-        Return/Refund được tạo trong CSDL với trạng thái "Chờ duyệt"
-
-   **4.12. Quản lý địa chỉ giao hàng**
-
-1\.    Mã UC, tên UC: UC-CUS-12: Quản lý địa chỉ giao hàng
-
-2\.    Actor: Khách hàng – Customer
-
-3\.    Mô tả: Cho phép Customer thêm, sửa, xóa và đặt mặc định cho các địa chỉ giao hàng (Address).
-
-4\.    Tiền điều kiện: Customer đã đăng nhập.
-
-5\.    Luồng chính:
-
-\-        Customer truy cập "Tài khoản của tôi" → "Sổ địa chỉ"
-
-\-        Hệ thống hiển thị danh sách Address (label, tên người nhận, SĐT, tỉnh/quận/phường/đường, cờ mặc định)
-
-\-        Thêm: Customer nhấn "Thêm địa chỉ mới", nhập đầy đủ thông tin, nhấn "Lưu"
-
-\-        Sửa: Customer chọn Address → "Sửa" → cập nhật thông tin
-
-\-        Xóa: Customer chọn Address → "Xóa" → xác nhận
-
-\-        Đặt mặc định: Customer nhấn "Sử dụng làm mặc định" → hệ thống cập nhật is\_default
-
-6\.    Luồng ngoại lệ:
-
-\-        Thiếu trường bắt buộc → Báo lỗi cụ thể
-
-\-        Xóa Address duy nhất (mặc định) → Cảnh báo "Bạn cần tạo địa chỉ mới trước khi xóa"
-
-7\.    Hậu điều kiện: Address được tạo/sửa/xóa trong CSDL
-
-   **4.13. Xem lịch sử đơn hàng và theo dõi vận chuyển**
-
-1\.    Mã UC, tên UC: UC-CUS-13: Xem lịch sử đơn hàng và theo dõi vận chuyển
-
-2\.    Actor: Khách hàng – Customer
-
-3\.    Mô tả: Cho phép Customer xem danh sách đơn hàng đã đặt, xem chi tiết từng đơn và theo dõi trạng thái vận chuyển.
-
-4\.    Tiền điều kiện: Customer đã đăng nhập.
-
-5\.    Luồng chính:
-
-\-        Customer truy cập "Lịch sử đơn hàng"
-
-\-        Hệ thống hiển thị danh sách Order (mã đơn, ngày đặt, tổng tiền, trạng thái). Có thể lọc theo trạng thái, khoảng thời gian
-
-\-        Customer nhấn vào một Order → xem chi tiết: danh sách Order\_Detail (Product, số lượng, đơn giá), Address, Payment (phương thức, trạng thái, transaction\_id)
-
-\-        Hệ thống hiển thị Shipping: đơn vị vận chuyển, mã vận đơn (tracking\_number), trạng thái, ngày giao dự kiến/thực tế
-
-\-        Hệ thống hiển thị Order\_Status\_History: danh sách các lần đổi trạng thái (thời gian, trạng thái cũ → mới)
-
-6\.    Luồng ngoại lệ:
-
-\-        Không có đơn hàng nào → Hiển thị "Bạn chưa có đơn hàng nào"
-
-7\.    Hậu điều kiện: Không thay đổi CSDL. Chỉ hiển thị thông tin
-
-   **4.14. Quản lý thông tin cá nhân**
-
-1\.    Mã UC, tên UC: UC-CUS-14: Quản lý thông tin cá nhân
-
-2\.    Actor: Khách hàng – Customer
-
-3\.    Mô tả: Cho phép Customer cập nhật thông tin cá nhân (User/Profile) và đổi mật khẩu (Account).
-
-4\.    Tiền điều kiện: Customer đã đăng nhập.
-
-5\.    Luồng chính:
-
-   Sửa thông tin cá nhân:
-
-\-        Customer truy cập "Tài khoản của tôi" → "Thông tin cá nhân"
-
-\-        Hệ thống hiển thị form với dữ liệu hiện tại: Họ tên, SĐT, ảnh đại diện, ngày sinh, giới tính
-
-\-        Customer sửa thông tin, nhấn "Cập nhật". Hệ thống lưu vào bảng User
-
-   Đổi mật khẩu:
-
-\-        Customer nhấn "Đổi mật khẩu"
-
-\-        Nhập: Mật khẩu hiện tại, Mật khẩu mới, Xác nhận mật khẩu mới
-
-\-        Hệ thống kiểm tra mật khẩu hiện tại khớp với Account.password\_hash
-
-\-        Nếu đúng: cập nhật password\_hash mới. Xóa toàn bộ Token/Session cũ (buộc đăng nhập lại)
-
-6\.    Luồng ngoại lệ:
-
-\-        SĐT đã tồn tại ở User khác → Báo lỗi "SĐT đã được sử dụng"
-
-\-        Mật khẩu hiện tại không đúng → Báo lỗi "Mật khẩu hiện tại không đúng"
-
-\-        Mật khẩu mới và xác nhận không khớp → Báo lỗi
-
-7\.    Hậu điều kiện: User/Profile hoặc Account.password\_hash được cập nhật. Nếu đổi mật khẩu: Token/Session cũ bị xóa
-
-   **4.15. (Admin) Quản lý danh mục và thuộc tính**
-
-1\.    Mã UC, tên UC: UC-AD-01: Quản lý danh mục và thuộc tính
-
-2\.    Actor: Admin
-
-3\.    Mô tả: Cho phép Admin tạo, sửa, xóa các danh mục (Category) với phân cấp đa tầng và định nghĩa các thuộc tính kỹ thuật (Attribute, Attribute\_Value) cho từng danh mục.
-
-4\.    Tiền điều kiện: Đăng nhập với Role Admin, Token/Session hợp lệ.
-
-5\.    Luồng chính:
-
-\-        Admin truy cập "Quản lý danh mục", nhấn "Thêm mới"
-
-\-        Nhập tên danh mục, chọn danh mục cha (parent\_id, nếu có)
-
-\-        Thêm Attribute cho danh mục (VD: "Bus", "Dung lượng") và các Attribute\_Value tương ứng (VD: "DDR4", "DDR5")
-
-\-        Nhấn "Lưu". Hệ thống tạo Category, Attribute và Attribute\_Value
-
-\-        Sửa/Xóa: Admin chọn Category → "Sửa" hoặc "Xóa"
-
-6\.    Luồng ngoại lệ:
-
-\-        Tên trùng → Báo lỗi "Danh mục đã tồn tại"
-
-\-        Xóa Category đang có Product → Báo lỗi "Không thể xóa danh mục đang chứa sản phẩm"
-
-7\.    Hậu điều kiện: Category, Attribute, Attribute\_Value được tạo/sửa/xóa trong CSDL
-
-   **4.16. (Admin) Quản lý sản phẩm**
-
-1\.    Mã UC, tên UC: UC-AD-02: Quản lý sản phẩm
-
-2\.    Actor: Admin
-
-3\.    Mô tả: Cho phép Admin thêm, sửa, xóa sản phẩm (Product), hình ảnh (Product\_Image), gán thông số kỹ thuật (Product\_Attribute) và quản lý thương hiệu (Brand).
-
-4\.    Tiền điều kiện: Đăng nhập với Role Admin, Token/Session hợp lệ.
-
-5\.    Luồng chính:
-
-   Thêm mới Product:
-
-\-        Admin nhấn "Thêm sản phẩm", nhập: Tên, SKU, giá gốc, giá bán, mô tả
-
-\-        Chọn Category, Brand, Condition (Mới/Box/Tray/2nd\_Hand)
-
-\-        Gán Attribute: chọn giá trị Attribute\_Value cho từng Attribute của Category đó
-
-\-        Upload Product\_Image (đánh dấu ảnh chính)
-
-\-        Nhấn "Lưu": tạo Product, Product\_Attribute, Product\_Image và Inventory (quantity \= 0\)
-
-   Sửa: Admin chọn Product → sửa thông tin → "Cập nhật"
-
-   Xóa: Admin chọn Product → "Xóa" → xác nhận → kiểm tra Order chưa hoàn thành
-
-   Quản lý Brand:
-
-\-        Admin truy cập "Quản lý thương hiệu" → CRUD Brand (tên, logo, mô tả)
-
-\-        Khi thêm Product, chọn Brand từ danh sách. Nếu chưa có → tạo Brand mới ngay tại form
-
-6\.    Luồng ngoại lệ:
-
-\-        Thiếu trường bắt buộc (Tên, SKU, Category) → Báo lỗi
-
-\-        SKU trùng → Báo lỗi "Mã SKU đã tồn tại"
-
-\-        Ảnh sai định dạng (chỉ chấp nhận JPG, PNG, WEBP) hoặc quá dung lượng (tối đa 5MB/ảnh) → Báo lỗi
-
-\-        Xóa Product có Order chưa hoàn thành → Chặn xóa
-
-\-        Xóa Brand đang có Product → Báo lỗi "Không thể xóa thương hiệu đang có sản phẩm"
-
-7\.    Hậu điều kiện: Product, Product\_Attribute, Product\_Image, Inventory, Brand được tạo/sửa/xóa
+- **Nhóm Phân quyền:**
+  - Tài khoản (Account): Email, mật khẩu mã hóa, trạng thái hoạt động, trạng thái xác minh, vai trò, lần đăng nhập cuối.
+  - Người dùng (User/Profile): Thông tin cá nhân (họ tên, SĐT, ảnh đại diện, ngày sinh, giới tính), liên kết 1-1 với Account.
+  - Địa chỉ (Address): Địa chỉ giao hàng (nhiều địa chỉ/user): nhãn, tên người nhận, SĐT, tỉnh/quận/phường/đường, cờ mặc định.
+  - Vai trò (Role): Admin, Sales, Warehouse, Customer.
+  - Quyền hạn (Permission): Các quyền cụ thể (VD: product.create, order.update).
+  - Phân quyền (Role\_Permission): Bảng trung gian gán Permission cho Role.
+  - Token / Phiên (Session): Refresh token, reset password token, OTP, thời gian hết hạn.
+- **Nhóm Sản phẩm:**
+  - Sản phẩm (Product): Tên, SKU, slug, giá gốc, giá bán, mô tả, danh mục, thương hiệu, tình trạng (Condition: Mới/Box/Tray/2nd\_Hand), trạng thái (Active/Inactive/Discontinued).
+  - Danh mục (Category): Phân cấp đa tầng (parent\_id self-referencing), tên, mô tả, level.
+  - Thương hiệu (Brand): Tên, logo, mô tả.
+  - Thuộc tính (Attribute): Tên thuộc tính kỹ thuật gắn với Category (VD: Socket, Bus RAM).
+  - Giá trị thuộc tính (Attribute\_Value): Giá trị cụ thể của thuộc tính (VD: LGA 1700, DDR5).
+  - Chi tiết thông số (Product\_Attribute): Gắn kết Product ↔ Attribute ↔ Attribute\_Value.
+  - Hình ảnh (Product\_Image): Hình ảnh/video cho Product, cờ ảnh chính, thứ tự sắp xếp.
+- **Nhóm Kho hàng:**
+  - Kho hàng (Inventory): Số lượng tồn kho hiện tại, ngưỡng cảnh báo, nhà cung cấp chính, liên kết 1-1 với Product.
+  - Nhà cung cấp (Supplier): Tên, người liên hệ, SĐT, email, địa chỉ.
+  - Lịch sử kho (Inventory\_Log): Loại biến động (Nhập/Bán/Hoàn trả/Điều chỉnh), số lượng thay đổi, người thực hiện, thời gian, ghi chú.
+- **Nhóm Mua sắm:**
+  - Giỏ hàng (Cart): Mã giỏ, user\_id hoặc session\_id.
+  - Chi tiết giỏ hàng (Cart\_Item): Product, số lượng.
+  - Yêu thích (Wishlist): User ↔ Product (UNIQUE).
+- **Nhóm Đơn hàng & Thanh toán:**
+  - Đơn hàng (Order): User, Address, tổng tiền hàng, tiền giảm, tổng thanh toán, trạng thái, ghi chú, Coupon.
+  - Chi tiết đơn hàng (Order\_Detail): Product, số lượng, đơn giá snapshot, thành tiền.
+  - Thanh toán (Payment): Phương thức (COD/VNPay/MoMo/ZaloPay/Chuyển khoản), số tiền, trạng thái (Pending/Success/Failed/Refunded), mã giao dịch, thời gian.
+  - Vận chuyển (Shipping): Đơn vị vận chuyển, mã vận đơn, trạng thái, phí ship, ngày giao dự kiến/thực tế.
+  - Khuyến mãi (Coupon): Code, loại giảm (PERCENT/FIXED), giá trị, đơn tối thiểu, giảm tối đa, số lượt, ngày hiệu lực.
+  - Lịch sử sử dụng mã (Coupon\_Usage): User ↔ Coupon ↔ Order, thời gian sử dụng.
+  - Lịch sử trạng thái đơn hàng (Order\_Status\_History): Trạng thái cũ → mới, người thao tác, thời gian, ghi chú.
+- **Nhóm Tương tác:**
+  - Đánh giá (Review): User, Product, Order, số sao (1-5), nội dung.
+  - Ảnh đánh giá (Review\_Image): Hình ảnh thực tế kèm Review.
+- **Nhóm Bảo hành & Đổi trả:**
+  - Chính sách bảo hành (Warranty\_Policy): Gắn theo Category hoặc Product, thời hạn (tháng), điều kiện.
+  - Phiếu bảo hành (Warranty\_Ticket): User, Product, Order, Serial Number, mô tả lỗi, trạng thái xử lý, kết quả.
+  - Đổi trả (Return/Refund): Order, Order\_Detail, lý do, loại (đổi hàng/hoàn tiền), trạng thái, số tiền hoàn.
+
+#### 3.1.6 Quan hệ giữa các đối tượng?
+
+- **Phân quyền:**
+  - Account – Role: Một Account có một Role duy nhất. Một Role gán cho nhiều Account (N-1).
+  - Role – Permission: Quan hệ N-N qua bảng trung gian Role\_Permission.
+  - Account – User: Quan hệ 1-1. Mỗi Account có đúng một User/Profile.
+  - User – Address: Một User có nhiều Address (1-N). Một Address có cờ is\_default.
+- **Sản phẩm:**
+  - Category – Category: Self-referencing (parent\_id) hỗ trợ phân cấp đa tầng (1-N).
+  - Category – Product: Một Category chứa nhiều Product, một Product thuộc một Category (1-N).
+  - Category – Attribute: Một Category có nhiều Attribute riêng (1-N).
+  - Brand – Product: Một Brand có nhiều Product, một Product thuộc một Brand (1-N).
+  - Attribute – Attribute\_Value: Một Attribute có nhiều giá trị (1-N).
+  - Product – Attribute: Quan hệ N-N qua Product\_Attribute (gắn kết với Attribute\_Value).
+  - Product – Product\_Image: Một Product có nhiều hình ảnh (1-N).
+- **Kho hàng:**
+  - Product – Inventory: Quan hệ 1-1. Mỗi Product có đúng một bản ghi Inventory.
+  - Supplier – Inventory: Một Supplier cung cấp cho nhiều Inventory (1-N).
+  - Product – Inventory\_Log: Một Product có nhiều bản ghi lịch sử kho (1-N).
+- **Mua sắm:**
+  - User – Cart: Một User (hoặc Session) có một Cart. Cart chứa nhiều Cart\_Item (1-N).
+  - Cart – Product: Quan hệ N-N qua Cart\_Item.
+  - User – Wishlist: Một User có nhiều Wishlist entry (1-N). UNIQUE(user\_id, product\_id).
+- **Đơn hàng & Thanh toán:**
+  - User – Order: Một User tạo nhiều Order (1-N).
+  - Address – Order: Một Address dùng cho nhiều Order (1-N).
+  - Order – Product: Quan hệ N-N qua Order\_Detail (lưu giá snapshot).
+  - Order – Payment: Một Order có nhiều Payment (1-N, cho phép thử lại khi thất bại hoặc hoàn tiền).
+  - Order – Shipping: Một Order có một Shipping (1-1).
+  - Coupon – Order: Một Coupon áp dụng cho nhiều Order (1-N, nullable).
+  - Coupon – Coupon\_Usage: Một Coupon có nhiều bản ghi sử dụng (1-N). UNIQUE(coupon\_id, user\_id) nếu giới hạn 1 lần/người.
+  - Order – Order\_Status\_History: Một Order có nhiều bản ghi lịch sử trạng thái (1-N).
+- **Tương tác:**
+  - User – Review – Product: Một User đánh giá nhiều Product, một Product có nhiều Review (N-N qua Review). Ràng buộc: chỉ đánh giá khi Order chứa Product ở trạng thái "Hoàn thành".
+  - Review – Review\_Image: Một Review có nhiều ảnh (1-N).
+- **Bảo hành & Đổi trả:**
+  - Category/Product – Warranty\_Policy: Gán chính sách theo Category (1-N) hoặc Product cụ thể (1-N). Ưu tiên Product.
+  - User – Warranty\_Ticket: Một User tạo nhiều phiếu bảo hành (1-N).
+  - Product – Warranty\_Ticket: Một Product có nhiều phiếu bảo hành (1-N).
+  - Order – Warranty\_Ticket: Một Order liên quan nhiều phiếu (1-N).
+  - User – Return: Một User tạo nhiều yêu cầu đổi trả (1-N).
+  - Order – Return: Một Order có nhiều yêu cầu đổi trả (1-N).
+  - Order\_Detail – Return: Một Order\_Detail có nhiều yêu cầu đổi trả (1-N).
+
+### 3.2 Biểu đồ use case tổng quan
+
+Dưới đây là mô hình nghiệp vụ bằng UML, trình bày các Actor và Use Case tương ứng:
+
+1. **Actor – Guest (Khách vãng lai):**
+   - Xem và tìm kiếm sản phẩm (theo Attribute)
+   - Thêm sản phẩm vào giỏ hàng tạm (Session)
+   - Sử dụng Build PC: chọn linh kiện, xem tổng giá, xuất báo giá (không cần đăng nhập)
+   - Đăng ký tài khoản
+   - Quên / đặt lại mật khẩu
+2. **Actor – Customer (Khách hàng):**
+   - Đăng nhập, đăng xuất (kèm merge/xóa giỏ hàng Session)
+   - Tìm kiếm và lọc sản phẩm (theo Attribute)
+   - Quản lý giỏ hàng (Cart, Cart\_Item)
+   - Tạo đơn hàng và thanh toán (Order, Payment, Shipping)
+   - Quản lý danh sách yêu thích (Wishlist)
+   - Đánh giá sản phẩm (viết, sửa, xóa) (Review, Review\_Image)
+   - Build PC: kiểm tra tương thích AI, thêm cấu hình vào Cart hoặc tạo Order (yêu cầu đăng nhập)
+   - Quản lý địa chỉ giao hàng (Address)
+   - Quản lý đơn hàng cá nhân: xem lịch sử, theo dõi vận chuyển, hủy đơn hàng khi PENDING (Order, Shipping, Order\_Status\_History)
+   - Quản lý thông tin cá nhân (User/Profile, Account)
+   - Yêu cầu bảo hành (Warranty\_Ticket)
+   - Yêu cầu đổi trả (Return/Refund)
+3. **Actor – Admin (Quản trị viên):**
+   - Toàn quyền: bao gồm tất cả chức năng của Sales và Warehouse
+   - CRUD danh mục và thuộc tính (Category, Attribute, Attribute\_Value)
+   - CRUD sản phẩm (Product, Product\_Image, Brand)
+   - Quản lý nhà cung cấp (Supplier)
+   - Quản lý tài khoản (Account, User, Role, Permission)
+   - Quản lý chính sách bảo hành (Warranty\_Policy)
+4. **Actor – Sales (Nhân viên bán hàng):**
+   - Quản lý đơn hàng (Order, Order\_Status\_History)
+   - Quản lý vận chuyển (Shipping)
+   - Thiết lập mã giảm giá (Coupon)
+   - Xem thống kê doanh thu
+   - Xử lý bảo hành (Warranty\_Ticket) và đổi trả (Return/Refund)
+5. **Actor – Warehouse (Nhân viên kho):**
+   - Quản lý kho (Inventory, Inventory\_Log): nhập hàng, kiểm kê, ghi nhận biến động
+   - Xem tồn kho thực tế theo Product
+
+**Hình 3-1: Biểu đồ use case tổng quan**
+
+![][image1]
+
+### 3.3 Đặc tả các Use Case
+
+#### 3.3.1 Bảng tổng hợp Use Case
+
+**Bảng 3-1:** Bảng tổng hợp Use Case
+
+| Mã UC | Tên Use Case | Actor | Mô tả ngắn gọn |
+| :--- | :--- | :--- | :--- |
+| UC-CUS-01 | Tìm kiếm và lọc sản phẩm | Guest / Customer | Tìm kiếm linh kiện theo từ khóa hoặc lọc theo thuộc tính kỹ thuật động |
+| UC-CUS-02 | Tạo đơn hàng và thanh toán | Customer | Đặt hàng từ giỏ hàng, chọn địa chỉ, áp dụng coupon, thanh toán |
+| UC-CUS-03 | Quản lý giỏ hàng | Guest / Customer | Thêm, xem, sửa, xóa sản phẩm trong giỏ hàng, merge giỏ khi đăng nhập |
+| UC-CUS-04 | Đăng ký | Guest | Tạo tài khoản mới trên hệ thống |
+| UC-CUS-05 | Đăng nhập | Guest | Xác thực qua Email/Password, sinh Token/Session, merge giỏ hàng |
+| UC-CUS-06 | Đăng xuất | Customer/Admin/Sales/Warehouse | Kết thúc phiên làm việc |
+| UC-CUS-07 | Đánh giá sản phẩm | Customer | Viết, chỉnh sửa, xóa đánh giá, chọn số sao, tải ảnh cho sản phẩm đã mua |
+| UC-CUS-08 | Xây dựng cấu hình PC (Build PC) | Guest / Customer | Chọn linh kiện lắp PC, tính giá, kiểm tra tương thích AI, xuất báo giá |
+| UC-CUS-09 | Quản lý danh sách yêu thích | Customer | Lưu/xóa sản phẩm quan tâm vào Wishlist |
+| UC-CUS-10 | Yêu cầu bảo hành | Customer | Tạo phiếu bảo hành cho sản phẩm đã mua |
+| UC-CUS-11 | Yêu cầu đổi trả | Customer | Gửi yêu cầu đổi hàng hoặc hoàn tiền |
+| UC-CUS-12 | Quản lý địa chỉ giao hàng | Customer | Thêm, sửa, xóa, đặt mặc định địa chỉ giao hàng |
+| UC-CUS-13 | Quản lý đơn hàng cá nhân | Customer | Xem danh sách đơn hàng, chi tiết, trạng thái vận chuyển, hủy đơn hàng khi PENDING |
+| UC-CUS-14 | Quản lý thông tin cá nhân | Customer | Cập nhật thông tin cá nhân, đổi mật khẩu |
+| UC-CUS-15 | Quên / Đặt lại mật khẩu | Guest | Yêu cầu đặt lại mật khẩu qua email khi quên mật khẩu |
+| UC-AD-01 | Quản lý danh mục và thuộc tính | Admin | Tạo, sửa, xóa danh mục phân cấp và thuộc tính kỹ thuật |
+| UC-AD-02 | Quản lý sản phẩm | Admin | Thêm, sửa, xóa sản phẩm, hình ảnh, thuộc tính, thương hiệu |
+| UC-AD-03 | Quản lý đơn hàng | Admin/Sales | Xem, cập nhật trạng thái đơn hàng, ghi lịch sử |
+| UC-AD-04 | Quản lý kho hàng | Admin/Warehouse | Xem tồn kho, nhập hàng, kiểm kê, quản lý nhà cung cấp |
+| UC-AD-05 | Thống kê doanh thu | Admin/Sales | Xem báo cáo doanh thu theo thời gian, danh mục |
+| UC-AD-06 | Quản lý tài khoản | Admin | Xem, tạo, khóa/mở tài khoản, gán Role/Permission |
+| UC-AD-07 | Quản lý mã giảm giá | Admin/Sales | Tạo, sửa, xóa mã giảm giá (Coupon) |
+| UC-AD-08 | Quản lý vận chuyển | Admin/Sales | Quản lý thông tin vận chuyển, cập nhật trạng thái giao hàng |
+| UC-AD-09 | Xử lý bảo hành | Admin/Sales | Tạo chính sách bảo hành, xử lý phiếu bảo hành |
+| UC-AD-10 | Xử lý đổi trả | Admin/Sales | Xem và xử lý yêu cầu đổi trả từ khách hàng |
+
+#### 3.3.2 Chi tiết Use Case
+
+##### UC-CUS-01: Tìm kiếm và lọc sản phẩm
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-CUS-01 |
+| **Tên UC** | Tìm kiếm và lọc sản phẩm |
+| **Actor** | Khách vãng lai (Guest) / Khách hàng (Customer) |
+| **Mô tả** | Cho phép người dùng tìm kiếm linh kiện theo từ khóa hoặc lọc chi tiết theo các thuộc tính kỹ thuật động (Attribute) tương ứng với từng danh mục sản phẩm, giúp tiếp cận nhanh nhất sản phẩm phù hợp nhu cầu. |
+| **Tiền điều kiện** | Không yêu cầu đăng nhập, chỉ cần truy cập trang web. |
+| **Luồng chính** | 1. Người dùng lựa chọn 1 danh mục (Category) từ menu điều hướng<br/>2. Hệ thống truy xuất bảng Attribute để hiển thị các bộ lọc tương ứng với danh mục đó (VD: Category RAM → bộ lọc Bus, Dung lượng, Loại DDR)<br/>3. Người dùng chọn tiêu chí lọc (Attribute_Value) và/hoặc nhập từ khóa tìm kiếm, có thể lọc thêm theo Brand, sau đó nhấn nút Tìm kiếm<br/>4. Hệ thống truy xuất Product, Product_Attribute và kiểm tra tồn kho qua Inventory để trả về danh sách kết quả. Sản phẩm nào có Inventory.quantity = 0 sẽ bị làm mờ và gắn nhãn "Hết hàng"<br/>5. Hệ thống hiển thị kết quả lên giao diện kèm thông tin: tên, ảnh chính (Product_Image), giá bán, Brand, tình trạng hàng (Condition) |
+| **Luồng ngoại lệ** | • Không có kết quả khớp → Hiển thị "Không tìm thấy sản phẩm phù hợp" và gợi ý xóa bớt bộ lọc<br/>• Không kết nối được CSDL → Hiển thị "Không kết nối được với máy chủ" |
+| **Hậu điều kiện** | Hệ thống hiển thị danh sách sản phẩm khớp với điều kiện tìm kiếm/lọc của người dùng trên giao diện |
+
+<!-- TODO: Bổ sung Hình – Sơ đồ hoạt động Tìm kiếm sản phẩm -->
+
+---
+
+##### UC-CUS-02: Tạo đơn hàng và thanh toán
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-CUS-02 |
+| **Tên UC** | Tạo đơn hàng và thanh toán |
+| **Actor** | Khách hàng – Customer |
+| **Mô tả** | Cho phép khách hàng tiến hành đặt hàng từ giỏ hàng, chọn Address giao hàng, áp dụng mã Coupon và chọn phương thức thanh toán. Hệ thống tạo Order, Order_Detail, Payment và Shipping tương ứng. |
+| **Tiền điều kiện** | • Customer đã đăng nhập (có Token/Session hợp lệ)<br/>• Giỏ hàng (Cart) không trống (phải có ít nhất 1 Cart_Item) |
+| **Luồng chính** | 1. Customer nhấn nút "Thanh toán" từ trang giỏ hàng<br/>2. Hệ thống hiển thị trang Checkout với danh sách sản phẩm, tổng tiền tạm tính<br/>3. Customer chọn Address giao hàng từ danh sách Address đã lưu, hoặc thêm Address mới<br/>4. Customer nhập mã Coupon (nếu có). Hệ thống kiểm tra tính hợp lệ (Code đúng, còn hạn, chưa vượt max_uses, chưa dùng bởi User này qua Coupon_Usage) và tính lại tổng tiền<br/>5. Customer chọn phương thức thanh toán (COD / VNPay / MoMo / ZaloPay / Chuyển khoản)<br/>6. Customer nhấn "Xác nhận đặt hàng"<br/>7. Hệ thống kiểm tra tồn kho qua Inventory cho từng Cart_Item. Nếu đủ hàng:<br/>   • Tạo Order (trạng thái "Chờ xử lý") và các Order_Detail với đơn giá snapshot<br/>   • Tạo Payment (trạng thái "Pending") với phương thức đã chọn<br/>   • Tạo Shipping (trạng thái "Chờ lấy hàng")<br/>   • Tạo Order_Status_History (ghi nhận trạng thái "Chờ xử lý")<br/>   • Nếu thanh toán online (VNPay/MoMo/ZaloPay): chuyển hướng sang cổng thanh toán → cập nhật Payment.status và transaction_id<br/>   • Nếu COD: Payment giữ trạng thái Pending<br/>8. Hệ thống trừ kho: cập nhật Inventory.quantity và tạo Inventory_Log (loại: Bán)<br/>9. Nếu có Coupon: tạo Coupon_Usage và tăng Coupon.used_count<br/>10. Hệ thống xóa các Cart_Item đã thanh toán<br/>11. Hệ thống gửi email xác nhận đơn hàng |
+| **Luồng ngoại lệ** | • Mã Coupon không hợp lệ → Báo lỗi cụ thể và giữ nguyên giá gốc<br/>• Tồn kho không đủ (Inventory.quantity < số lượng yêu cầu) → Thông báo sản phẩm nào hết hàng<br/>• Thanh toán trực tuyến thất bại (Payment.status = Failed) → Giữ Order, cho phép tạo Payment mới hoặc chuyển COD |
+| **Hậu điều kiện** | • Order, Order_Detail, Payment, Shipping, Order_Status_History được tạo trong CSDL<br/>• Inventory.quantity giảm, Inventory_Log được ghi nhận<br/>• Cart_Item đã thanh toán bị xóa<br/>• Coupon_Usage được ghi nhận (nếu có) |
+
+---
+
+##### UC-CUS-03: Quản lý giỏ hàng
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-CUS-03 |
+| **Tên UC** | Quản lý giỏ hàng |
+| **Actor** | Khách vãng lai (Guest) / Khách hàng (Customer) |
+| **Mô tả** | Cho phép người dùng thêm, xem, sửa số lượng và xóa sản phẩm trong giỏ hàng. Guest dùng giỏ Session, Customer dùng giỏ database (Cart). Khi đăng nhập, merge giỏ Session vào Cart. |
+| **Tiền điều kiện** | Người dùng đang truy cập hệ thống. |
+| **Luồng chính** | 1. **Thêm sản phẩm**: Người dùng nhấn "Thêm vào giỏ" trên trang sản phẩm. Hệ thống kiểm tra Inventory.quantity, nếu đủ hàng thì thêm Cart_Item vào Cart (database) hoặc Session<br/>2. **Xem giỏ hàng**: Hệ thống truy xuất Cart/Cart_Item, join với Product và Product_Image để hiển thị tên, ảnh, giá, số lượng, Condition và tổng tiền<br/>3. **Sửa số lượng**: Hệ thống kiểm tra Inventory, cập nhật Cart_Item và tính lại tổng tiền<br/>4. **Xóa sản phẩm**: Hệ thống xóa Cart_Item tương ứng<br/>5. **Merge giỏ hàng khi đăng nhập**: Merge giỏ Session vào Cart database. Nếu trùng Product, cộng dồn số lượng. Xóa giỏ Session sau merge<br/>6. **Đăng xuất**: Xóa giỏ Session, giữ nguyên Cart database |
+| **Luồng ngoại lệ** | • Giỏ hàng trống → Ẩn nút Thanh toán<br/>• Số lượng vượt Inventory.quantity → Giới hạn ở mức tối đa<br/>• Merge cộng dồn vượt Inventory → Giới hạn và thông báo |
+| **Hậu điều kiện** | Cart_Item được thêm/sửa/xóa trong CSDL hoặc Session. Tổng tiền được tính lại |
+
+<!-- TODO: Bổ sung Hình – Sơ đồ hoạt động Quản lý giỏ hàng -->
+
+---
+
+##### UC-CUS-04: Đăng ký
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-CUS-04 |
+| **Tên UC** | Đăng ký |
+| **Actor** | Khách vãng lai – Guest |
+| **Mô tả** | Cho phép người dùng mới tạo tài khoản trên hệ thống. |
+| **Tiền điều kiện** | Người dùng chưa có tài khoản (chưa đăng nhập). |
+| **Luồng chính** | 1. Người dùng nhấn "Đăng ký", hệ thống hiển thị form: Họ tên, Email, SĐT, Mật khẩu, Xác nhận mật khẩu<br/>2. Hệ thống kiểm tra tính hợp lệ (định dạng email, độ dài mật khẩu, mật khẩu khớp)<br/>3. Hệ thống kiểm tra bảng Account xem Email đã tồn tại chưa, kiểm tra bảng User xem SĐT đã tồn tại chưa<br/>4. Nếu hợp lệ: tạo Account (password_hash, Role = Customer, is_active = true) và User/Profile (họ tên, SĐT)<br/>5. Hiển thị "Đăng ký thành công" và chuyển hướng trang đăng nhập |
+| **Luồng ngoại lệ** | • Trường bắt buộc để trống → Báo lỗi cụ thể<br/>• Email/SĐT sai định dạng → Báo lỗi<br/>• Mật khẩu xác nhận không khớp → Báo lỗi<br/>• Email hoặc SĐT đã tồn tại → Báo lỗi "Email/SĐT đã được sử dụng" |
+| **Hậu điều kiện** | Account mới (Role = Customer) và User/Profile được tạo trong CSDL |
+
+<!-- TODO: Bổ sung Hình – Sơ đồ hoạt động Đăng ký -->
+
+---
+
+##### UC-CUS-05: Đăng nhập
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-CUS-05 |
+| **Tên UC** | Đăng nhập |
+| **Actor** | Khách vãng lai – Guest |
+| **Mô tả** | Xác thực người dùng qua Email và Mật khẩu. Sinh Token/Session để duy trì phiên, merge giỏ hàng Session vào Cart database. |
+| **Tiền điều kiện** | Người dùng đã có tài khoản (đã đăng ký). |
+| **Luồng chính** | 1. Người dùng nhập Email và Mật khẩu, nhấn "Đăng nhập"<br/>2. Hệ thống truy xuất Account, kiểm tra Email tồn tại và password_hash khớp<br/>3. Kiểm tra is_active = true (chưa bị khóa)<br/>4. Sinh Token/Session (lưu vào bảng Token/Session) và trả về trình duyệt<br/>5. Merge giỏ hàng Session vào Cart database (theo UC-CUS-03)<br/>6. Chuyển hướng theo Role (Customer/Admin/Sales/Warehouse) |
+| **Luồng ngoại lệ** | • Email không tồn tại hoặc Mật khẩu sai → "Email hoặc mật khẩu không đúng"<br/>• Tài khoản bị khóa (is_active = false) → "Tài khoản đã bị khóa. Liên hệ quản trị viên"<br/>• Trường bắt buộc để trống → Báo lỗi |
+| **Hậu điều kiện** | • Token/Session mới được tạo trong CSDL<br/>• Giỏ hàng Session được merge vào Cart database rồi xóa<br/>• Phiên duy trì cho đến khi Token hết hạn hoặc đăng xuất |
+
+<!-- TODO: Bổ sung Hình – Sơ đồ hoạt động Đăng nhập -->
+
+---
+
+##### UC-CUS-06: Đăng xuất
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-CUS-06 |
+| **Tên UC** | Đăng xuất |
+| **Actor** | Customer / Admin / Sales / Warehouse |
+| **Mô tả** | Kết thúc phiên làm việc hiện tại. |
+| **Tiền điều kiện** | Người dùng đang đăng nhập (có Token/Session hợp lệ). |
+| **Luồng chính** | 1. Người dùng nhấn "Đăng xuất"<br/>2. Hệ thống xóa Token/Session trong CSDL<br/>3. Xóa giỏ hàng Session trên trình duyệt<br/>4. Chuyển hướng về trang chủ (giao diện Guest) |
+| **Luồng ngoại lệ** | • Token đã hết hạn → Tự động chuyển về trang đăng nhập kèm thông báo |
+| **Hậu điều kiện** | Token/Session bị xóa, giỏ hàng Session bị xóa, Cart database vẫn được lưu |
+
+---
+
+##### UC-CUS-07: Đánh giá sản phẩm
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-CUS-07 |
+| **Tên UC** | Đánh giá sản phẩm |
+| **Actor** | Khách hàng – Customer |
+| **Mô tả** | Cho phép Customer viết, chỉnh sửa hoặc xóa đánh giá, chọn số sao và tải ảnh thực tế cho sản phẩm đã mua thành công. |
+| **Tiền điều kiện** | • Customer đã đăng nhập<br/>• Customer có ít nhất một Order chứa Product này ở trạng thái "Hoàn thành" |
+| **Luồng chính** | **Viết đánh giá:**<br/>1. Customer truy cập trang chi tiết sản phẩm, nhấn "Viết đánh giá"<br/>2. Hệ thống kiểm tra Order và Order_Detail xác nhận Customer đã mua và đơn "Hoàn thành"<br/>3. Hiển thị form: số sao (1-5), nội dung bình luận, upload ảnh (tùy chọn)<br/>4. Customer nhập thông tin và nhấn "Gửi đánh giá"<br/>5. Hệ thống tạo Review (liên kết User, Product, Order) và Review_Image (nếu có ảnh)<br/>6. Đánh giá hiển thị ngay trên trang chi tiết sản phẩm<br/><br/>**Chỉnh sửa đánh giá:**<br/>1. Customer truy cập trang chi tiết sản phẩm hoặc trang quản lý đánh giá cá nhân<br/>2. Nhấn "Chỉnh sửa" trên đánh giá của mình<br/>3. Hệ thống hiển thị form với dữ liệu hiện tại (số sao, nội dung, ảnh)<br/>4. Customer sửa thông tin và nhấn "Cập nhật đánh giá"<br/>5. Hệ thống cập nhật Review và Review_Image trong CSDL<br/><br/>**Xóa đánh giá:**<br/>1. Customer nhấn "Xóa" trên đánh giá của mình<br/>2. Hệ thống hiển thị hộp thoại xác nhận<br/>3. Customer xác nhận xóa<br/>4. Hệ thống xóa Review và Review_Image khỏi CSDL |
+| **Luồng ngoại lệ** | • Chưa mua sản phẩm → Ẩn nút "Viết đánh giá" hoặc báo "Bạn cần mua sản phẩm này để đánh giá"<br/>• Chưa chọn số sao → Báo lỗi "Vui lòng chọn số sao"<br/>• Ảnh sai định dạng (chỉ chấp nhận JPG, PNG, WEBP) → Báo lỗi<br/>• Ảnh quá dung lượng (tối đa 5MB/ảnh) → Báo lỗi<br/>• Vượt số lượng ảnh (tối đa 5 ảnh) → Báo lỗi<br/>• Cố sửa/xóa đánh giá của người khác → Báo lỗi quyền truy cập |
+| **Hậu điều kiện** | Review và Review_Image được tạo/cập nhật/xóa trong CSDL |
+
+<!-- TODO: Bổ sung Hình – Sơ đồ hoạt động Đánh giá sản phẩm -->
+
+---
+
+##### UC-CUS-08: Xây dựng cấu hình PC (Build PC)
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-CUS-08 |
+| **Tên UC** | Xây dựng cấu hình PC (Build PC) |
+| **Actor** | Khách vãng lai (Guest) / Khách hàng (Customer) |
+| **Mô tả** | Cho phép người dùng (Guest hoặc Customer) chọn tuần tự các linh kiện để lắp thành bộ PC. Đây là form phía Frontend (không lưu DB). Hệ thống hiển thị tổng giá và xuất báo giá mà không cần đăng nhập. Khi muốn sử dụng AI kiểm tra tương thích, thêm vào giỏ hàng hoặc tạo đơn hàng, hệ thống yêu cầu đăng nhập. |
+| **Tiền điều kiện** | • Không yêu cầu đăng nhập để chọn linh kiện và xuất báo giá<br/>• Yêu cầu đăng nhập để sử dụng AI và thêm vào giỏ hàng/tạo đơn hàng<br/>• Hệ thống có sản phẩm thuộc các Category linh kiện PC |
+| **Luồng chính** | 1. Người dùng truy cập trang "Build PC"<br/>2. Hệ thống hiển thị các slot: CPU, Mainboard, RAM, VGA, PSU, Case, SSD/HDD, Tản nhiệt<br/>3. Người dùng nhấn vào từng slot, hệ thống hiển thị danh sách Product thuộc Category tương ứng (có thể lọc theo Attribute, Brand)<br/>4. Người dùng chọn linh kiện. Hệ thống cập nhật tổng giá<br/>5. Người dùng nhấn "Xuất báo giá" → Hệ thống tạo file báo giá PDF (không cần đăng nhập)<br/>6. Người dùng nhấn "Kiểm tra tương thích (AI)" → Hệ thống kiểm tra đăng nhập. Nếu chưa đăng nhập → yêu cầu đăng nhập. Sau khi đăng nhập → gửi thông số kỹ thuật qua API LLM → LLM trả về phân tích và gợi ý<br/>7. Người dùng nhấn "Thêm vào giỏ hàng" hoặc "Tạo đơn hàng" → Hệ thống kiểm tra đăng nhập. Nếu chưa đăng nhập → chuyển hướng trang đăng nhập (lưu tạm cấu hình vào Session). Sau khi đăng nhập → thêm tất cả linh kiện vào Cart dưới dạng Cart_Item riêng lẻ |
+| **Luồng ngoại lệ** | • Chưa chọn đủ linh kiện tối thiểu (CPU, Mainboard) → Báo "Vui lòng chọn ít nhất CPU và Mainboard"<br/>• API LLM lỗi → "Dịch vụ AI tạm không khả dụng. Bạn vẫn có thể tiếp tục"<br/>• Linh kiện hết hàng (Inventory.quantity = 0) → Đánh dấu "Hết hàng", yêu cầu chọn thay thế<br/>• Chưa đăng nhập khi nhấn "Kiểm tra AI" / "Thêm vào giỏ hàng" / "Tạo đơn hàng" → Yêu cầu đăng nhập, lưu cấu hình vào Session |
+| **Hậu điều kiện** | • Nếu xuất báo giá: file PDF được tạo (không thay đổi CSDL)<br/>• Nếu thêm vào giỏ: linh kiện được thêm vào Cart dưới dạng Cart_Item riêng lẻ (yêu cầu đã đăng nhập) |
+
+<!-- TODO: Bổ sung Hình – Sơ đồ hoạt động Build PC -->
+
+---
+
+##### UC-CUS-09: Quản lý danh sách yêu thích
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-CUS-09 |
+| **Tên UC** | Quản lý danh sách yêu thích |
+| **Actor** | Khách hàng – Customer |
+| **Mô tả** | Cho phép Customer lưu sản phẩm quan tâm vào Wishlist để xem lại sau, và xóa khỏi Wishlist khi không còn quan tâm. |
+| **Tiền điều kiện** | Customer đã đăng nhập. |
+| **Luồng chính** | 1. Customer nhấn biểu tượng "Yêu thích" (trái tim) trên trang sản phẩm hoặc danh sách sản phẩm<br/>2. Hệ thống kiểm tra UNIQUE(user_id, product_id) trong Wishlist<br/>3. Nếu chưa có: tạo Wishlist entry mới<br/>4. Nếu đã có: xóa Wishlist entry (toggle yêu thích)<br/>5. Customer truy cập trang "Danh sách yêu thích" → Hệ thống hiển thị danh sách Product đã lưu kèm ảnh, giá, tình trạng Inventory<br/>6. Customer có thể nhấn "Thêm vào giỏ" trực tiếp từ Wishlist |
+| **Luồng ngoại lệ** | • Sản phẩm đã bị ngừng kinh doanh (status = Discontinued) → Gắn nhãn "Ngừng kinh doanh" trong Wishlist |
+| **Hậu điều kiện** | Wishlist entry được tạo hoặc xóa trong CSDL |
+
+---
+
+##### UC-CUS-10: Yêu cầu bảo hành
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-CUS-10 |
+| **Tên UC** | Yêu cầu bảo hành |
+| **Actor** | Khách hàng – Customer |
+| **Mô tả** | Cho phép Customer tạo phiếu bảo hành (Warranty_Ticket) cho sản phẩm đã mua, gắn với Order cụ thể. Hệ thống kiểm tra Warranty_Policy trước khi tiếp nhận. |
+| **Tiền điều kiện** | • Customer đã đăng nhập<br/>• Customer có Order ở trạng thái "Hoàn thành" chứa Product cần bảo hành |
+| **Luồng chính** | 1. Customer truy cập "Lịch sử đơn hàng", chọn Order → chọn Product cần bảo hành → nhấn "Yêu cầu bảo hành"<br/>2. Hệ thống kiểm tra Warranty_Policy (theo Product hoặc Category): thời hạn bảo hành còn hiệu lực không (so sánh Order.created_at + duration_months với ngày hiện tại)<br/>3. Nếu còn hạn: hiển thị form nhập Số Serial, Mô tả tình trạng lỗi<br/>4. Customer nhập thông tin và nhấn "Gửi yêu cầu"<br/>5. Hệ thống tạo Warranty_Ticket (trạng thái "Tiếp nhận") |
+| **Luồng ngoại lệ** | • Sản phẩm hết hạn bảo hành → Báo "Sản phẩm đã hết hạn bảo hành"<br/>• Sản phẩm không có Warranty_Policy → Báo "Sản phẩm này không có chính sách bảo hành"<br/>• Thiếu Số Serial → Báo lỗi "Vui lòng nhập Số Serial" |
+| **Hậu điều kiện** | Warranty_Ticket được tạo trong CSDL với trạng thái "Tiếp nhận" |
+
+<!-- TODO: Bổ sung Hình – Sơ đồ hoạt động Bảo hành -->
+
+---
+
+##### UC-CUS-11: Yêu cầu đổi trả
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-CUS-11 |
+| **Tên UC** | Yêu cầu đổi trả |
+| **Actor** | Khách hàng – Customer |
+| **Mô tả** | Cho phép Customer gửi yêu cầu đổi hàng hoặc hoàn tiền cho sản phẩm trong đơn hàng đã hoàn thành, gắn với Order_Detail cụ thể. |
+| **Tiền điều kiện** | • Customer đã đăng nhập<br/>• Order ở trạng thái "Hoàn thành"<br/>• Thời gian yêu cầu nằm trong thời hạn đổi trả cho phép (theo chính sách cửa hàng) |
+| **Luồng chính** | 1. Customer truy cập "Lịch sử đơn hàng", chọn Order → chọn sản phẩm cần đổi trả → nhấn "Yêu cầu đổi trả"<br/>2. Hệ thống hiển thị form: chọn loại (Đổi hàng / Hoàn tiền), nhập lý do, upload ảnh (tùy chọn)<br/>3. Customer nhấn "Gửi yêu cầu"<br/>4. Hệ thống tạo Return/Refund (trạng thái "Chờ duyệt") gắn với Order_Detail |
+| **Luồng ngoại lệ** | • Quá thời hạn đổi trả → Báo "Đã quá thời hạn đổi trả cho đơn hàng này"<br/>• Thiếu lý do → Báo lỗi "Vui lòng nhập lý do đổi trả" |
+| **Hậu điều kiện** | Return/Refund được tạo trong CSDL với trạng thái "Chờ duyệt" |
+
+---
+
+##### UC-CUS-12: Quản lý địa chỉ giao hàng
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-CUS-12 |
+| **Tên UC** | Quản lý địa chỉ giao hàng |
+| **Actor** | Khách hàng – Customer |
+| **Mô tả** | Cho phép Customer thêm, sửa, xóa và đặt mặc định cho các địa chỉ giao hàng (Address). |
+| **Tiền điều kiện** | Customer đã đăng nhập. |
+| **Luồng chính** | 1. Customer truy cập "Tài khoản của tôi" → "Sổ địa chỉ"<br/>2. Hệ thống hiển thị danh sách Address (label, tên người nhận, SĐT, tỉnh/quận/phường/đường, cờ mặc định)<br/>3. **Thêm**: Customer nhấn "Thêm địa chỉ mới", nhập đầy đủ thông tin, nhấn "Lưu"<br/>4. **Sửa**: Customer chọn Address → "Sửa" → cập nhật thông tin<br/>5. **Xóa**: Customer chọn Address → "Xóa" → xác nhận<br/>6. **Đặt mặc định**: Customer nhấn "Sử dụng làm mặc định" → hệ thống cập nhật is_default |
+| **Luồng ngoại lệ** | • Thiếu trường bắt buộc → Báo lỗi cụ thể<br/>• Xóa Address duy nhất (mặc định) → Cảnh báo "Bạn cần tạo địa chỉ mới trước khi xóa" |
+| **Hậu điều kiện** | Address được tạo/sửa/xóa trong CSDL |
+
+---
+
+##### UC-CUS-13: Quản lý đơn hàng cá nhân
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-CUS-13 |
+| **Tên UC** | Quản lý đơn hàng cá nhân |
+| **Actor** | Khách hàng – Customer |
+| **Mô tả** | Cho phép Customer xem danh sách đơn hàng đã đặt, xem chi tiết từng đơn, theo dõi trạng thái vận chuyển và hủy đơn hàng khi ở trạng thái "Chờ xử lý" (Pending). |
+| **Tiền điều kiện** | Customer đã đăng nhập. |
+| **Luồng chính** | **Xem lịch sử đơn hàng:**<br/>1. Customer truy cập "Lịch sử đơn hàng"<br/>2. Hệ thống hiển thị danh sách Order (mã đơn, ngày đặt, tổng tiền, trạng thái). Có thể lọc theo trạng thái, khoảng thời gian<br/>3. Customer nhấn vào một Order → xem chi tiết: danh sách Order_Detail (Product, số lượng, đơn giá), Address, Payment (phương thức, trạng thái, transaction_id)<br/>4. Hệ thống hiển thị Shipping: đơn vị vận chuyển, mã vận đơn (tracking_number), trạng thái, ngày giao dự kiến/thực tế<br/>5. Hệ thống hiển thị Order_Status_History: danh sách các lần đổi trạng thái (thời gian, trạng thái cũ → mới)<br/><br/>**Hủy đơn hàng:**<br/>1. Customer nhấn "Hủy đơn hàng" trên một Order có trạng thái "Chờ xử lý" (Pending)<br/>2. Hệ thống hiển thị hộp thoại xác nhận hủy<br/>3. Customer xác nhận hủy<br/>4. Hệ thống cập nhật Order.status thành "Đã hủy", ghi nhận vào Order_Status_History (người hủy: Customer)<br/>5. Hệ thống hoàn kho: cập nhật Inventory.quantity và tạo Inventory_Log (loại: Hoàn trả)<br/>6. Nếu thanh toán online đã thành công: tạo yêu cầu hoàn tiền (Payment.status → Refunded)<br/>7. Gửi email thông báo hủy đơn hàng |
+| **Luồng ngoại lệ** | • Không có đơn hàng nào → Hiển thị "Bạn chưa có đơn hàng nào"<br/>• Đơn hàng không ở trạng thái Pending → Ẩn nút "Hủy đơn hàng" hoặc báo lỗi "Đơn hàng không thể hủy" |
+| **Hậu điều kiện** | Khi hủy: Order.status được cập nhật, Inventory được hoàn, Order_Status_History được ghi nhận. Khi xem: không thay đổi CSDL |
+
+---
+
+##### UC-CUS-14: Quản lý thông tin cá nhân
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-CUS-14 |
+| **Tên UC** | Quản lý thông tin cá nhân |
+| **Actor** | Khách hàng – Customer |
+| **Mô tả** | Cho phép Customer cập nhật thông tin cá nhân (User/Profile) và đổi mật khẩu (Account). |
+| **Tiền điều kiện** | Customer đã đăng nhập. |
+| **Luồng chính** | **Sửa thông tin cá nhân:**<br/>1. Customer truy cập "Tài khoản của tôi" → "Thông tin cá nhân"<br/>2. Hệ thống hiển thị form với dữ liệu hiện tại: Họ tên, SĐT, ảnh đại diện, ngày sinh, giới tính<br/>3. Customer sửa thông tin, nhấn "Cập nhật". Hệ thống lưu vào bảng User<br/><br/>**Đổi mật khẩu:**<br/>1. Customer nhấn "Đổi mật khẩu"<br/>2. Nhập: Mật khẩu hiện tại, Mật khẩu mới, Xác nhận mật khẩu mới<br/>3. Hệ thống kiểm tra mật khẩu hiện tại khớp với Account.password_hash<br/>4. Nếu đúng: cập nhật password_hash mới. Xóa toàn bộ Token/Session cũ (buộc đăng nhập lại) |
+| **Luồng ngoại lệ** | • SĐT đã tồn tại ở User khác → Báo lỗi "SĐT đã được sử dụng"<br/>• Mật khẩu hiện tại không đúng → Báo lỗi "Mật khẩu hiện tại không đúng"<br/>• Mật khẩu mới và xác nhận không khớp → Báo lỗi |
+| **Hậu điều kiện** | User/Profile hoặc Account.password_hash được cập nhật. Nếu đổi mật khẩu: Token/Session cũ bị xóa |
+
+---
+
+##### UC-CUS-15: Quên / Đặt lại mật khẩu
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-CUS-15 |
+| **Tên UC** | Quên / Đặt lại mật khẩu |
+| **Actor** | Khách vãng lai – Guest |
+| **Mô tả** | Cho phép người dùng yêu cầu đặt lại mật khẩu khi quên, thông qua email chứa link reset. |
+| **Tiền điều kiện** | Người dùng chưa đăng nhập. Tài khoản (Account) với email tương ứng đã tồn tại trong hệ thống. |
+| **Luồng chính** | 1. Người dùng nhấn "Quên mật khẩu" trên trang đăng nhập<br/>2. Hệ thống hiển thị form nhập email<br/>3. Người dùng nhập email và nhấn "Gửi yêu cầu"<br/>4. Hệ thống kiểm tra email có tồn tại trong bảng Account không<br/>5. Nếu tồn tại: tạo Token/Session với loại "reset_password" và thời gian hết hạn (VD: 30 phút), gửi email chứa link đặt lại mật khẩu<br/>6. Người dùng nhấn link trong email → chuyển hướng đến trang đặt lại mật khẩu<br/>7. Người dùng nhập mật khẩu mới và xác nhận mật khẩu mới<br/>8. Hệ thống cập nhật Account.password_hash, vô hiệu hóa token reset, xóa toàn bộ Token/Session cũ |
+| **Luồng ngoại lệ** | • Email không tồn tại → Vẫn hiển thị thông báo "Nếu email hợp lệ, bạn sẽ nhận được email hướng dẫn" (để không lộ thông tin tài khoản)<br/>• Token hết hạn hoặc đã sử dụng → Báo lỗi "Link đặt lại mật khẩu đã hết hạn hoặc không hợp lệ"<br/>• Mật khẩu mới và xác nhận không khớp → Báo lỗi |
+| **Hậu điều kiện** | Account.password_hash được cập nhật. Token reset bị vô hiệu hóa. Token/Session cũ bị xóa |
+
+---
+
+##### UC-AD-01: Quản lý danh mục và thuộc tính
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-AD-01 |
+| **Tên UC** | Quản lý danh mục và thuộc tính |
+| **Actor** | Admin |
+| **Mô tả** | Cho phép Admin tạo, sửa, xóa các danh mục (Category) với phân cấp đa tầng và định nghĩa các thuộc tính kỹ thuật (Attribute, Attribute_Value) cho từng danh mục. |
+| **Tiền điều kiện** | Đăng nhập với Role Admin, Token/Session hợp lệ. |
+| **Luồng chính** | 1. Admin truy cập "Quản lý danh mục", nhấn "Thêm mới"<br/>2. Nhập tên danh mục, chọn danh mục cha (parent_id, nếu có)<br/>3. Thêm Attribute cho danh mục (VD: "Bus", "Dung lượng") và các Attribute_Value tương ứng (VD: "DDR4", "DDR5")<br/>4. Nhấn "Lưu". Hệ thống tạo Category, Attribute và Attribute_Value<br/>5. Sửa/Xóa: Admin chọn Category → "Sửa" hoặc "Xóa" |
+| **Luồng ngoại lệ** | • Tên trùng → Báo lỗi "Danh mục đã tồn tại"<br/>• Xóa Category đang có Product → Báo lỗi "Không thể xóa danh mục đang chứa sản phẩm" |
+| **Hậu điều kiện** | Category, Attribute, Attribute_Value được tạo/sửa/xóa trong CSDL |
+
+---
+
+##### UC-AD-02: Quản lý sản phẩm
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-AD-02 |
+| **Tên UC** | Quản lý sản phẩm |
+| **Actor** | Admin |
+| **Mô tả** | Cho phép Admin thêm, sửa, xóa sản phẩm (Product), hình ảnh (Product_Image), gán thông số kỹ thuật (Product_Attribute) và quản lý thương hiệu (Brand). |
+| **Tiền điều kiện** | Đăng nhập với Role Admin, Token/Session hợp lệ. |
+| **Luồng chính** | **Thêm mới Product:**<br/>1. Admin nhấn "Thêm sản phẩm", nhập: Tên, SKU, giá gốc, giá bán, mô tả<br/>2. Chọn Category, Brand, Condition (Mới/Box/Tray/2nd_Hand)<br/>3. Gán Attribute: chọn giá trị Attribute_Value cho từng Attribute của Category đó<br/>4. Upload Product_Image (đánh dấu ảnh chính)<br/>5. Nhấn "Lưu": tạo Product, Product_Attribute, Product_Image và Inventory (quantity = 0)<br/><br/>**Sửa**: Admin chọn Product → sửa thông tin → "Cập nhật"<br/><br/>**Xóa**: Admin chọn Product → "Xóa" → xác nhận → kiểm tra Order chưa hoàn thành<br/><br/>**Quản lý Brand:**<br/>• Admin truy cập "Quản lý thương hiệu" → CRUD Brand (tên, logo, mô tả)<br/>• Khi thêm Product, chọn Brand từ danh sách. Nếu chưa có → tạo Brand mới ngay tại form |
+| **Luồng ngoại lệ** | • Thiếu trường bắt buộc (Tên, SKU, Category) → Báo lỗi<br/>• SKU trùng → Báo lỗi "Mã SKU đã tồn tại"<br/>• Ảnh sai định dạng hoặc quá dung lượng (tối đa 5MB/ảnh) → Báo lỗi<br/>• Xóa Product có Order chưa hoàn thành → Chặn xóa<br/>• Xóa Brand đang có Product → Báo lỗi "Không thể xóa thương hiệu đang có sản phẩm" |
+| **Hậu điều kiện** | Product, Product_Attribute, Product_Image, Inventory, Brand được tạo/sửa/xóa |
+
+**Hình 3-2: Sơ đồ hoạt động – Quản lý sản phẩm**
 
 ![][image2]
 
-   **4.17. (Admin/Sales) Quản lý đơn hàng**
+---
 
-1\.    Mã UC, tên UC: UC-AD-03: Quản lý đơn hàng
+##### UC-AD-03: Quản lý đơn hàng
 
-2\.    Actor: Admin / Sales
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-AD-03 |
+| **Tên UC** | Quản lý đơn hàng |
+| **Actor** | Admin / Sales |
+| **Mô tả** | Cho phép xem danh sách đơn hàng, xem chi tiết và cập nhật trạng thái. Mỗi lần cập nhật ghi Order_Status_History và gửi thông báo cho khách. |
+| **Tiền điều kiện** | Đăng nhập với Role Admin hoặc Sales. |
+| **Luồng chính** | 1. Admin/Sales truy cập "Quản lý đơn hàng", lọc theo trạng thái, ngày, mã đơn<br/>2. Nhấn vào đơn → xem chi tiết: thông tin User, Address, Order_Detail (tên Product, số lượng, đơn giá), Payment, Shipping<br/>3. Cập nhật trạng thái:<br/>   • "Chờ xử lý" → "Đang giao": đã bàn giao cho đơn vị vận chuyển<br/>   • "Đang giao" → "Hoàn thành": khách đã nhận hàng<br/>   • Bất kỳ → "Đã hủy": hủy đơn<br/>4. Hệ thống tạo Order_Status_History (trạng thái cũ → mới, người thao tác, thời gian)<br/>5. Gửi email thông báo cho Customer |
+| **Luồng ngoại lệ** | • Chuyển trạng thái không hợp lệ (VD: "Hoàn thành" → "Đang giao") → Chặn<br/>• Hủy đơn → tạo Inventory_Log (Hoàn trả) để hoàn kho, cập nhật Inventory.quantity. Nếu có Coupon → giảm used_count, xóa Coupon_Usage |
+| **Hậu điều kiện** | Order.status cập nhật, Order_Status_History ghi nhận, email gửi. Nếu hủy: kho hoàn, Coupon phục hồi |
 
-3\.    Mô tả: Cho phép xem danh sách đơn hàng, xem chi tiết và cập nhật trạng thái. Mỗi lần cập nhật ghi Order\_Status\_History và gửi thông báo cho khách.
-
-4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
-
-5\.    Luồng chính:
-
-\-        Admin/Sales truy cập "Quản lý đơn hàng", lọc theo trạng thái, ngày, mã đơn
-
-\-        Nhấn vào đơn → xem chi tiết: thông tin User, Address, Order\_Detail (tên Product, số lượng, đơn giá), Payment, Shipping
-
-\-        Cập nhật trạng thái:
-
-   \+ "Chờ xử lý" → "Đang giao": đã bàn giao cho đơn vị vận chuyển
-
-   \+ "Đang giao" → "Hoàn thành": khách đã nhận hàng
-
-   \+ Bất kỳ → "Đã hủy": hủy đơn
-
-\-        Hệ thống tạo Order\_Status\_History (trạng thái cũ → mới, người thao tác, thời gian)
-
-\-        Gửi email thông báo cho Customer
-
-6\.    Luồng ngoại lệ:
-
-\-        Chuyển trạng thái không hợp lệ (VD: "Hoàn thành" → "Đang giao") → Chặn
-
-\-        Hủy đơn → tạo Inventory\_Log (Hoàn trả) để hoàn kho, cập nhật Inventory.quantity. Nếu có Coupon → giảm used\_count, xóa Coupon\_Usage
-
-7\.    Hậu điều kiện: Order.status cập nhật, Order\_Status\_History ghi nhận, email gửi. Nếu hủy: kho hoàn, Coupon phục hồi
+**Hình 3-3: Sơ đồ hoạt động – Quản lý đơn hàng**
 
 ![][image3]
 
-   **4.18. (Admin/Warehouse) Quản lý kho hàng**
-
-1\.    Mã UC, tên UC: UC-AD-04: Quản lý kho hàng
-
-2\.    Actor: Admin / Warehouse
-
-3\.    Mô tả: Cho phép xem tồn kho (Inventory), nhập hàng mới, kiểm kê điều chỉnh, ghi nhận biến động qua Inventory\_Log và quản lý nhà cung cấp (Supplier).
-
-4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Warehouse.
-
-5\.    Luồng chính:
-
-   Xem tồn kho: Hiển thị danh sách Product kèm Inventory.quantity, low\_stock\_threshold, Supplier chính. Cảnh báo khi quantity \<= low\_stock\_threshold
-
-   Nhập hàng: Chọn Product, nhập số lượng, ghi chú. Hệ thống tăng Inventory.quantity và tạo Inventory\_Log (loại: Nhập)
-
-   Kiểm kê/Điều chỉnh: Nhập số lượng điều chỉnh (+ hoặc \-), lý do. Hệ thống tạo Inventory\_Log (loại: Điều chỉnh)
-
-   Quản lý Supplier:
-
-\-        Admin truy cập "Quản lý nhà cung cấp" → CRUD Supplier (tên, người liên hệ, SĐT, email, địa chỉ)
-
-\-        Gắn Supplier chính vào Inventory của từng Product
-
-6\.    Luồng ngoại lệ:
-
-\-        Số lượng nhập \<= 0 → Báo lỗi
-
-\-        Điều chỉnh âm dẫn đến tồn kho \< 0 → Cảnh báo và yêu cầu xác nhận
-
-\-        Xóa Supplier đang được gắn vào Inventory → Báo lỗi "Không thể xóa nhà cung cấp đang được sử dụng"
-
-7\.    Hậu điều kiện: Inventory.quantity cập nhật, Inventory\_Log ghi nhận biến động, Supplier được tạo/sửa/xóa
-
-	![][image4]
-
-   **4.19. (Admin/Sales) Thống kê doanh thu**
-
-1\.    Mã UC, tên UC: UC-AD-05: Thống kê doanh thu
-
-2\.    Actor: Admin / Sales
-
-3\.    Mô tả: Cho phép xem báo cáo thống kê doanh thu theo khoảng thời gian, danh mục, trạng thái đơn hàng.
-
-4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
-
-5\.    Luồng chính:
-
-\-        Truy cập "Thống kê doanh thu", chọn bộ lọc (thời gian, Category, trạng thái Order)
-
-\-        Hệ thống truy xuất Order, Order\_Detail, Product, Category và tổng hợp
-
-\-        Hiển thị: Tổng doanh thu, Số đơn hàng, Số sản phẩm bán, Top bán chạy, Doanh thu theo Category
-
-6\.    Luồng ngoại lệ:
-
-\-        Khoảng thời gian không hợp lệ → Báo lỗi
-
-\-        Không có dữ liệu → Hiển thị thông báo
-
-7\.    Hậu điều kiện: Báo cáo hiển thị trên giao diện. Không thay đổi CSDL
-
-   **4.20. (Admin) Quản lý tài khoản**
-
-1\.    Mã UC, tên UC: UC-AD-06: Quản lý tài khoản
-
-2\.    Actor: Admin
-
-3\.    Mô tả: Cho phép Admin xem danh sách tài khoản, tạo tài khoản nội bộ, khóa/mở khóa và gán Role/Permission.
-
-4\.    Tiền điều kiện: Đăng nhập với Role Admin.
-
-5\.    Luồng chính:
-
-   Xem danh sách: Hiển thị Account \+ User (họ tên, email, SĐT, Role, trạng thái). Tìm kiếm/lọc theo Role
-
-   Tạo tài khoản nội bộ: Nhập thông tin, chọn Role (Sales/Warehouse). Tạo Account \+ User
-
-   Khóa/Mở khóa: Cập nhật is\_active. Nếu khóa → xóa toàn bộ Token/Session (buộc đăng xuất)
-
-   Gán Role/Permission: Chọn tài khoản → đổi Role hoặc gán Permission cụ thể qua Role\_Permission
-
-6\.    Luồng ngoại lệ:
-
-\-        Khóa chính mình → Chặn
-
-\-        Email trùng → Báo lỗi "Email đã tồn tại"
-
-7\.    Hậu điều kiện: Account/User cập nhật. Nếu khóa: Token/Session bị xóa
-
-   **4.21. (Admin/Sales) Quản lý mã giảm giá**
-
-1\.    Mã UC, tên UC: UC-AD-07: Quản lý mã giảm giá
-
-2\.    Actor: Admin / Sales
-
-3\.    Mô tả: Cho phép tạo, sửa, xóa mã giảm giá (Coupon). Khách nhập mã khi Checkout để được giảm giá.
-
-4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
-
-5\.    Luồng chính:
-
-\-        Truy cập "Quản lý mã giảm giá", nhấn "Tạo mới"
-
-\-        Nhập: Code, loại (PERCENT/FIXED), giá trị giảm, đơn tối thiểu, giảm tối đa, số lượt max, ngày bắt đầu/kết thúc
-
-\-        Nhấn "Lưu" → tạo Coupon
-
-\-        Sửa/Xóa: Chọn Coupon → "Sửa" hoặc "Xóa" (có xác nhận)
-
-6\.    Luồng ngoại lệ:
-
-\-        Code trùng → Báo lỗi "Mã giảm giá đã tồn tại"
-
-\-        Ngày kết thúc \< ngày bắt đầu → Báo lỗi
-
-\-        Sửa Coupon đã có used\_count \> 0 → Cảnh báo
-
-\-        Xóa Coupon đang hiệu lực → Cảnh báo "Mã đang hoạt động. Xóa sẽ ngừng áp dụng"
-
-7\.    Hậu điều kiện: Coupon được tạo/sửa/xóa trong CSDL
-
-   **4.22. (Admin/Sales) Quản lý vận chuyển**
-
-1\.    Mã UC, tên UC: UC-AD-08: Quản lý vận chuyển
-
-2\.    Actor: Admin / Sales
-
-3\.    Mô tả: Cho phép quản lý thông tin vận chuyển (Shipping) cho từng đơn hàng: chọn đơn vị vận chuyển, nhập mã vận đơn, cập nhật trạng thái giao hàng.
-
-4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales. Order đang ở trạng thái "Đang giao" hoặc "Chờ xử lý".
-
-5\.    Luồng chính:
-
-\-        Admin/Sales truy cập Shipping của một Order
-
-\-        Chọn đơn vị vận chuyển (Shipping.provider): GHTK / GHN / Viettel Post...
-
-\-        Nhập mã vận đơn (tracking\_number), phí vận chuyển (shipping\_fee), ngày giao dự kiến
-
-\-        Cập nhật trạng thái Shipping: Chờ lấy hàng → Đang vận chuyển → Đã giao / Thất bại
-
-\-        Khi Shipping chuyển "Đã giao" → hệ thống tự động chuyển Order.status \= "Hoàn thành" và ghi Order\_Status\_History
-
-6\.    Luồng ngoại lệ:
-
-\-        Shipping thất bại → Admin/Sales chọn giao lại hoặc hủy đơn
-
-\-        Mã vận đơn để trống khi chuyển "Đang vận chuyển" → Báo lỗi
-
-7\.    Hậu điều kiện: Shipping cập nhật. Nếu giao thành công: Order chuyển "Hoàn thành"
-
-   **4.23. (Admin/Sales) Xử lý bảo hành**
-
-1\.    Mã UC, tên UC: UC-AD-09: Xử lý bảo hành
-
-2\.    Actor: Admin / Sales
-
-3\.    Mô tả: Cho phép tạo/sửa chính sách bảo hành (Warranty\_Policy) và xem, xử lý phiếu bảo hành (Warranty\_Ticket) từ Customer.
-
-4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
-
-5\.    Luồng chính:
-
-   Quản lý chính sách bảo hành (Warranty\_Policy):
-
-\-        Admin truy cập "Chính sách bảo hành" → tạo/sửa/xóa Warranty\_Policy
-
-\-        Gán theo Category (VD: tất cả CPU bảo hành 36 tháng) hoặc theo Product cụ thể
-
-\-        Nhập thời hạn (duration\_months), điều kiện bảo hành (conditions), mô tả
-
-   Xử lý phiếu bảo hành (Warranty\_Ticket):
-
-\-        Truy cập "Quản lý bảo hành", xem danh sách Warranty\_Ticket (lọc theo trạng thái)
-
-\-        Nhấn vào phiếu → xem chi tiết: User, Product, Serial, mô tả lỗi, Warranty\_Policy áp dụng
-
-\-        Cập nhật trạng thái: Tiếp nhận → Đang xử lý → Đã sửa / Từ chối → Trả khách
-
-\-        Nhập kết quả xử lý (resolution) và ngày hoàn tất (resolved\_at)
-
-6\.    Luồng ngoại lệ:
-
-\-        Phiếu đã ở trạng thái "Trả khách" → Không cho phép cập nhật thêm
-
-\-        Từ chối bảo hành → Yêu cầu nhập lý do
-
-\-        Xóa Warranty\_Policy đang có Warranty\_Ticket liên quan → Chặn xóa
-
-7\.    Hậu điều kiện: Warranty\_Policy được tạo/sửa/xóa. Warranty\_Ticket.status và resolution cập nhật trong CSDL
-
-   **4.24. (Admin/Sales) Xử lý đổi trả**
-
-1\.    Mã UC, tên UC: UC-AD-10: Xử lý đổi trả
-
-2\.    Actor: Admin / Sales
-
-3\.    Mô tả: Cho phép xem và xử lý yêu cầu đổi trả (Return/Refund) từ Customer.
-
-4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
-
-5\.    Luồng chính:
-
-\-        Truy cập "Quản lý đổi trả", xem danh sách Return/Refund (lọc theo trạng thái, loại)
-
-\-        Nhấn vào yêu cầu → xem chi tiết: User, Order, Order\_Detail, lý do, loại (Đổi hàng/Hoàn tiền)
-
-\-        Duyệt hoặc từ chối:
-
-   \+ Nếu "Đã duyệt" \+ Hoàn tiền: cập nhật refund\_amount, tạo Payment (status: Refunded), tạo Inventory\_Log (Hoàn trả) để hoàn kho
-
-   \+ Nếu "Đã duyệt" \+ Đổi hàng: hoàn kho sản phẩm cũ, tạo Order mới cho sản phẩm thay thế
-
-   \+ Nếu "Từ chối": nhập lý do từ chối
-
-\-        Cập nhật Return.status và resolved\_at
-
-6\.    Luồng ngoại lệ:
-
-\-        Từ chối không nhập lý do → Báo lỗi
-
-\-        Sản phẩm thay thế hết hàng (khi đổi hàng) → Báo "Sản phẩm thay thế hiện hết hàng"
-
-7\.    Hậu điều kiện: Return/Refund cập nhật. Nếu duyệt: kho hoàn, Payment Refunded hoặc Order mới được tạo
+---
+
+##### UC-AD-04: Quản lý kho hàng
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-AD-04 |
+| **Tên UC** | Quản lý kho hàng |
+| **Actor** | Admin / Warehouse |
+| **Mô tả** | Cho phép xem tồn kho (Inventory), nhập hàng mới, kiểm kê điều chỉnh, ghi nhận biến động qua Inventory_Log và quản lý nhà cung cấp (Supplier). |
+| **Tiền điều kiện** | Đăng nhập với Role Admin hoặc Warehouse. |
+| **Luồng chính** | **Xem tồn kho**: Hiển thị danh sách Product kèm Inventory.quantity, low_stock_threshold, Supplier chính. Cảnh báo khi quantity <= low_stock_threshold<br/><br/>**Nhập hàng**: Chọn Product, nhập số lượng, ghi chú. Hệ thống tăng Inventory.quantity và tạo Inventory_Log (loại: Nhập)<br/><br/>**Kiểm kê/Điều chỉnh**: Nhập số lượng điều chỉnh (+ hoặc -), lý do. Hệ thống tạo Inventory_Log (loại: Điều chỉnh)<br/><br/>**Quản lý Supplier:**<br/>• Admin truy cập "Quản lý nhà cung cấp" → CRUD Supplier (tên, người liên hệ, SĐT, email, địa chỉ)<br/>• Gắn Supplier chính vào Inventory của từng Product |
+| **Luồng ngoại lệ** | • Số lượng nhập <= 0 → Báo lỗi<br/>• Điều chỉnh âm dẫn đến tồn kho < 0 → Cảnh báo và yêu cầu xác nhận<br/>• Xóa Supplier đang được gắn vào Inventory → Báo lỗi "Không thể xóa nhà cung cấp đang được sử dụng" |
+| **Hậu điều kiện** | Inventory.quantity cập nhật, Inventory_Log ghi nhận biến động, Supplier được tạo/sửa/xóa |
+
+**Hình 3-4: Sơ đồ hoạt động – Quản lý kho hàng**
+
+![][image4]
+
+---
+
+##### UC-AD-05: Thống kê doanh thu
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-AD-05 |
+| **Tên UC** | Thống kê doanh thu |
+| **Actor** | Admin / Sales |
+| **Mô tả** | Cho phép xem báo cáo thống kê doanh thu theo khoảng thời gian, danh mục, trạng thái đơn hàng. |
+| **Tiền điều kiện** | Đăng nhập với Role Admin hoặc Sales. |
+| **Luồng chính** | 1. Truy cập "Thống kê doanh thu", chọn bộ lọc (thời gian, Category, trạng thái Order)<br/>2. Hệ thống truy xuất Order, Order_Detail, Product, Category và tổng hợp<br/>3. Hiển thị: Tổng doanh thu, Số đơn hàng, Số sản phẩm bán, Top bán chạy, Doanh thu theo Category |
+| **Luồng ngoại lệ** | • Khoảng thời gian không hợp lệ → Báo lỗi<br/>• Không có dữ liệu → Hiển thị thông báo |
+| **Hậu điều kiện** | Báo cáo hiển thị trên giao diện. Không thay đổi CSDL |
+
+---
+
+##### UC-AD-06: Quản lý tài khoản
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-AD-06 |
+| **Tên UC** | Quản lý tài khoản |
+| **Actor** | Admin |
+| **Mô tả** | Cho phép Admin xem danh sách tài khoản, tạo tài khoản nội bộ, khóa/mở khóa và gán Role/Permission. |
+| **Tiền điều kiện** | Đăng nhập với Role Admin. |
+| **Luồng chính** | **Xem danh sách**: Hiển thị Account + User (họ tên, email, SĐT, Role, trạng thái). Tìm kiếm/lọc theo Role<br/><br/>**Tạo tài khoản nội bộ**: Nhập thông tin, chọn Role (Sales/Warehouse). Tạo Account + User<br/><br/>**Khóa/Mở khóa**: Cập nhật is_active. Nếu khóa → xóa toàn bộ Token/Session (buộc đăng xuất)<br/><br/>**Gán Role/Permission**: Chọn tài khoản → đổi Role hoặc gán Permission cụ thể qua Role_Permission |
+| **Luồng ngoại lệ** | • Khóa chính mình → Chặn<br/>• Email trùng → Báo lỗi "Email đã tồn tại" |
+| **Hậu điều kiện** | Account/User cập nhật. Nếu khóa: Token/Session bị xóa |
+
+---
+
+##### UC-AD-07: Quản lý mã giảm giá
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-AD-07 |
+| **Tên UC** | Quản lý mã giảm giá |
+| **Actor** | Admin / Sales |
+| **Mô tả** | Cho phép tạo, sửa, xóa mã giảm giá (Coupon). Khách nhập mã khi Checkout để được giảm giá. |
+| **Tiền điều kiện** | Đăng nhập với Role Admin hoặc Sales. |
+| **Luồng chính** | 1. Truy cập "Quản lý mã giảm giá", nhấn "Tạo mới"<br/>2. Nhập: Code, loại (PERCENT/FIXED), giá trị giảm, đơn tối thiểu, giảm tối đa, số lượt max, ngày bắt đầu/kết thúc<br/>3. Nhấn "Lưu" → tạo Coupon<br/>4. Sửa/Xóa: Chọn Coupon → "Sửa" hoặc "Xóa" (có xác nhận) |
+| **Luồng ngoại lệ** | • Code trùng → Báo lỗi "Mã giảm giá đã tồn tại"<br/>• Ngày kết thúc < ngày bắt đầu → Báo lỗi<br/>• Sửa Coupon đã có used_count > 0 → Cảnh báo<br/>• Xóa Coupon đang hiệu lực → Cảnh báo "Mã đang hoạt động. Xóa sẽ ngừng áp dụng" |
+| **Hậu điều kiện** | Coupon được tạo/sửa/xóa trong CSDL |
+
+---
+
+##### UC-AD-08: Quản lý vận chuyển
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-AD-08 |
+| **Tên UC** | Quản lý vận chuyển |
+| **Actor** | Admin / Sales |
+| **Mô tả** | Cho phép quản lý thông tin vận chuyển (Shipping) cho từng đơn hàng: chọn đơn vị vận chuyển, nhập mã vận đơn, cập nhật trạng thái giao hàng. |
+| **Tiền điều kiện** | Đăng nhập với Role Admin hoặc Sales. Order đang ở trạng thái "Đang giao" hoặc "Chờ xử lý". |
+| **Luồng chính** | 1. Admin/Sales truy cập Shipping của một Order<br/>2. Chọn đơn vị vận chuyển (Shipping.provider): GHTK / GHN / Viettel Post...<br/>3. Nhập mã vận đơn (tracking_number), phí vận chuyển (shipping_fee), ngày giao dự kiến<br/>4. Cập nhật trạng thái Shipping: Chờ lấy hàng → Đang vận chuyển → Đã giao / Thất bại<br/>5. Khi Shipping chuyển "Đã giao" → hệ thống tự động chuyển Order.status = "Hoàn thành" và ghi Order_Status_History |
+| **Luồng ngoại lệ** | • Shipping thất bại → Admin/Sales chọn giao lại hoặc hủy đơn<br/>• Mã vận đơn để trống khi chuyển "Đang vận chuyển" → Báo lỗi |
+| **Hậu điều kiện** | Shipping cập nhật. Nếu giao thành công: Order chuyển "Hoàn thành" |
+
+---
+
+##### UC-AD-09: Xử lý bảo hành
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-AD-09 |
+| **Tên UC** | Xử lý bảo hành |
+| **Actor** | Admin / Sales |
+| **Mô tả** | Cho phép tạo/sửa chính sách bảo hành (Warranty_Policy) và xem, xử lý phiếu bảo hành (Warranty_Ticket) từ Customer. |
+| **Tiền điều kiện** | Đăng nhập với Role Admin hoặc Sales. |
+| **Luồng chính** | **Quản lý chính sách bảo hành (Warranty_Policy):**<br/>• Admin truy cập "Chính sách bảo hành" → tạo/sửa/xóa Warranty_Policy<br/>• Gán theo Category (VD: tất cả CPU bảo hành 36 tháng) hoặc theo Product cụ thể<br/>• Nhập thời hạn (duration_months), điều kiện bảo hành (conditions), mô tả<br/><br/>**Xử lý phiếu bảo hành (Warranty_Ticket):**<br/>1. Truy cập "Quản lý bảo hành", xem danh sách Warranty_Ticket (lọc theo trạng thái)<br/>2. Nhấn vào phiếu → xem chi tiết: User, Product, Serial, mô tả lỗi, Warranty_Policy áp dụng<br/>3. Cập nhật trạng thái: Tiếp nhận → Đang xử lý → Đã sửa / Từ chối → Trả khách<br/>4. Nhập kết quả xử lý (resolution) và ngày hoàn tất (resolved_at) |
+| **Luồng ngoại lệ** | • Phiếu đã ở trạng thái "Trả khách" → Không cho phép cập nhật thêm<br/>• Từ chối bảo hành → Yêu cầu nhập lý do<br/>• Xóa Warranty_Policy đang có Warranty_Ticket liên quan → Chặn xóa |
+| **Hậu điều kiện** | Warranty_Policy được tạo/sửa/xóa. Warranty_Ticket.status và resolution cập nhật trong CSDL |
+
+---
+
+##### UC-AD-10: Xử lý đổi trả
+
+| Thành phần | Nội dung |
+| :--- | :--- |
+| **Mã UC** | UC-AD-10 |
+| **Tên UC** | Xử lý đổi trả |
+| **Actor** | Admin / Sales |
+| **Mô tả** | Cho phép xem và xử lý yêu cầu đổi trả (Return/Refund) từ Customer. |
+| **Tiền điều kiện** | Đăng nhập với Role Admin hoặc Sales. |
+| **Luồng chính** | 1. Truy cập "Quản lý đổi trả", xem danh sách Return/Refund (lọc theo trạng thái, loại)<br/>2. Nhấn vào yêu cầu → xem chi tiết: User, Order, Order_Detail, lý do, loại (Đổi hàng/Hoàn tiền)<br/>3. Duyệt hoặc từ chối:<br/>   • Nếu "Đã duyệt" + Hoàn tiền: cập nhật refund_amount, tạo Payment (status: Refunded), tạo Inventory_Log (Hoàn trả) để hoàn kho<br/>   • Nếu "Đã duyệt" + Đổi hàng: hoàn kho sản phẩm cũ, tạo Order mới cho sản phẩm thay thế<br/>   • Nếu "Từ chối": nhập lý do từ chối<br/>4. Cập nhật Return.status và resolved_at |
+| **Luồng ngoại lệ** | • Từ chối không nhập lý do → Báo lỗi<br/>• Sản phẩm thay thế hết hàng (khi đổi hàng) → Báo "Sản phẩm thay thế hiện hết hàng" |
+| **Hậu điều kiện** | Return/Refund cập nhật. Nếu duyệt: kho hoàn, Payment Refunded hoặc Order mới được tạo |
+
+---
+
+**Hình 3-5: Sơ đồ tổng hợp luồng nghiệp vụ**
 
 ![][image5]
 
-**5\. Bảng yêu cầu người dùng**
+### 3.4 Bảng yêu cầu người dùng
+
+**Bảng 3-2:** Bảng yêu cầu người dùng
 
 | ID | Nhóm Nghiệp Vụ | Tên Yêu Cầu | Mô tả chi tiết (Gắn với Entity) | Độ Ưu Tiên |
-| :---- | :---- | :---- | :---- | :---- |
-| UR-AUTH-01 | Xác thực & Phân quyền | Đăng ký & Đăng nhập | Tạo Account \+ User/Profile. Đăng nhập sinh Token/Session. Merge giỏ hàng Session vào Cart. | Cao |
-| UR-AUTH-02 | Xác thực & Phân quyền | Phân quyền (RBAC) | Phân quyền dựa trên Role \+ Permission qua Role\_Permission. | Cao |
+| :--- | :--- | :--- | :--- | :--- |
+| UR-AUTH-01 | Xác thực & Phân quyền | Đăng ký & Đăng nhập | Tạo Account + User/Profile. Đăng nhập sinh Token/Session. Merge giỏ hàng Session vào Cart. | Cao |
+| UR-AUTH-02 | Xác thực & Phân quyền | Phân quyền (RBAC) | Phân quyền dựa trên Role + Permission qua Role\_Permission. | Cao |
 | UR-PROF-01 | Quản lý Người dùng | Quản lý thông tin cá nhân | Customer sửa User/Profile (họ tên, SĐT, ảnh, ngày sinh) và đổi mật khẩu (Account.password\_hash). | Trung bình |
 | UR-ADDR-01 | Quản lý Người dùng | Quản lý địa chỉ | Customer CRUD nhiều Address. Gợi ý Address mặc định khi Checkout. | Trung bình |
-| UR-CAT-01 | Quản lý Sản phẩm | Quản lý danh mục | Admin CRUD Category phân cấp, định nghĩa Attribute \+ Attribute\_Value. | Cao |
+| UR-CAT-01 | Quản lý Sản phẩm | Quản lý danh mục | Admin CRUD Category phân cấp, định nghĩa Attribute + Attribute\_Value. | Cao |
 | UR-PROD-01 | Quản lý Sản phẩm | Quản lý sản phẩm | Admin CRUD Product (SKU, Condition, Brand, Category), gán Product\_Attribute, upload Product\_Image. | Cao |
 | UR-BRAND-01 | Quản lý Sản phẩm | Quản lý thương hiệu | Admin CRUD Brand (tên, logo). Mỗi Product thuộc một Brand. | Trung bình |
 | UR-SHOP-01 | Trải nghiệm Mua sắm | Lọc sản phẩm thông minh | Guest/Customer lọc theo Attribute, Brand, giá. Product hết hàng gắn nhãn. | Cao |
 | UR-SHOP-02 | Trải nghiệm Mua sắm | Quản lý Giỏ hàng | Guest dùng giỏ Session, Customer dùng Cart. Merge khi đăng nhập, xóa Session khi đăng xuất. | Cao |
 | UR-WISH-01 | Trải nghiệm Mua sắm | Danh sách yêu thích | Customer toggle Wishlist, thêm vào Cart trực tiếp. | Thấp |
-| UR-ORD-01 | Đơn hàng & Thanh toán | Tạo đơn hàng (Checkout) | Chọn Address, nhập Coupon. Tạo Order, Order\_Detail, Payment, Shipping. Trừ kho qua Inventory \+ Inventory\_Log. | Cao |
-| UR-PAY-01 | Đơn hàng & Thanh toán | Thanh toán đa phương thức | COD/VNPay/MoMo/Chuyển khoản. Tạo Payment (Pending/Success/Failed/Refunded) \+ transaction\_id. | Cao |
-| UR-ORD-02 | Đơn hàng & Thanh toán | Xử lý trạng thái đơn hàng | Admin/Sales cập nhật Order.status \+ ghi Order\_Status\_History. Hủy đơn hoàn kho. | Cao |
-| UR-ORD-03 | Đơn hàng & Thanh toán | Xem lịch sử đơn hàng | Customer xem danh sách Order, chi tiết Order\_Detail, Payment, Shipping, Order\_Status\_History. | Cao |
+| UR-ORD-01 | Đơn hàng & Thanh toán | Tạo đơn hàng (Checkout) | Chọn Address, nhập Coupon. Tạo Order, Order\_Detail, Payment, Shipping. Trừ kho qua Inventory + Inventory\_Log. | Cao |
+| UR-PAY-01 | Đơn hàng & Thanh toán | Thanh toán đa phương thức | COD/VNPay/MoMo/ZaloPay/Chuyển khoản. Tạo Payment (Pending/Success/Failed/Refunded) + transaction\_id. | Cao |
+| UR-ORD-02 | Đơn hàng & Thanh toán | Xử lý trạng thái đơn hàng | Admin/Sales cập nhật Order.status + ghi Order\_Status\_History. Hủy đơn hoàn kho. | Cao |
+| UR-ORD-03 | Đơn hàng & Thanh toán | Quản lý đơn hàng cá nhân | Customer xem danh sách Order, chi tiết Order\_Detail, Payment, Shipping, Order\_Status\_History. Customer có thể hủy đơn hàng khi trạng thái Pending. | Cao |
 | UR-SHIP-01 | Đơn hàng & Thanh toán | Quản lý vận chuyển | Admin/Sales quản lý Shipping: đơn vị, mã vận đơn, phí, trạng thái. Giao xong → Order "Hoàn thành". | Cao |
 | UR-CPN-01 | Khuyến mãi | Mã giảm giá (Coupon) | Admin/Sales CRUD Coupon. Ghi Coupon\_Usage mỗi lần sử dụng. | Trung bình |
-| UR-INV-01 | Quản lý Kho hàng | Tồn kho & Lịch sử | Inventory (quantity \+ cảnh báo) \+ Inventory\_Log (mọi biến động). | Rất Cao |
+| UR-INV-01 | Quản lý Kho hàng | Tồn kho & Lịch sử | Inventory (quantity + cảnh báo) + Inventory\_Log (mọi biến động). | Rất Cao |
 | UR-INV-02 | Quản lý Kho hàng | Nhập hàng & Kiểm kê | Admin/Warehouse nhập, kiểm kê, điều chỉnh qua Inventory\_Log. Cảnh báo low\_stock. | Cao |
 | UR-SUP-01 | Quản lý Kho hàng | Quản lý nhà cung cấp | Admin CRUD Supplier. Gắn Supplier chính vào Inventory. | Trung bình |
-| UR-REV-01 | Tương tác Người dùng | Đánh giá sản phẩm | Customer tạo Review (sao \+ bình luận \+ Review\_Image). Ràng buộc Order "Hoàn thành". | Thấp |
+| UR-REV-01 | Tương tác Người dùng | Đánh giá sản phẩm | Customer tạo, chỉnh sửa hoặc xóa Review (sao + bình luận + Review\_Image). Ràng buộc Order "Hoàn thành". | Thấp |
 | UR-BLD-01 | Xây dựng Cấu hình | Build PC | Guest/Customer chọn linh kiện Frontend, tổng giá, xuất báo giá (không cần đăng nhập). AI tương thích, thêm Cart/tạo Order yêu cầu đăng nhập. | Cao |
 | UR-AI-01 | AI & Tương thích | Đánh giá tương thích LLM | Gửi thông số qua API LLM, nhận phân tích và gợi ý thay thế. | Cao |
-| UR-USR-01 | Quản lý Người dùng | Quản lý tài khoản | Admin CRUD Account/User, khóa/mở khóa, gán Role \+ Permission. | Cao |
+| UR-USR-01 | Quản lý Người dùng | Quản lý tài khoản | Admin CRUD Account/User, khóa/mở khóa, gán Role + Permission. | Cao |
 | UR-WARPOL-01 | Bảo hành & Đổi trả | Chính sách bảo hành | Admin CRUD Warranty\_Policy (thời hạn, điều kiện) gán theo Category hoặc Product. | Trung bình |
 | UR-WAR-01 | Bảo hành & Đổi trả | Bảo hành | Customer tạo Warranty\_Ticket. Admin/Sales xử lý phiếu. | Trung bình |
 | UR-RET-01 | Bảo hành & Đổi trả | Đổi trả & Hoàn tiền | Customer tạo Return/Refund. Admin/Sales duyệt: Payment Refunded hoặc Order mới. Hoàn kho. | Trung bình |
+| UR-AUTH-03 | Xác thực & Phân quyền | Quên / đặt lại mật khẩu | Guest yêu cầu đặt lại mật khẩu qua email. Hệ thống gửi link reset có thời hạn. Cập nhật Account.password\_hash và xóa Token/Session cũ. | Cao |
+
+---
+
+## 4 Yêu cầu phi chức năng
+
+### 4.1 Giao diện người dùng
+
+| STT | Yêu cầu | Mô tả chi tiết |
+| :--- | :--- | :--- |
+| NFR-UI-01 | Thiết kế Responsive | Giao diện tương thích tốt trên Desktop (≥1280px), Tablet (768–1279px) và Mobile (≤767px). Sử dụng Tailwind CSS responsive utilities. |
+| NFR-UI-02 | Giao diện hiện đại | Áp dụng phong cách thiết kế hiện đại, tối giản (Minimalist). Sử dụng hệ thống thiết kế shadcn/ui để đảm bảo tính nhất quán trên toàn bộ ứng dụng. |
+| NFR-UI-03 | Thời gian tải trang | Trang chủ và trang danh sách sản phẩm phải tải xong trong vòng **3 giây** trên kết nối 4G (≥10 Mbps). Sử dụng kỹ thuật SSR/SSG của Next.js để tối ưu. |
+| NFR-UI-04 | Ngôn ngữ | Hệ thống hỗ trợ tiếng Việt là ngôn ngữ chính. Giao diện quản trị (CMS) có thể sử dụng tiếng Anh cho các thuật ngữ kỹ thuật. |
+| NFR-UI-05 | Tách biệt giao diện | Giao diện khách hàng (Storefront) và giao diện quản trị (Admin Dashboard) được thiết kế và triển khai tách biệt, sử dụng chung API Backend. |
+| NFR-UI-06 | Trải nghiệm nhập liệu | Các form nhập liệu phải có validation real-time (kiểm tra ngay khi nhập), thông báo lỗi rõ ràng vị trí và nguyên nhân. Hỗ trợ auto-complete cho các trường tìm kiếm. |
+| NFR-UI-07 | Hình ảnh sản phẩm | Hình ảnh sản phẩm phải được tối ưu kích thước (WebP format, lazy loading) để đảm bảo tốc độ tải trang. Hỗ trợ zoom và gallery view. |
+
+### 4.2 Tính bảo mật
+
+| STT | Yêu cầu | Mô tả chi tiết |
+| :--- | :--- | :--- |
+| NFR-SEC-01 | Xác thực (Authentication) | Sử dụng Spring Security + JWT (Access Token + Refresh Token). Access Token có thời hạn 15 phút, Refresh Token có thời hạn 7 ngày. |
+| NFR-SEC-02 | Phân quyền (Authorization) | Áp dụng mô hình RBAC (Role-Based Access Control) với 4 Role: Admin, Sales, Warehouse, Customer. Mỗi Role được gán tập hợp Permission cụ thể qua bảng trung gian Role\_Permission. |
+| NFR-SEC-03 | Mã hóa mật khẩu | Mật khẩu người dùng được hash bằng BCryptPasswordEncoder (Spring Security) trước khi lưu vào CSDL. Không bao giờ lưu mật khẩu dạng plain text. |
+| NFR-SEC-04 | Bảo mật truyền tải | Toàn bộ giao tiếp Client–Server phải qua HTTPS (TLS 1.2+). Certificate được quản lý qua Nginx reverse proxy. |
+| NFR-SEC-05 | Chống tấn công phổ biến | Bảo vệ chống SQL Injection (sử dụng JPA/Hibernate Parameterized Queries), XSS (sanitize input, Content Security Policy), CSRF (CSRF Token cho các request có side-effect). |
+| NFR-SEC-06 | Rate Limiting | Giới hạn số lượng request API để chống brute-force và DDoS. Mặc định: 100 request/phút/IP cho API công khai, 500 request/phút cho API xác thực. |
+| NFR-SEC-07 | Quản lý phiên | Hỗ trợ blacklist Token khi đăng xuất (lưu trong Redis với TTL bằng thời gian còn lại của Token). Tự động vô hiệu hóa tất cả Token khi đổi mật khẩu hoặc bị khóa tài khoản. |
+| NFR-SEC-08 | Lưu trữ file an toàn | File upload (ảnh sản phẩm, ảnh review) được lưu trữ trên MinIO (S3-compatible). Kiểm tra MIME type và giới hạn dung lượng (5MB/file) trước khi upload. |
+
+### 4.3 Hiệu năng và khả năng mở rộng
+
+| STT | Yêu cầu | Mô tả chi tiết |
+| :--- | :--- | :--- |
+| NFR-PERF-01 | Thời gian phản hồi API | API Backend phải phản hồi trong vòng **500ms** cho các request thông thường (CRUD). Các request phức tạp (thống kê, báo cáo) cho phép tối đa **3 giây**. |
+| NFR-PERF-02 | Người dùng đồng thời | Hệ thống phải hỗ trợ tối thiểu **500 người dùng đồng thời** mà không suy giảm hiệu năng đáng kể (thời gian phản hồi tăng không quá 50%). |
+| NFR-PERF-03 | Caching | Sử dụng Redis để cache: danh sách sản phẩm phổ biến, giỏ hàng Session (Guest), kết quả tìm kiếm, thông tin phiên đăng nhập. Cache TTL mặc định: 5 phút cho dữ liệu hay thay đổi, 1 giờ cho dữ liệu ít thay đổi. |
+| NFR-PERF-04 | Database Optimization | Sử dụng PostgreSQL với indexing chiến lược trên các cột thường xuyên query (Product.sku, Product.slug, Account.email, Order.status). Hỗ trợ full-text search cho tìm kiếm sản phẩm. |
+| NFR-PERF-05 | Khả năng mở rộng | Kiến trúc Modular Monolith cho phép tách module thành Microservice trong tương lai. Stateless API (JWT) cho phép horizontal scaling Backend. |
+| NFR-PERF-06 | Uptime | Hệ thống hoạt động 24/7 với uptime mục tiêu **≥ 99%** (tương đương downtime tối đa ~7.3 giờ/tháng). |
+
+### 4.4 Ràng buộc kỹ thuật
+
+| STT | Ràng buộc | Chi tiết |
+| :--- | :--- | :--- |
+| NFR-CON-01 | Frontend | Next.js (App Router) + TypeScript + Tailwind CSS + shadcn/ui. Node.js 20 LTS. |
+| NFR-CON-02 | Backend | Spring Boot 3.x + Java 21 + Spring Security + Spring Data JPA. |
+| NFR-CON-03 | Cơ sở dữ liệu | PostgreSQL 16. Quản lý migration bằng Flyway. |
+| NFR-CON-04 | Cache & Session | Redis 7. Dùng cho cache, giỏ hàng guest, token blacklist. |
+| NFR-CON-05 | Lưu trữ file | MinIO (S3-compatible). Dùng cho ảnh sản phẩm, ảnh review, file báo giá PDF. |
+| NFR-CON-06 | Thanh toán | Tích hợp VNPay SDK, MoMo SDK và ZaloPay SDK. Hỗ trợ COD (Cash On Delivery) và Chuyển khoản ngân hàng. |
+| NFR-CON-07 | Triển khai | Docker + Docker Compose. Nginx làm reverse proxy và serve static files. |
+| NFR-CON-08 | CI/CD | GitHub Actions cho automated testing và deployment pipeline. |
+| NFR-CON-09 | Monitoring | Prometheus + Grafana cho metrics & alerting. ELK Stack (Elasticsearch, Logstash, Kibana) cho centralized logging. |
+| NFR-CON-10 | Trình duyệt hỗ trợ | Chrome, Firefox, Edge, Safari – 2 phiên bản mới nhất. |
+| NFR-CON-11 | Coding Standards | TypeScript strict mode (Frontend). Java code có Javadoc cho public methods (Backend). ESLint + Prettier cho Frontend, Checkstyle cho Backend. |
+
+---
+
 
 [image1]: <data:image/png;base64,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>
 
