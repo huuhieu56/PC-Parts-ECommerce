@@ -1,0 +1,95 @@
+@startuml class_order
+title Hình 3.3 — Class Diagram — Module Order & Payment
+
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #E8F0FE
+    BorderColor #1A73E8
+}
+
+class Order {
+    - id : Long
+    - user : User
+    - address : Address
+    - subtotal : BigDecimal
+    - discountAmount : BigDecimal
+    - totalAmount : BigDecimal
+    - status : OrderStatus
+    - note : String
+    - coupon : Coupon
+    - details : List<OrderDetail>
+    - payment : Payment
+    - shipping : Shipping
+    + cancel() : void
+    + updateStatus(newStatus) : void
+}
+
+class OrderDetail {
+    - id : Long
+    - order : Order
+    - product : Product
+    - quantity : Integer
+    - unitPrice : BigDecimal
+    - lineTotal : BigDecimal
+}
+
+class Payment {
+    - id : Long
+    - order : Order
+    - method : PaymentMethod
+    - amount : BigDecimal
+    - status : PaymentStatus
+    - transactionId : String
+    - paidAt : LocalDateTime
+}
+
+class Shipping {
+    - id : Long
+    - order : Order
+    - provider : String
+    - trackingNumber : String
+    - shippingFee : BigDecimal
+    - status : ShippingStatus
+    - estimatedDate : LocalDate
+    - deliveredDate : LocalDate
+}
+
+class OrderStatusHistory {
+    - id : Long
+    - order : Order
+    - oldStatus : String
+    - newStatus : String
+    - changedBy : Account
+    - note : String
+    - createdAt : LocalDateTime
+}
+
+enum OrderStatus {
+    PENDING
+    CONFIRMED
+    SHIPPING
+    COMPLETED
+    CANCELLED
+}
+
+enum PaymentMethod {
+    COD
+    VNPAY
+    MOMO
+    BANK_TRANSFER
+}
+
+enum PaymentStatus {
+    PENDING
+    SUCCESS
+    FAILED
+    REFUNDED
+}
+
+Order "1" --> "*" OrderDetail
+Order "1" --> "1" Payment
+Order "1" --> "1" Shipping
+Order "1" --> "*" OrderStatusHistory
+OrderDetail --> Product
+
+@enduml

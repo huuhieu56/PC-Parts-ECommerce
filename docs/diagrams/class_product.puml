@@ -1,0 +1,92 @@
+@startuml class_product
+title Hình 3.2 — Class Diagram — Module Product Catalog
+
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #E8F0FE
+    BorderColor #1A73E8
+}
+
+class Category {
+    - id : Long
+    - name : String
+    - description : String
+    - parent : Category
+    - level : Integer
+    - attributes : List<Attribute>
+    + getChildren() : List<Category>
+}
+
+class Brand {
+    - id : Long
+    - name : String
+    - logoUrl : String
+    - description : String
+}
+
+class Product {
+    - id : Long
+    - name : String
+    - sku : String
+    - slug : String
+    - originalPrice : BigDecimal
+    - sellingPrice : BigDecimal
+    - description : String
+    - category : Category
+    - brand : Brand
+    - condition : ProductCondition
+    - status : ProductStatus
+    - images : List<ProductImage>
+    - attributes : List<ProductAttribute>
+    - inventory : Inventory
+}
+
+class Attribute {
+    - id : Long
+    - name : String
+    - category : Category
+    - values : List<AttributeValue>
+}
+
+class AttributeValue {
+    - id : Long
+    - attribute : Attribute
+    - value : String
+}
+
+class ProductAttribute {
+    - product : Product
+    - attribute : Attribute
+    - attributeValue : AttributeValue
+}
+
+class ProductImage {
+    - id : Long
+    - product : Product
+    - imageUrl : String
+    - isPrimary : Boolean
+    - sortOrder : Integer
+}
+
+enum ProductCondition {
+    NEW
+    BOX
+    TRAY
+    SECOND_HAND
+}
+
+enum ProductStatus {
+    ACTIVE
+    INACTIVE
+}
+
+Category "1" --> "*" Category : parent
+Category "1" --> "*" Product
+Category "1" --> "*" Attribute
+Brand "1" --> "*" Product
+Attribute "1" --> "*" AttributeValue
+Product "1" --> "*" ProductAttribute
+Product "1" --> "*" ProductImage
+ProductAttribute --> AttributeValue
+
+@enduml

@@ -1,0 +1,57 @@
+@startuml seq_checkout
+title Hình 3.13 — Sequence Diagram — Checkout & Tạo đơn hàng
+
+actor Customer
+participant "Next.js" as FE
+participant "Spring Boot" as BE
+database "PostgreSQL" as DB
+participant "VNPay/MoMo" as Pay
+
+Customer -> FE : Nhấn "Đặt hàng"
+FE -> BE : POST /api/v1/orders\n{address_id, payment_method, coupon_code?}
+BE -> BE : Validate JWT
+
+opt Có coupon_code
+    BE -> DB : SELECT Coupon WHERE code = ?
+    BE -> BE : Validate (còn hạn,\nchưa max_uses, chưa dùng bởi user)
+end
+
+BE -> DB : SELECT Cart_Item + Inventory JOIN
+loop Mỗi Cart_Item
+    BE -> BE : Kiểm tra Inventory.quantity\n>= requested_qty
+end
+
+alt Hết hàng
+    BE --> FE : 409 Conflict\n{sản phẩm hết hàng}
+else Đủ hàng
+    BE -> DB : INSERT Order (status=PENDING)
+    BE -> DB : INSERT Order_Detail[]\n(snapshot đơn giá)
+    BE -> DB : INSERT Payment + Shipping\n+ Order_Status_History
+
+    loop Trừ kho
+        BE -> DB : UPDATE Inventory\nSET quantity -= ?
+        BE -> DB : INSERT Inventory_Log\n(type=SELL)
+    end
+
+    opt Có Coupon
+        BE -> DB : INSERT Coupon_Usage,\nUPDATE Coupon.used_count
+    end
+
+    BE -> DB : DELETE Cart_Item (đã đặt)
+
+    alt Thanh toán Online (VNPay/MoMo)
+        BE -> Pay : Tạo payment URL
+        Pay --> BE : Payment URL
+        BE --> FE : 200 {orderId, paymentUrl}
+        FE --> Customer : Redirect sang cổng thanh toán
+        Customer -> Pay : Thanh toán
+        Pay -> BE : IPN Callback\n{transactionId, status}
+        BE -> DB : UPDATE Payment\nSET status=SUCCESS
+    else COD / Chuyển khoản
+        BE --> FE : 201 {orderId}
+    end
+
+    FE --> Customer : Hiển thị "Đặt hàng thành công"
+end
+
+@enduml

@@ -1,0 +1,40 @@
+@startuml seq_admin_inventory
+title Hình 3.24 — Sequence Diagram — Admin quản lý tồn kho
+
+actor "Warehouse Staff" as Warehouse
+participant "Next.js\n(Admin CMS)" as FE
+participant "Spring Boot\n(Backend)" as BE
+database "PostgreSQL" as DB
+
+== Xem danh sách tồn kho ==
+Warehouse -> FE : Mở trang quản lý kho
+FE -> BE : GET /api/v1/admin/inventory?\npage=1&size=20&lowStock=false
+BE -> BE : Validate JWT + Role\n(ADMIN | WAREHOUSE)
+BE -> DB : SELECT Inventory JOIN Product\nJOIN Supplier\nORDER BY quantity ASC
+BE --> FE : 200 {inventoryItems[], totalItems}
+FE --> Warehouse : Hiển thị danh sách\n(tên SP, tồn kho, ngưỡng cảnh báo, NCC)
+
+== Nhập hàng từ NCC ==
+Warehouse -> FE : Chọn SP, nhập số lượng nhập
+FE -> BE : POST /api/v1/admin/inventory/import\n{productId, quantity, supplierId, note}
+BE -> DB : UPDATE Inventory\nSET quantity += ?, supplier_id = ?
+BE -> DB : INSERT Inventory_Log\n(product_id, type='IMPORT',\nquantity_change=+?, performed_by, note)
+BE --> FE : 200 {updatedInventory}
+FE --> Warehouse : Cập nhật số lượng tồn kho
+
+== Kiểm kê / Điều chỉnh kho ==
+Warehouse -> FE : Nhập số lượng thực tế\nsau kiểm kê
+FE -> BE : POST /api/v1/admin/inventory/adjust\n{productId, newQuantity, note}
+BE -> DB : SELECT Inventory\nWHERE product_id = ?
+DB --> BE : Current quantity
+BE -> BE : diff = newQuantity - currentQuantity
+
+alt diff < 0 AND newQuantity < 0
+    BE --> FE : 400 {message:\n"Số lượng không thể âm"}
+else Hợp lệ
+    BE -> DB : UPDATE Inventory\nSET quantity = ?
+    BE -> DB : INSERT Inventory_Log\n(type='ADJUSTMENT',\nquantity_change=diff,\nperformed_by, note)
+    BE --> FE : 200 {updatedInventory,\nadjustedBy: diff}
+end
+
+@enduml

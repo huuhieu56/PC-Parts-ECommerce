@@ -223,184 +223,198 @@ Backend được tách thêm thành các tầng nội bộ (Controller → Servi
 ### 2.2 Component / Package Diagram
 
 > **Hình 2.2** — Component / Package Diagram
+>
+> Source: [`diagrams/component_diagram.puml`](diagrams/component_diagram.puml) | Image: [`diagrams/images/component_diagram.png`](diagrams/images/component_diagram.png)
 
-Sơ đồ mô tả 10 module chức năng (M01–M10) và các phụ thuộc giữa chúng, cùng với các hệ thống bên ngoài.
+Sơ đồ thành phần (UML Component Diagram) mô tả các **component** chức năng chính của hệ thống backend, các **interface** mà chúng cung cấp (provided) và yêu cầu (required), cùng các **dependency** giữa chúng.
 
-```mermaid
-graph TB
-    subgraph "CLIENT LAYER"
-        FE_Customer["Customer Web App<br/>(Next.js)"]
-        FE_Admin["Admin CMS Web App<br/>(Next.js)"]
-    end
+> **Ghi chú:** Sơ đồ này chỉ tập trung vào các thành phần phần mềm và mối quan hệ giữa chúng. Chi tiết về lớp (class) được mô tả trong mục 3.1. Hạ tầng triển khai (database, cache, file storage) được mô tả trong Deployment Diagram (mục 2.3).
 
-    subgraph "API GATEWAY"
-        Nginx["Nginx<br/>Reverse Proxy"]
-    end
+```plantuml
+@startuml component_diagram
+title Hình 2.2 — Component / Package Diagram
 
-    subgraph "BACKEND — Application Modules"
-        M01["M01: Auth & RBAC<br/>──────────────<br/>AuthController<br/>AuthService<br/>AccountRepository"]
-        M02["M02: Product Catalog<br/>──────────────<br/>ProductController<br/>ProductService<br/>CategoryService"]
-        M03["M03: Shopping<br/>──────────────<br/>CartController<br/>CartService<br/>WishlistService"]
-        M04["M04: Order & Payment<br/>──────────────<br/>OrderController<br/>OrderService<br/>PaymentService"]
-        M05["M05: Build PC<br/>──────────────<br/>BuildPCController<br/>BuildPCService<br/>CompatibilityService"]
-        M06["M06: Inventory<br/>──────────────<br/>InventoryController<br/>InventoryService<br/>SupplierService"]
-        M07["M07: Coupon<br/>──────────────<br/>CouponController<br/>CouponService"]
-        M08["M08: Review<br/>──────────────<br/>ReviewController<br/>ReviewService"]
-        M09["M09: Warranty & Return<br/>──────────────<br/>WarrantyController<br/>ReturnController"]
-        M10["M10: Admin & Report<br/>──────────────<br/>AdminController<br/>ReportService"]
-    end
+skinparam componentStyle uml2
 
-    subgraph "DATA LAYER"
-        PostgreSQL[("PostgreSQL<br/>Primary Database")]
-        Redis[("Redis<br/>Cache & Session")]
-        MinIO[("MinIO<br/>File Storage")]
-    end
+package "<<subsystem>> PC Parts E-Commerce Backend" {
+    package "Foundation Layer" {
+        [M01: Auth & RBAC] as M01
+    }
+    package "Core Commerce Layer" {
+        [M02: Product Catalog] as M02
+        [M03: Shopping] as M03
+        [M06: Inventory] as M06
+    }
+    package "Transaction Layer" {
+        [M04: Order & Payment] as M04
+        [M07: Coupon] as M07
+    }
+    package "Feature Layer" {
+        [M05: Build PC] as M05
+        [M08: Review] as M08
+        [M09: Warranty & Return] as M09
+    }
+    package "Administration Layer" {
+        [M10: Admin & Report] as M10
+    }
+}
 
-    subgraph "EXTERNAL SERVICES"
-        VNPay["VNPay API"]
-        MoMo["MoMo API"]
-        LLM["LLM API<br/>(AI Compatibility)"]
-        SMTP["Email Service<br/>(SMTP)"]
-    end
+package "<<subsystem>> External Services" {
+    [VNPay Gateway] as VNPay
+    [MoMo Gateway] as MoMo
+    [LLM API] as LLM
+    [Email Service] as SMTP
+}
 
-    FE_Customer --> Nginx
-    FE_Admin --> Nginx
-    Nginx --> M01
-    Nginx --> M02
-    Nginx --> M03
-    Nginx --> M04
-    Nginx --> M05
-    Nginx --> M06
-    Nginx --> M07
-    Nginx --> M08
-    Nginx --> M09
-    Nginx --> M10
+' Provided Interfaces
+interface "IAuthentication" as IAuth
+interface "IProductCatalog" as IProd
+interface "ICart" as ICart
+interface "IOrder" as IOrder
+interface "IInventory" as IInv
+interface "ICoupon" as ICoupon
 
-    M03 -->|"Requires Auth"| M01
-    M04 -->|"Requires Auth"| M01
-    M05 -->|"Requires Auth"| M01
-    M08 -->|"Requires Auth"| M01
-    M09 -->|"Requires Auth"| M01
-    M10 -->|"Requires Auth"| M01
+M01 -- IAuth
+M02 -- IProd
+M03 -- ICart
+M04 -- IOrder
+M06 -- IInv
+M07 -- ICoupon
 
-    M03 -->|"Product info"| M02
-    M04 -->|"Product info"| M02
-    M05 -->|"Product info"| M02
+' Required Interfaces (External)
+interface "IPayment" as IPay
+interface "ICompatibility" as ICompat
+interface "INotification" as INotif
 
-    M04 -->|"Cart items"| M03
-    M04 -->|"Deduct stock"| M06
-    M04 -->|"Apply coupon"| M07
-    M09 -->|"Return stock"| M06
-    M09 -->|"Order info"| M04
+VNPay -- IPay
+LLM -- ICompat
+SMTP -- INotif
 
-    M05 -->|"AI check"| LLM
-    M04 -->|"Online payment"| VNPay
-    M04 -->|"Online payment"| MoMo
-    M04 -->|"Confirmation"| SMTP
+' Dependencies
+M03 ..> IAuth : <<use>>
+M04 ..> IAuth : <<use>>
+M05 ..> IAuth : <<use>>
+M08 ..> IAuth : <<use>>
+M09 ..> IAuth : <<use>>
+M10 ..> IAuth : <<use>>
 
-    M01 --> PostgreSQL
-    M02 --> PostgreSQL
-    M03 --> PostgreSQL
-    M04 --> PostgreSQL
-    M06 --> PostgreSQL
-    M07 --> PostgreSQL
-    M08 --> PostgreSQL
-    M09 --> PostgreSQL
-    M10 --> PostgreSQL
+M03 ..> IProd : <<use>>
+M04 ..> IProd : <<use>>
+M05 ..> IProd : <<use>>
 
-    M03 -->|"Guest Cart"| Redis
-    M01 -->|"Session"| Redis
-    M02 -->|"Product Cache"| Redis
+M04 ..> ICart : <<use>>
+M04 ..> IInv : <<use>>
+M04 ..> ICoupon : <<use>>
 
-    M02 -->|"Images"| MinIO
-    M08 -->|"Review Images"| MinIO
-    M05 -->|"PDF Export"| MinIO
+M09 ..> IOrder : <<use>>
+M09 ..> IInv : <<use>>
+
+M04 ..> IPay : <<use>>
+M04 ..> INotif : <<use>>
+M05 ..> ICompat : <<use>>
+@enduml
 ```
 
-**Quan hệ chính giữa các module:**
+**Provided Interface (interface mà component cung cấp):**
 
-| Quan hệ | Mô tả |
-|:---------|:------|
+| Component | Provided Interface | Mô tả |
+|:----------|:-------------------|:------|
+| M01: Auth & RBAC | `IAuthentication` | Xác thực, phân quyền, quản lý JWT token |
+| M02: Product Catalog | `IProductCatalog` | Truy vấn sản phẩm, danh mục, thuộc tính |
+| M03: Shopping | `ICart` | Quản lý giỏ hàng (thêm, xóa, lấy danh sách) |
+| M04: Order & Payment | `IOrder` | Tạo đơn, tra cứu đơn hàng, cập nhật trạng thái |
+| M06: Inventory | `IInventory` | Kiểm tra tồn kho, trừ kho, hoàn kho |
+| M07: Coupon | `ICoupon` | Validate và áp dụng mã giảm giá |
+
+**Required Interface (interface mà component yêu cầu từ bên ngoài):**
+
+| Component | Required Interface | Nhà cung cấp |
+|:----------|:-------------------|:-------------|
+| M04: Order & Payment | `IPayment` | VNPay Gateway, MoMo Gateway |
+| M04: Order & Payment | `INotification` | Email Service (SMTP) |
+| M05: Build PC | `ICompatibility` | LLM API (AI kiểm tra tương thích) |
+
+**Dependency chính giữa các component:**
+
+| Dependency | Mô tả |
+|:-----------|:------|
 | M03 → M01 | Shopping cần xác thực để phân biệt Guest vs Customer |
 | M04 → M03 | Order lấy danh sách Cart\_Item từ Shopping để tạo đơn |
-| M04 → M06 | Order trừ kho khi checkout |
-| M04 → M07 | Order validate và áp dụng Coupon |
+| M04 → M06 | Order trừ kho khi checkout thành công |
+| M04 → M07 | Order validate và áp dụng Coupon trước khi tính tổng |
 | M05 → M02 | Build PC truy vấn Product + Attribute để hiển thị slot |
-| M05 → LLM | Build PC gọi LLM API kiểm tra tương thích AI |
 | M09 → M04 | Bảo hành/Đổi trả cần thông tin Order gốc |
 | M09 → M06 | Đổi trả hoàn lại kho hàng khi duyệt |
 
 ### 2.3 Deployment Diagram
 
 > **Hình 2.3** — Deployment Diagram
+>
+> Source: [`diagrams/deployment_diagram.puml`](diagrams/deployment_diagram.puml) | Image: [`diagrams/images/deployment_diagram.png`](diagrams/images/deployment_diagram.png)
 
-Sơ đồ triển khai mô tả cách các thành phần được đặt trên các node vật lý/ảo và kết nối với nhau.
+Sơ đồ triển khai (UML Deployment Diagram) mô tả cấu hình các **node** vật lý/ảo trong hệ thống và các **artifact** được deploy trên từng node, cùng đường kết nối giữa chúng.
 
-```mermaid
-graph TB
-    subgraph "Client Devices"
-        Browser["Web Browser<br/>(Chrome, Firefox, Safari)<br/>──────────────<br/>Desktop / Mobile"]
-    end
+```plantuml
+@startuml deployment_diagram
+title Hình 2.3 — Deployment Diagram
 
-    subgraph "Production Server"
-        subgraph "Docker Host"
-            subgraph "Container: Nginx"
-                NginxC["Nginx:alpine<br/>──────────────<br/>Port: 80 / 443<br/>SSL Termination<br/>Reverse Proxy"]
-            end
+node "<<device>> Client Device" as client {
+    artifact "Web Browser" as browser
+}
 
-            subgraph "Container: Frontend"
-                FrontendC["Node.js 20<br/>──────────────<br/>Next.js App<br/>Port: 3000 (internal)<br/>SSR + Static Assets"]
-            end
+node "<<execution environment>> Application Server" as appserver {
+    node "<<device>> Docker Host" as docker {
+        artifact "Nginx <<reverse proxy>>" as nginx
+        artifact "Next.js App <<frontend>>" as frontend
+        artifact "Spring Boot App <<backend>>" as backend
+        artifact "PostgreSQL <<database>>" as postgres
+        artifact "Redis <<cache>>" as redis
+        artifact "MinIO <<file storage>>" as minio
+    }
+}
 
-            subgraph "Container: Backend"
-                BackendC["Java 21<br/>──────────────<br/>Spring Boot App<br/>Port: 8080 (internal)<br/>REST API Server"]
-            end
+node "<<device>> External Services" as ext {
+    artifact "VNPay Gateway" as vnpay
+    artifact "MoMo Gateway" as momo
+    artifact "LLM API Provider" as llm
+    artifact "Email Service" as smtp
+}
 
-            subgraph "Container: PostgreSQL"
-                PostgreSQLC["PostgreSQL 16 Alpine<br/>──────────────<br/>Port: 5432 (internal)<br/>Volume: pgdata"]
-            end
-
-            subgraph "Container: Redis"
-                RedisC["Redis 7 Alpine<br/>──────────────<br/>Port: 6379 (internal)<br/>Session & Cache"]
-            end
-
-            subgraph "Container: MinIO"
-                MinIOC["MinIO Server<br/>──────────────<br/>Port: 9000 (API)<br/>Port: 9001 (Console)<br/>Volume: minio_data"]
-            end
-        end
-    end
-
-    subgraph "External Services"
-        VNPayS["VNPay Gateway<br/>HTTPS"]
-        MoMoS["MoMo Gateway<br/>HTTPS"]
-        LLMS["LLM API Provider<br/>HTTPS / REST"]
-        SMTPS["Email Service<br/>SMTP / API"]
-    end
-
-    Browser -->|"HTTPS :443"| NginxC
-    NginxC -->|"HTTP :3000"| FrontendC
-    NginxC -->|"HTTP :8080<br/>/api/*"| BackendC
-
-    BackendC -->|"TCP :5432<br/>JDBC"| PostgreSQLC
-    BackendC -->|"TCP :6379"| RedisC
-    BackendC -->|"HTTP :9000<br/>S3 API"| MinIOC
-
-    BackendC -->|"HTTPS"| VNPayS
-    BackendC -->|"HTTPS"| MoMoS
-    BackendC -->|"HTTPS"| LLMS
-    BackendC -->|"SMTP/HTTPS"| SMTPS
+browser --> nginx : <<HTTPS>>
+nginx --> frontend : <<HTTP>>
+nginx --> backend : <<HTTP>>
+backend --> postgres : <<JDBC>>
+backend --> redis : <<TCP>>
+backend --> minio : <<S3 API>>
+backend --> vnpay : <<HTTPS>>
+backend --> momo : <<HTTPS>>
+backend --> llm : <<HTTPS>>
+backend --> smtp : <<SMTP>>
+@enduml
 ```
 
-**Thông số triển khai:**
+**Giải thích các node:**
 
-| Thành phần | Image | Port | Volume | Ghi chú |
-|:-----------|:------|:-----|:-------|:--------|
-| Nginx | `nginx:alpine` | 80, 443 | `./nginx/conf.d` | SSL cert mount |
-| Frontend | Custom Dockerfile | 3000 (internal) | — | Chỉ expose qua Nginx |
-| Backend | Custom Dockerfile | 8080 (internal) | — | Health check: `/actuator/health` |
-| PostgreSQL | `postgres:16-alpine` | 5432 (internal) | `pgdata` | Flyway auto-migrate |
-| Redis | `redis:7-alpine` | 6379 (internal) | `redis_data` | Password protected |
-| MinIO | `minio/minio` | 9000, 9001 | `minio_data` | Console trên :9001 |
+| Node | Loại | Mô tả |
+|:-----|:-----|:------|
+| Client Device | `<<device>>` | Thiết bị người dùng (Desktop / Mobile) chạy Web Browser |
+| Application Server | `<<execution environment>>` | Máy chủ chạy Docker, host toàn bộ ứng dụng |
+| Docker Host | `<<device>>` | Môi trường Docker chứa các container |
+| External Services | `<<device>>` | Các dịch vụ bên thứ ba (thanh toán, AI, email) |
+
+**Giao thức kết nối:**
+
+| Kết nối | Giao thức | Mô tả |
+|:--------|:----------|:------|
+| Browser → Nginx | HTTPS | Truy cập từ người dùng qua SSL |
+| Nginx → Frontend | HTTP | Proxy nội bộ đến Next.js SSR |
+| Nginx → Backend | HTTP | Proxy nội bộ đến REST API |
+| Backend → PostgreSQL | JDBC | Kết nối database chính |
+| Backend → Redis | TCP | Cache và session management |
+| Backend → MinIO | S3 API | Lưu trữ file (ảnh sản phẩm, tài liệu) |
+| Backend → VNPay/MoMo | HTTPS | Tích hợp cổng thanh toán |
+| Backend → LLM API | HTTPS | Kiểm tra tương thích linh kiện (AI) |
+| Backend → Email | SMTP | Gửi thông báo email |
 
 ---
 
@@ -411,1350 +425,370 @@ graph TB
 #### 3.1.1 Module Authentication & Authorization
 
 > **Hình 3.1** — Class Diagram — Module Authentication & Authorization
+>
+> Source: [`diagrams/class_auth.puml`](diagrams/class_auth.puml) | Image: [`diagrams/images/class_auth.png`](diagrams/images/class_auth.png)
 
-```mermaid
-classDiagram
-    class Account {
-        -Long id
-        -String email
-        -String passwordHash
-        -Boolean isActive
-        -Boolean isVerified
-        -Role role
-        -LocalDateTime lastLoginAt
-        -LocalDateTime createdAt
-        -LocalDateTime updatedAt
-        +login(email, password) TokenPair
-        +logout() void
-        +changePassword(oldPwd, newPwd) void
-    }
+```plantuml
+@startuml class_auth
+class Account {
+    - id : Long
+    - email : String
+    - passwordHash : String
+    - isActive : Boolean
+    - isVerified : Boolean
+    - role : Role
+    - lastLoginAt : LocalDateTime
+    - createdAt : LocalDateTime
+    - updatedAt : LocalDateTime
+    + login(email, password) : TokenPair
+    + logout() : void
+    + changePassword(oldPwd, newPwd) : void
+}
 
-    class User {
-        -Long id
-        -Account account
-        -String fullName
-        -String phone
-        -String avatarUrl
-        -LocalDate dateOfBirth
-        -String gender
-        -List~Address~ addresses
-        +updateProfile(dto) User
-    }
+class User {
+    - id : Long
+    - account : Account
+    - fullName : String
+    - phone : String
+    - avatarUrl : String
+    - dateOfBirth : LocalDate
+    - gender : String
+    - addresses : List<Address>
+    + updateProfile(dto) : User
+}
 
-    class Address {
-        -Long id
-        -User user
-        -String label
-        -String receiverName
-        -String receiverPhone
-        -String province
-        -String district
-        -String ward
-        -String street
-        -Boolean isDefault
-    }
+class Address {
+    - id : Long
+    - user : User
+    - label : String
+    - receiverName : String
+    - receiverPhone : String
+    - province : String
+    - district : String
+    - ward : String
+    - street : String
+    - isDefault : Boolean
+}
 
-    class Role {
-        -Long id
-        -String name
-        -String description
-        -Set~Permission~ permissions
-    }
+class Role {
+    - id : Long
+    - name : String
+    - description : String
+    - permissions : Set<Permission>
+}
 
-    class Permission {
-        -Long id
-        -String code
-        -String description
-    }
+class Permission {
+    - id : Long
+    - code : String
+    - description : String
+}
 
-    class Token {
-        -Long id
-        -Account account
-        -String tokenType
-        -String tokenValue
-        -LocalDateTime expiresAt
-    }
+class Token {
+    - id : Long
+    - account : Account
+    - tokenType : String
+    - tokenValue : String
+    - expiresAt : LocalDateTime
+}
 
-    Account "1" --> "1" Role
-    Account "1" --> "1" User
-    Account "1" --> "*" Token
-    User "1" --> "*" Address
-    Role "*" --> "*" Permission
+Account "1" --> "1" Role
+Account "1" --> "1" User
+Account "1" --> "*" Token
+User "1" --> "*" Address
+Role "*" --> "*" Permission
+@enduml
 ```
 
 #### 3.1.2 Module Product Catalog
 
 > **Hình 3.2** — Class Diagram — Module Product Catalog
+>
+> Source: [`diagrams/class_product.puml`](diagrams/class_product.puml) | Image: [`diagrams/images/class_product.png`](diagrams/images/class_product.png)
 
-```mermaid
-classDiagram
-    class Category {
-        -Long id
-        -String name
-        -String description
-        -Category parent
-        -Integer level
-        -List~Attribute~ attributes
-        +getChildren() List~Category~
-    }
+```plantuml
+@startuml class_product
+class Category {
+    - id : Long
+    - name : String
+    - description : String
+    - parent : Category
+    - level : Integer
+    - attributes : List<Attribute>
+    + getChildren() : List<Category>
+}
 
-    class Brand {
-        -Long id
-        -String name
-        -String logoUrl
-        -String description
-    }
+class Brand {
+    - id : Long
+    - name : String
+    - logoUrl : String
+    - description : String
+}
 
-    class Product {
-        -Long id
-        -String name
-        -String sku
-        -String slug
-        -BigDecimal originalPrice
-        -BigDecimal sellingPrice
-        -String description
-        -Category category
-        -Brand brand
-        -ProductCondition condition
-        -ProductStatus status
-        -List~ProductImage~ images
-        -List~ProductAttribute~ attributes
-        -Inventory inventory
-    }
+class Product {
+    - id : Long
+    - name : String
+    - sku : String
+    - slug : String
+    - originalPrice : BigDecimal
+    - sellingPrice : BigDecimal
+    - description : String
+    - category : Category
+    - brand : Brand
+    - condition : ProductCondition
+    - status : ProductStatus
+    - images : List<ProductImage>
+    - attributes : List<ProductAttribute>
+    - inventory : Inventory
+}
 
-    class Attribute {
-        -Long id
-        -String name
-        -Category category
-        -List~AttributeValue~ values
-    }
+class Attribute {
+    - id : Long
+    - name : String
+    - category : Category
+    - values : List<AttributeValue>
+}
 
-    class AttributeValue {
-        -Long id
-        -Attribute attribute
-        -String value
-    }
+class AttributeValue {
+    - id : Long
+    - attribute : Attribute
+    - value : String
+}
 
-    class ProductAttribute {
-        -Product product
-        -Attribute attribute
-        -AttributeValue attributeValue
-    }
+class ProductAttribute {
+    - product : Product
+    - attribute : Attribute
+    - attributeValue : AttributeValue
+}
 
-    class ProductImage {
-        -Long id
-        -Product product
-        -String imageUrl
-        -Boolean isPrimary
-        -Integer sortOrder
-    }
+class ProductImage {
+    - id : Long
+    - product : Product
+    - imageUrl : String
+    - isPrimary : Boolean
+    - sortOrder : Integer
+}
 
-    class ProductCondition {
-        <<enumeration>>
-        NEW
-        BOX
-        TRAY
-        SECOND_HAND
-    }
+enum ProductCondition {
+    NEW
+    BOX
+    TRAY
+    SECOND_HAND
+}
 
-    class ProductStatus {
-        <<enumeration>>
-        ACTIVE
-        INACTIVE
-    }
+enum ProductStatus {
+    ACTIVE
+    INACTIVE
+}
 
-    Category "1" --> "*" Category : parent
-    Category "1" --> "*" Product
-    Category "1" --> "*" Attribute
-    Brand "1" --> "*" Product
-    Attribute "1" --> "*" AttributeValue
-    Product "1" --> "*" ProductAttribute
-    Product "1" --> "*" ProductImage
-    ProductAttribute --> AttributeValue
+Category "1" --> "*" Category : parent
+Category "1" --> "*" Product
+Category "1" --> "*" Attribute
+Brand "1" --> "*" Product
+Attribute "1" --> "*" AttributeValue
+Product "1" --> "*" ProductAttribute
+Product "1" --> "*" ProductImage
+ProductAttribute --> AttributeValue
+@enduml
 ```
 
 #### 3.1.3 Module Order & Payment
 
 > **Hình 3.3** — Class Diagram — Module Order & Payment
+>
+> Source: [`diagrams/class_order.puml`](diagrams/class_order.puml) | Image: [`diagrams/images/class_order.png`](diagrams/images/class_order.png)
 
-```mermaid
-classDiagram
-    class Order {
-        -Long id
-        -User user
-        -Address address
-        -BigDecimal subtotal
-        -BigDecimal discountAmount
-        -BigDecimal totalAmount
-        -OrderStatus status
-        -String note
-        -Coupon coupon
-        -List~OrderDetail~ details
-        -Payment payment
-        -Shipping shipping
-        +cancel() void
-        +updateStatus(newStatus) void
-    }
+```plantuml
+@startuml class_order
+class Order {
+    - id : Long
+    - user : User
+    - address : Address
+    - subtotal : BigDecimal
+    - discountAmount : BigDecimal
+    - totalAmount : BigDecimal
+    - status : OrderStatus
+    - note : String
+    - coupon : Coupon
+    - details : List<OrderDetail>
+    - payment : Payment
+    - shipping : Shipping
+    + cancel() : void
+    + updateStatus(newStatus) : void
+}
 
-    class OrderDetail {
-        -Long id
-        -Order order
-        -Product product
-        -Integer quantity
-        -BigDecimal unitPrice
-        -BigDecimal lineTotal
-    }
+class OrderDetail {
+    - id : Long
+    - order : Order
+    - product : Product
+    - quantity : Integer
+    - unitPrice : BigDecimal
+    - lineTotal : BigDecimal
+}
 
-    class Payment {
-        -Long id
-        -Order order
-        -PaymentMethod method
-        -BigDecimal amount
-        -PaymentStatus status
-        -String transactionId
-        -LocalDateTime paidAt
-    }
+class Payment {
+    - id : Long
+    - order : Order
+    - method : PaymentMethod
+    - amount : BigDecimal
+    - status : PaymentStatus
+    - transactionId : String
+    - paidAt : LocalDateTime
+}
 
-    class Shipping {
-        -Long id
-        -Order order
-        -String provider
-        -String trackingNumber
-        -BigDecimal shippingFee
-        -ShippingStatus status
-        -LocalDate estimatedDate
-        -LocalDate deliveredDate
-    }
+class Shipping {
+    - id : Long
+    - order : Order
+    - provider : String
+    - trackingNumber : String
+    - shippingFee : BigDecimal
+    - status : ShippingStatus
+    - estimatedDate : LocalDate
+    - deliveredDate : LocalDate
+}
 
-    class OrderStatusHistory {
-        -Long id
-        -Order order
-        -String oldStatus
-        -String newStatus
-        -Account changedBy
-        -String note
-        -LocalDateTime createdAt
-    }
+class OrderStatusHistory {
+    - id : Long
+    - order : Order
+    - oldStatus : String
+    - newStatus : String
+    - changedBy : Account
+    - note : String
+    - createdAt : LocalDateTime
+}
 
-    class OrderStatus {
-        <<enumeration>>
-        PENDING
-        CONFIRMED
-        SHIPPING
-        COMPLETED
-        CANCELLED
-    }
+enum OrderStatus {
+    PENDING
+    CONFIRMED
+    SHIPPING
+    COMPLETED
+    CANCELLED
+}
 
-    class PaymentMethod {
-        <<enumeration>>
-        COD
-        VNPAY
-        MOMO
-        BANK_TRANSFER
-    }
+enum PaymentMethod {
+    COD
+    VNPAY
+    MOMO
+    BANK_TRANSFER
+}
 
-    class PaymentStatus {
-        <<enumeration>>
-        PENDING
-        SUCCESS
-        FAILED
-        REFUNDED
-    }
+enum PaymentStatus {
+    PENDING
+    SUCCESS
+    FAILED
+    REFUNDED
+}
 
-    Order "1" --> "*" OrderDetail
-    Order "1" --> "1" Payment
-    Order "1" --> "1" Shipping
-    Order "1" --> "*" OrderStatusHistory
-    OrderDetail --> Product
+Order "1" --> "*" OrderDetail
+Order "1" --> "1" Payment
+Order "1" --> "1" Shipping
+Order "1" --> "*" OrderStatusHistory
+OrderDetail --> Product
+@enduml
 ```
 
 ### 3.2 Biểu đồ tuần tự chi tiết (Detailed Sequence Diagram)
 
+> **Ghi chú chung:** Tất cả file PlantUML source nằm trong thư mục `diagrams/`. Hình ảnh PNG đã được generate trong `diagrams/images/`. Bạn có thể import trực tiếp file `.puml` vào Visual Paradigm hoặc dùng làm tham chiếu để vẽ lại.
+
 #### 3.2.1 Luồng Đăng ký tài khoản
 
-> **Hình 3.4** — Sequence Diagram — Đăng ký tài khoản
-
-```mermaid
-sequenceDiagram
-    actor Customer
-    participant FE as Next.js (Frontend)
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-
-    Customer->>FE: Nhập email, password, fullName, phone
-    FE->>FE: Validate client-side (format email, độ mạnh password)
-    FE->>BE: POST /api/v1/auth/register {email, password, fullName, phone}
-
-    BE->>DB: SELECT Account WHERE email = ?
-    DB-->>BE: Result
-
-    alt Email đã tồn tại
-        BE-->>FE: 409 Conflict {message: "Email đã được sử dụng"}
-        FE-->>Customer: Hiển thị lỗi
-    else Email hợp lệ
-        BE->>BE: BCrypt hash password
-        BE->>DB: INSERT Account (email, password_hash, role_id=CUSTOMER, is_active=true)
-        BE->>DB: INSERT User_Profile (account_id, full_name, phone)
-        BE-->>FE: 201 {id, email, fullName}
-        FE-->>Customer: Hiển thị "Đăng ký thành công", chuyển hướng trang đăng nhập
-    end
-```
+> **Hình 3.4** — Source: [`diagrams/seq_register.puml`](diagrams/seq_register.puml) | Image: [`diagrams/images/seq_register.png`](diagrams/images/seq_register.png)
 
 #### 3.2.2 Luồng Đăng nhập & Merge giỏ hàng
 
-> **Hình 3.5** — Sequence Diagram — Đăng nhập & Merge giỏ hàng
-
-```mermaid
-sequenceDiagram
-    actor Customer
-    participant FE as Next.js (Frontend)
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-    participant Cache as Redis
-
-    Customer->>FE: Nhập email + password
-    FE->>BE: POST /api/v1/auth/login {email, password}
-    BE->>DB: SELECT Account WHERE email = ?
-    DB-->>BE: Account record
-    BE->>BE: Verify BCrypt(password, hash)
-
-    alt Sai mật khẩu
-        BE-->>FE: 401 Unauthorized
-        FE-->>Customer: Hiển thị lỗi
-    else Đúng mật khẩu
-        BE->>DB: INSERT Token (Refresh Token)
-        BE->>BE: Sinh JWT Access Token (15 phút)
-
-        Note over BE,Cache: Merge giỏ hàng Guest → DB
-        BE->>Cache: GET cart:{session_id}
-        Cache-->>BE: Guest cart items (hoặc empty)
-
-        opt Có giỏ Guest
-            BE->>DB: SELECT Cart WHERE user_id = ?
-            loop Mỗi Guest Cart Item
-                alt Trùng product_id → cộng dồn quantity
-                    BE->>DB: UPDATE Cart_Item SET quantity += ?
-                else Mới → tạo Cart_Item
-                    BE->>DB: INSERT Cart_Item
-                end
-            end
-            BE->>Cache: DEL cart:{session_id}
-        end
-
-        BE-->>FE: 200 {accessToken, refreshToken, user}
-        FE->>FE: Lưu token, cập nhật Zustand store
-        FE-->>Customer: Redirect về trang trước đó
-    end
-```
+> **Hình 3.5** — Source: [`diagrams/seq_login.puml`](diagrams/seq_login.puml) | Image: [`diagrams/images/seq_login.png`](diagrams/images/seq_login.png)
 
 #### 3.2.3 Luồng Đăng xuất & Refresh Token
 
-> **Hình 3.6** — Sequence Diagram — Đăng xuất & Refresh Token
-
-```mermaid
-sequenceDiagram
-    actor Customer
-    participant FE as Next.js (Frontend)
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-    participant Cache as Redis
-
-    Note over FE,BE: Luồng Refresh Token
-    FE->>FE: Access Token hết hạn (15 phút)
-    FE->>BE: POST /api/v1/auth/refresh-token {refreshToken}
-    BE->>DB: SELECT Token WHERE token_value = ? AND expires_at > NOW()
-
-    alt Refresh Token hợp lệ
-        BE->>BE: Sinh Access Token mới
-        BE-->>FE: 200 {accessToken}
-        FE->>FE: Cập nhật token trong store
-    else Refresh Token hết hạn / không hợp lệ
-        BE-->>FE: 401 Unauthorized
-        FE->>FE: Xóa token, redirect đăng nhập
-    end
-
-    Note over FE,BE: Luồng Đăng xuất
-    Customer->>FE: Nhấn "Đăng xuất"
-    FE->>BE: POST /api/v1/auth/logout {refreshToken}
-    BE->>DB: DELETE Token WHERE token_value = ?
-    BE->>Cache: DEL session:{user_id}
-    BE-->>FE: 200 OK
-    FE->>FE: Xóa token, xóa Zustand store
-    FE-->>Customer: Redirect về trang chủ
-```
+> **Hình 3.6** — Source: [`diagrams/seq_logout_refresh.puml`](diagrams/seq_logout_refresh.puml) | Image: [`diagrams/images/seq_logout_refresh.png`](diagrams/images/seq_logout_refresh.png)
 
 #### 3.2.4 Luồng Thay đổi mật khẩu
 
-> **Hình 3.7** — Sequence Diagram — Thay đổi mật khẩu
-
-```mermaid
-sequenceDiagram
-    actor Customer
-    participant FE as Next.js (Frontend)
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-
-    Customer->>FE: Nhập mật khẩu cũ + mật khẩu mới
-    FE->>FE: Validate (mật khẩu mới ≥ 8 ký tự, có chữ hoa, số, ký tự đặc biệt)
-    FE->>BE: PUT /api/v1/users/password {currentPassword, newPassword}
-    BE->>BE: Validate JWT → lấy email (auth.getName())
-
-    BE->>DB: SELECT Account WHERE email = ?
-    DB-->>BE: Account (password_hash)
-    BE->>BE: Verify BCrypt(currentPassword, hash)
-
-    alt Mật khẩu cũ sai
-        BE-->>FE: 400 {message: "Mật khẩu hiện tại không chính xác"}
-        FE-->>Customer: Hiển thị lỗi
-    else Mật khẩu cũ đúng
-        BE->>BE: BCrypt hash newPassword
-        BE->>DB: UPDATE Account SET password_hash = ?
-        BE-->>FE: 200 {message: "Đổi mật khẩu thành công"}
-        FE-->>Customer: Thông báo thành công
-    end
-```
+> **Hình 3.7** — Source: [`diagrams/seq_change_password.puml`](diagrams/seq_change_password.puml) | Image: [`diagrams/images/seq_change_password.png`](diagrams/images/seq_change_password.png)
 
 #### 3.2.5 Luồng Quên & Thiết lập lại mật khẩu
 
-> **Hình 3.8** — Sequence Diagram — Quên & Thiết lập lại mật khẩu
-
-```mermaid
-sequenceDiagram
-    actor Customer
-    participant FE as Next.js (Frontend)
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-    participant Email as Email Service (SMTP)
-
-    Customer->>FE: Nhập email, nhấn "Quên mật khẩu"
-    FE->>BE: POST /api/v1/auth/forgot-password {email}
-    BE->>DB: SELECT Account WHERE email = ?
-
-    alt Email không tồn tại
-        BE-->>FE: 200 {message: "Nếu email tồn tại, link reset đã được gửi"}
-        Note over BE: Trả 200 để tránh lộ email tồn tại
-    else Email tồn tại
-        BE->>BE: Sinh reset token (UUID + expiry 30 phút)
-        BE->>DB: INSERT Token (type=RESET_PASSWORD, token_value, expires_at)
-        BE->>Email: Gửi email chứa link reset password
-        Email-->>Customer: Email với link /reset-password?token=xxx
-        BE-->>FE: 200 {message: "Nếu email tồn tại, link reset đã được gửi"}
-    end
-
-    FE-->>Customer: Hiển thị thông báo kiểm tra email
-
-    Note over Customer,DB: Thiết lập lại mật khẩu
-    Customer->>FE: Mở link reset, nhập mật khẩu mới
-    FE->>BE: POST /api/v1/auth/reset-password {token, newPassword}
-    BE->>DB: SELECT Token WHERE token_value = ? AND type = 'RESET_PASSWORD'
-
-    alt Token hết hạn / không hợp lệ
-        BE-->>FE: 400 {message: "Link đã hết hạn"}
-    else Token hợp lệ
-        BE->>BE: BCrypt hash newPassword
-        BE->>DB: UPDATE Account SET password_hash = ?
-        BE->>DB: DELETE Token WHERE account_id = ? (xóa tất cả token cũ)
-        BE-->>FE: 200 {message: "Đặt lại mật khẩu thành công"}
-        FE-->>Customer: Redirect đến trang đăng nhập
-    end
-```
+> **Hình 3.8** — Source: [`diagrams/seq_forgot_password.puml`](diagrams/seq_forgot_password.puml) | Image: [`diagrams/images/seq_forgot_password.png`](diagrams/images/seq_forgot_password.png)
 
 #### 3.2.6 Luồng Cập nhật thông tin cá nhân
 
-> **Hình 3.9** — Sequence Diagram — Cập nhật thông tin cá nhân
-
-```mermaid
-sequenceDiagram
-    actor Customer
-    participant FE as Next.js (Frontend)
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-    participant Storage as MinIO
-
-    Customer->>FE: Mở trang Profile
-    FE->>BE: GET /api/v1/users/me
-    BE->>DB: SELECT User_Profile + Address WHERE account_id = ?
-    BE-->>FE: 200 {fullName, phone, avatar, addresses[]}
-    FE-->>Customer: Hiển thị thông tin hiện tại
-
-    Customer->>FE: Sửa thông tin + upload avatar mới
-    FE->>BE: PUT /api/v1/users/me {fullName, phone, gender, dateOfBirth}
-    BE->>DB: UPDATE User_Profile SET ...
-    BE-->>FE: 200 {updatedProfile}
-
-    opt Upload avatar
-        FE->>BE: POST /api/v1/users/me/avatar (multipart/form-data)
-        BE->>Storage: PUT object (avatars/{user_id}/avatar.jpg)
-        Storage-->>BE: Object URL
-        BE->>DB: UPDATE User_Profile SET avatar_url = ?
-        BE-->>FE: 200 {avatarUrl}
-    end
-
-    opt Quản lý địa chỉ
-        Customer->>FE: Thêm / Sửa / Xóa địa chỉ
-        FE->>BE: POST|PUT|DELETE /api/v1/users/me/addresses/{id?}
-        BE->>DB: INSERT|UPDATE|DELETE Address
-        BE-->>FE: 200 {address}
-    end
-
-    FE-->>Customer: Cập nhật giao diện
-```
+> **Hình 3.9** — Source: [`diagrams/seq_update_profile.puml`](diagrams/seq_update_profile.puml) | Image: [`diagrams/images/seq_update_profile.png`](diagrams/images/seq_update_profile.png)
 
 #### 3.2.7 Luồng Duyệt, Tìm kiếm & Lọc sản phẩm
 
-> **Hình 3.10** — Sequence Diagram — Duyệt, Tìm kiếm & Lọc sản phẩm
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant FE as Next.js (Frontend)
-    participant BE as Spring Boot (Backend)
-    participant Cache as Redis
-    participant DB as PostgreSQL
-
-    User->>FE: Truy cập trang sản phẩm / nhập từ khóa / chọn bộ lọc
-    FE->>BE: GET /api/v1/products?search=keyword&category=1&brand=2&minPrice=X&maxPrice=Y&page=1&size=20&sort=price_asc
-
-    BE->>Cache: GET product_list:{hash(query_params)}
-    alt Cache hit
-        Cache-->>BE: Cached product list
-    else Cache miss
-        BE->>DB: SELECT Product JOIN Category JOIN Brand JOIN Inventory WHERE status='ACTIVE' AND (name ILIKE '%keyword%' OR sku ILIKE '%keyword%') AND category_id=? AND brand_id=? AND selling_price BETWEEN ? AND ? ORDER BY ... LIMIT 20 OFFSET 0
-        DB-->>BE: Product list + total count
-        BE->>Cache: SETEX product_list:{hash} TTL=300s
-    end
-
-    BE-->>FE: 200 {products[], totalItems, totalPages, currentPage}
-    FE-->>User: Hiển thị danh sách SP có pagination
-
-    opt Lọc theo thuộc tính động
-        User->>FE: Chọn thuộc tính (Socket: LGA1700)
-        FE->>BE: GET /api/v1/products?category=1&attr_socket=LGA1700
-        BE->>DB: SELECT Product JOIN Product_Attribute JOIN Attribute_Value WHERE ...
-        BE-->>FE: 200 {filtered products[]}
-        FE-->>User: Cập nhật danh sách
-    end
-
-    opt Xem sản phẩm theo danh mục
-        User->>FE: Chọn danh mục từ menu
-        FE->>BE: GET /api/v1/categories/{id}/products
-        BE->>DB: SELECT Product WHERE category_id = ? OR category_id IN (SELECT id FROM Category WHERE parent_id = ?)
-        BE-->>FE: 200 {products[], category info}
-        FE-->>User: Hiển thị SP theo danh mục
-    end
-```
+> **Hình 3.10** — Source: [`diagrams/seq_search_filter.puml`](diagrams/seq_search_filter.puml) | Image: [`diagrams/images/seq_search_filter.png`](diagrams/images/seq_search_filter.png)
 
 #### 3.2.8 Luồng Xem chi tiết sản phẩm
 
-> **Hình 3.11** — Sequence Diagram — Xem chi tiết sản phẩm
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant FE as Next.js (Frontend)
-    participant BE as Spring Boot (Backend)
-    participant Cache as Redis
-    participant DB as PostgreSQL
-
-    User->>FE: Nhấn vào sản phẩm (slug)
-    FE->>BE: GET /api/v1/products/{slug}
-
-    BE->>Cache: GET product_detail:{slug}
-    alt Cache hit
-        Cache-->>BE: Cached product detail
-    else Cache miss
-        BE->>DB: SELECT Product JOIN Category JOIN Brand WHERE slug = ? AND status = 'ACTIVE'
-        BE->>DB: SELECT Product_Image WHERE product_id = ? ORDER BY sort_order
-        BE->>DB: SELECT Product_Attribute JOIN Attribute JOIN Attribute_Value WHERE product_id = ?
-        BE->>DB: SELECT Inventory WHERE product_id = ?
-        BE->>DB: SELECT AVG(rating), COUNT(*) FROM Review WHERE product_id = ?
-        DB-->>BE: Product + Images + Attributes + Inventory + Rating
-        BE->>Cache: SETEX product_detail:{slug} TTL=600s
-    end
-
-    BE-->>FE: 200 {product, images[], attributes[], inventory, averageRating, reviewCount}
-    FE-->>User: Hiển thị chi tiết SP (ảnh, giá, thông số, tồn kho, đánh giá)
-
-    opt Xem đánh giá sản phẩm
-        FE->>BE: GET /api/v1/products/{id}/reviews?page=1&size=10
-        BE->>DB: SELECT Review JOIN User_Profile JOIN Review_Image WHERE product_id = ?
-        BE-->>FE: 200 {reviews[], totalItems}
-        FE-->>User: Hiển thị danh sách đánh giá
-    end
-```
+> **Hình 3.11** — Source: [`diagrams/seq_product_detail.puml`](diagrams/seq_product_detail.puml) | Image: [`diagrams/images/seq_product_detail.png`](diagrams/images/seq_product_detail.png)
 
 #### 3.2.9 Luồng Quản lý giỏ hàng (Thêm / Sửa / Xóa)
 
-> **Hình 3.12** — Sequence Diagram — Quản lý giỏ hàng (Guest & Customer)
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant FE as Next.js (Frontend)
-    participant BE as Spring Boot (Backend)
-    participant Cache as Redis
-    participant DB as PostgreSQL
-
-    Note over User,DB: Thêm sản phẩm vào giỏ
-    User->>FE: Nhấn "Thêm vào giỏ" (product_id, quantity)
-
-    alt Chưa đăng nhập (Guest)
-        FE->>BE: POST /api/v1/cart/items {sessionId, productId, quantity}
-        BE->>DB: SELECT Inventory WHERE product_id = ?
-        alt Hết hàng
-            BE-->>FE: 409 {message: "Sản phẩm đã hết hàng"}
-        else Còn hàng
-            BE->>Cache: HSET cart:{sessionId} productId quantity
-            BE->>Cache: EXPIRE cart:{sessionId} 7d
-            BE-->>FE: 200 {cartItem}
-        end
-    else Đã đăng nhập (Customer)
-        FE->>BE: POST /api/v1/cart/items {productId, quantity}
-        BE->>BE: Validate JWT → user_id
-        BE->>DB: SELECT Inventory WHERE product_id = ?
-        alt Hết hàng
-            BE-->>FE: 409 {message: "Sản phẩm đã hết hàng"}
-        else Còn hàng
-            BE->>DB: SELECT Cart WHERE user_id = ?
-            opt Chưa có Cart
-                BE->>DB: INSERT Cart (user_id)
-            end
-            BE->>DB: SELECT Cart_Item WHERE cart_id = ? AND product_id = ?
-            alt Đã có trong giỏ
-                BE->>DB: UPDATE Cart_Item SET quantity += ?
-            else Chưa có
-                BE->>DB: INSERT Cart_Item (cart_id, product_id, quantity)
-            end
-            BE-->>FE: 200 {cartItem}
-        end
-    end
-
-    FE-->>User: Cập nhật icon giỏ hàng
-
-    Note over User,DB: Cập nhật số lượng
-    User->>FE: Thay đổi số lượng
-    FE->>BE: PATCH /api/v1/cart/items/{id} {quantity}
-    BE->>DB: SELECT Inventory WHERE product_id = ?
-    BE->>BE: quantity = MIN(requested, inventory.quantity)
-    BE->>DB: UPDATE Cart_Item SET quantity = ?
-    BE-->>FE: 200 {updatedItem, warning?}
-
-    Note over User,DB: Xóa sản phẩm
-    User->>FE: Nhấn "Xóa"
-    FE->>BE: DELETE /api/v1/cart/items/{id}
-    BE->>DB: DELETE Cart_Item WHERE id = ?
-    BE-->>FE: 204 No Content
-    FE-->>User: Cập nhật giỏ hàng
-```
+> **Hình 3.12** — Source: [`diagrams/seq_cart.puml`](diagrams/seq_cart.puml) | Image: [`diagrams/images/seq_cart.png`](diagrams/images/seq_cart.png)
 
 #### 3.2.10 Luồng Checkout & Tạo đơn hàng
 
-> **Hình 3.13** — Sequence Diagram — Checkout & Tạo đơn hàng
-
-```mermaid
-sequenceDiagram
-    actor Customer
-    participant FE as Next.js
-    participant BE as Spring Boot
-    participant DB as PostgreSQL
-    participant Pay as VNPay/MoMo
-
-    Customer->>FE: Nhấn "Đặt hàng"
-    FE->>BE: POST /api/v1/orders {address_id, payment_method, coupon_code?}
-    BE->>BE: Validate JWT
-
-    opt Có coupon_code
-        BE->>DB: SELECT Coupon WHERE code = ?
-        BE->>BE: Validate (còn hạn, chưa max_uses, chưa dùng bởi user)
-    end
-
-    BE->>DB: SELECT Cart_Item + Inventory JOIN
-    loop Mỗi Cart_Item
-        BE->>BE: Kiểm tra Inventory.quantity >= requested_qty
-    end
-
-    alt Hết hàng
-        BE-->>FE: 409 Conflict {sản phẩm hết hàng}
-    else Đủ hàng
-        BE->>DB: INSERT Order (status=PENDING)
-        BE->>DB: INSERT Order_Detail[] (snapshot đơn giá)
-        BE->>DB: INSERT Payment + Shipping + Order_Status_History
-
-        loop Trừ kho
-            BE->>DB: UPDATE Inventory SET quantity -= ?
-            BE->>DB: INSERT Inventory_Log (type=SELL)
-        end
-
-        opt Có Coupon
-            BE->>DB: INSERT Coupon_Usage, UPDATE Coupon.used_count
-        end
-
-        BE->>DB: DELETE Cart_Item (đã đặt)
-
-        alt Thanh toán Online (VNPay/MoMo)
-            BE->>Pay: Tạo payment URL
-            Pay-->>BE: Payment URL
-            BE-->>FE: 200 {orderId, paymentUrl}
-            FE-->>Customer: Redirect sang cổng thanh toán
-            Customer->>Pay: Thanh toán
-            Pay->>BE: IPN Callback {transactionId, status}
-            BE->>DB: UPDATE Payment SET status=SUCCESS
-        else COD / Chuyển khoản
-            BE-->>FE: 201 {orderId}
-        end
-
-        FE-->>Customer: Hiển thị "Đặt hàng thành công"
-    end
-```
+> **Hình 3.13** — Source: [`diagrams/seq_checkout.puml`](diagrams/seq_checkout.puml) | Image: [`diagrams/images/seq_checkout.png`](diagrams/images/seq_checkout.png)
 
 #### 3.2.11 Luồng Thanh toán Online — Callback VNPay/MoMo
 
-> **Hình 3.14** — Sequence Diagram — Thanh toán Online Callback
-
-```mermaid
-sequenceDiagram
-    actor Customer
-    participant FE as Next.js (Frontend)
-    participant Pay as VNPay / MoMo Gateway
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-
-    Note over Customer,DB: Sau khi tạo đơn (xem 3.2.10), Customer được redirect sang cổng thanh toán
-
-    Customer->>Pay: Nhập thông tin thanh toán & xác nhận
-    Pay->>Pay: Xử lý giao dịch
-
-    alt Thanh toán thành công
-        Pay->>BE: IPN Callback: GET /api/v1/payments/vnpay-callback?vnp_TxnRef=orderId&vnp_ResponseCode=00&vnp_SecureHash=xxx
-        BE->>BE: Verify signature (HMAC SHA512)
-        BE->>DB: SELECT Payment WHERE order_id = ?
-        BE->>DB: UPDATE Payment SET status = 'SUCCESS', transaction_id = ?, paid_at = NOW()
-        BE->>DB: UPDATE Orders SET status = 'CONFIRMED'
-        BE->>DB: INSERT Order_Status_History (PENDING → CONFIRMED)
-        BE->>DB: INSERT Notification (user_id, "Thanh toán thành công")
-        BE-->>Pay: 200 OK
-
-        Pay->>FE: Redirect /order-success?orderId=xxx
-        FE->>BE: GET /api/v1/orders/{id}
-        BE-->>FE: 200 {order details}
-        FE-->>Customer: Hiển thị "Đặt hàng thành công"
-
-    else Thanh toán thất bại
-        Pay->>BE: IPN Callback: vnp_ResponseCode != 00
-        BE->>DB: UPDATE Payment SET status = 'FAILED'
-        BE-->>Pay: 200 OK
-
-        Pay->>FE: Redirect /order-failed?orderId=xxx
-        FE-->>Customer: Hiển thị "Thanh toán thất bại", cho phép thử lại
-    end
-```
+> **Hình 3.14** — Source: [`diagrams/seq_payment_callback.puml`](diagrams/seq_payment_callback.puml) | Image: [`diagrams/images/seq_payment_callback.png`](diagrams/images/seq_payment_callback.png)
 
 #### 3.2.12 Luồng Xem lịch sử & Chi tiết đơn hàng
 
-> **Hình 3.15** — Sequence Diagram — Xem lịch sử & Chi tiết đơn hàng
-
-```mermaid
-sequenceDiagram
-    actor Customer
-    participant FE as Next.js (Frontend)
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-
-    Customer->>FE: Mở trang "Đơn hàng của tôi"
-    FE->>BE: GET /api/v1/orders?page=1&size=10&status=ALL
-    BE->>BE: Validate JWT → user_id
-    BE->>DB: SELECT Orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 10 OFFSET 0
-    DB-->>BE: Orders list + total count
-    BE-->>FE: 200 {orders[], totalItems, totalPages}
-    FE-->>Customer: Hiển thị danh sách đơn hàng (mã đơn, ngày, tổng tiền, trạng thái)
-
-    Customer->>FE: Nhấn vào đơn hàng cụ thể
-    FE->>BE: GET /api/v1/orders/{id}
-    BE->>BE: Validate JWT → kiểm tra order.user_id == current_user
-    BE->>DB: SELECT Orders JOIN Order_Detail JOIN Product JOIN Payment JOIN Shipping WHERE orders.id = ?
-    BE->>DB: SELECT Order_Status_History WHERE order_id = ? ORDER BY created_at
-    DB-->>BE: Full order details
-    BE-->>FE: 200 {order, details[], payment, shipping, statusHistory[]}
-    FE-->>Customer: Hiển thị chi tiết đơn (sản phẩm, thanh toán, vận chuyển, lịch sử trạng thái)
-```
+> **Hình 3.15** — Source: [`diagrams/seq_order_history.puml`](diagrams/seq_order_history.puml) | Image: [`diagrams/images/seq_order_history.png`](diagrams/images/seq_order_history.png)
 
 #### 3.2.13 Luồng Hủy đơn hàng
 
-> **Hình 3.16** — Sequence Diagram — Hủy đơn hàng
-
-```mermaid
-sequenceDiagram
-    actor Customer
-    participant FE as Next.js (Frontend)
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-
-    Customer->>FE: Nhấn "Hủy đơn hàng"
-    FE->>BE: PATCH /api/v1/orders/{id}/cancel {reason?}
-    BE->>BE: Validate JWT → user_id
-
-    BE->>DB: SELECT Orders WHERE id = ? AND user_id = ?
-    DB-->>BE: Order (status, coupon_id)
-
-    alt Đơn không phải PENDING
-        BE-->>FE: 400 {message: "Chỉ hủy được đơn hàng đang chờ xử lý"}
-    else Đơn hàng PENDING
-        BE->>DB: UPDATE Orders SET status = 'CANCELLED'
-        BE->>DB: INSERT Order_Status_History (PENDING → CANCELLED, note=reason)
-
-        loop Hoàn kho — mỗi Order_Detail
-            BE->>DB: SELECT Order_Detail WHERE order_id = ?
-            BE->>DB: UPDATE Inventory SET quantity += order_detail.quantity
-            BE->>DB: INSERT Inventory_Log (type='CANCEL', +quantity, note='Hủy đơn #id')
-        end
-
-        opt Có Coupon
-            BE->>DB: UPDATE Coupon SET used_count -= 1
-            BE->>DB: DELETE Coupon_Usage WHERE order_id = ?
-        end
-
-        opt Đã thanh toán Online
-            BE->>DB: UPDATE Payment SET status = 'REFUNDED'
-            Note over BE: Trigger hoàn tiền qua VNPay/MoMo API
-        end
-
-        BE->>DB: INSERT Notification (user_id, "Đơn hàng #id đã được hủy")
-        BE-->>FE: 200 {message: "Hủy đơn hàng thành công"}
-        FE-->>Customer: Cập nhật trạng thái đơn
-    end
-```
+> **Hình 3.16** — Source: [`diagrams/seq_cancel_order.puml`](diagrams/seq_cancel_order.puml) | Image: [`diagrams/images/seq_cancel_order.png`](diagrams/images/seq_cancel_order.png)
 
 #### 3.2.14 Luồng Đổi trả & Hoàn tiền
 
-> **Hình 3.17** — Sequence Diagram — Đổi trả & Hoàn tiền
-
-```mermaid
-sequenceDiagram
-    actor Customer
-    participant FE as Next.js
-    participant BE as Spring Boot
-    participant DB as PostgreSQL
-
-    Customer->>FE: Tạo yêu cầu đổi trả
-    FE->>BE: POST /api/v1/returns {order_id, order_detail_id, type, reason}
-    BE->>BE: Validate (đơn hàng COMPLETED, trong thời gian cho phép)
-    BE->>DB: INSERT Return (status=PENDING_APPROVAL)
-    BE-->>FE: 201 {returnId}
-
-    Note over BE,DB: Admin/Sales duyệt
-
-    alt Duyệt - REFUND
-        BE->>DB: UPDATE Return SET status=APPROVED
-        BE->>DB: INSERT Payment (status=REFUNDED, amount=refund_amount)
-        BE->>DB: UPDATE Inventory SET quantity += ?
-        BE->>DB: INSERT Inventory_Log (type=RETURN)
-    else Duyệt - EXCHANGE
-        BE->>DB: UPDATE Return SET status=APPROVED
-        BE->>DB: UPDATE Inventory (hoàn kho SP cũ)
-        BE->>DB: INSERT Order mới (SP thay thế)
-    else Từ chối
-        BE->>DB: UPDATE Return SET status=REJECTED, note="Lý do"
-    end
-```
+> **Hình 3.17** — Source: [`diagrams/seq_return_refund.puml`](diagrams/seq_return_refund.puml) | Image: [`diagrams/images/seq_return_refund.png`](diagrams/images/seq_return_refund.png)
 
 #### 3.2.15 Luồng Gửi yêu cầu bảo hành
 
-> **Hình 3.18** — Sequence Diagram — Gửi yêu cầu bảo hành
-
-```mermaid
-sequenceDiagram
-    actor Customer
-    participant FE as Next.js
-    participant BE as Spring Boot
-    participant DB as PostgreSQL
-
-    Customer->>FE: Mở form bảo hành
-    FE->>BE: POST /api/v1/warranty-tickets {product_id, order_id, serial_number, issue_description}
-    BE->>BE: Validate JWT (Customer)
-    BE->>DB: SELECT Order_Detail WHERE order_id AND product_id
-    BE->>DB: SELECT Warranty_Policy (ưu tiên Product > Category)
-    BE->>BE: Kiểm tra còn hạn BH (order.created_at + duration_months > NOW)
-
-    alt Hết hạn BH
-        BE-->>FE: 400 {message: "Sản phẩm đã hết hạn bảo hành"}
-    else Còn hạn
-        BE->>DB: INSERT Warranty_Ticket (status=RECEIVED)
-        BE-->>FE: 201 {ticketId, status}
-        FE-->>Customer: "Phiếu BH #xxx đã tạo thành công"
-    end
-
-    Note over BE,DB: Phía Admin/Sales xử lý
-    BE->>DB: UPDATE Warranty_Ticket SET status=PROCESSING
-    BE->>DB: UPDATE Warranty_Ticket SET status=REPAIRED, resolution="..."
-    BE->>DB: UPDATE Warranty_Ticket SET status=RETURNED
-```
+> **Hình 3.18** — Source: [`diagrams/seq_warranty.puml`](diagrams/seq_warranty.puml) | Image: [`diagrams/images/seq_warranty.png`](diagrams/images/seq_warranty.png)
 
 #### 3.2.16 Luồng Đánh giá sản phẩm (Viết / Sửa / Xóa)
 
-> **Hình 3.19** — Sequence Diagram — Đánh giá sản phẩm
-
-```mermaid
-sequenceDiagram
-    actor Customer
-    participant FE as Next.js (Frontend)
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-    participant Storage as MinIO
-
-    Note over Customer,DB: Viết đánh giá
-    Customer->>FE: Nhập rating (1-5), nội dung, upload ảnh
-    FE->>BE: POST /api/v1/reviews {productId, orderId, rating, content}
-    BE->>BE: Validate JWT → user_id
-
-    BE->>DB: SELECT Order_Detail WHERE order_id = ? AND product_id = ? AND order.user_id = ?
-    alt Chưa mua sản phẩm này
-        BE-->>FE: 400 {message: "Bạn chưa mua sản phẩm này"}
-    else Đã mua
-        BE->>DB: SELECT Review WHERE user_id = ? AND product_id = ? AND order_id = ?
-        alt Đã đánh giá rồi
-            BE-->>FE: 409 {message: "Bạn đã đánh giá sản phẩm này cho đơn hàng này"}
-        else Chưa đánh giá
-            BE->>DB: INSERT Review (user_id, product_id, order_id, rating, content)
-            DB-->>BE: review_id
-
-            opt Có ảnh đánh giá
-                loop Mỗi ảnh
-                    FE->>BE: POST /api/v1/reviews/{id}/images (multipart)
-                    BE->>Storage: PUT object (reviews/{review_id}/img_n.jpg)
-                    BE->>DB: INSERT Review_Image (review_id, image_url)
-                end
-            end
-
-            BE-->>FE: 201 {review}
-            FE-->>Customer: Hiển thị đánh giá vừa tạo
-        end
-    end
-
-    Note over Customer,DB: Chỉnh sửa đánh giá
-    Customer->>FE: Sửa nội dung / rating
-    FE->>BE: PUT /api/v1/reviews/{id} {rating, content}
-    BE->>BE: Validate owner (review.user_id == current_user)
-    BE->>DB: UPDATE Review SET rating = ?, content = ?
-    BE-->>FE: 200 {updatedReview}
-
-    Note over Customer,DB: Xóa đánh giá
-    Customer->>FE: Nhấn "Xóa đánh giá"
-    FE->>BE: DELETE /api/v1/reviews/{id}
-    BE->>BE: Validate owner
-    BE->>DB: DELETE Review WHERE id = ? (CASCADE xóa Review_Image)
-    BE-->>FE: 204 No Content
-```
+> **Hình 3.19** — Source: [`diagrams/seq_review.puml`](diagrams/seq_review.puml) | Image: [`diagrams/images/seq_review.png`](diagrams/images/seq_review.png)
 
 #### 3.2.17 Luồng Quản lý Wishlist
 
-> **Hình 3.20** — Sequence Diagram — Quản lý Wishlist
-
-```mermaid
-sequenceDiagram
-    actor Customer
-    participant FE as Next.js (Frontend)
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-
-    Note over Customer,DB: Thêm vào Wishlist
-    Customer->>FE: Nhấn icon ♡ trên sản phẩm
-    FE->>BE: POST /api/v1/wishlist {productId}
-    BE->>BE: Validate JWT → user_id
-
-    BE->>DB: SELECT Wishlist WHERE user_id = ? AND product_id = ?
-    alt Đã có trong Wishlist (toggle off)
-        BE->>DB: DELETE Wishlist WHERE user_id = ? AND product_id = ?
-        BE-->>FE: 200 {action: "REMOVED"}
-        FE-->>Customer: Icon ♡ chuyển về trắng
-    else Chưa có (toggle on)
-        BE->>DB: INSERT Wishlist (user_id, product_id)
-        BE-->>FE: 201 {action: "ADDED"}
-        FE-->>Customer: Icon ♥ chuyển sang đỏ
-    end
-
-    Note over Customer,DB: Xem danh sách Wishlist
-    Customer->>FE: Mở trang Wishlist
-    FE->>BE: GET /api/v1/wishlist?page=1&size=20
-    BE->>DB: SELECT Wishlist JOIN Product JOIN Product_Image JOIN Inventory WHERE user_id = ?
-    BE-->>FE: 200 {wishlistItems[], totalItems}
-    FE-->>Customer: Hiển thị danh sách SP yêu thích (tên, ảnh, giá, tình trạng kho)
-```
+> **Hình 3.20** — Source: [`diagrams/seq_wishlist.puml`](diagrams/seq_wishlist.puml) | Image: [`diagrams/images/seq_wishlist.png`](diagrams/images/seq_wishlist.png)
 
 #### 3.2.18 Luồng Build PC + Kiểm tra tương thích AI
 
-> **Hình 3.21** — Sequence Diagram — Build PC + Kiểm tra tương thích AI
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant FE as Next.js
-    participant BE as Spring Boot
-    participant DB as PostgreSQL
-    participant Cache as Redis
-    participant LLM as LLM API
-
-    User->>FE: Mở trang Build PC
-    FE->>BE: GET /api/v1/build-pc/categories
-    BE-->>FE: Danh sách slot (CPU, Main, RAM, ...)
-
-    loop Chọn linh kiện cho mỗi slot
-        User->>FE: Chọn danh mục slot
-        FE->>BE: GET /api/v1/build-pc/products?category={id}
-        BE->>DB: SELECT Product + Inventory WHERE ...
-        BE-->>FE: Danh sách SP (có tồn kho)
-        User->>FE: Chọn sản phẩm
-        FE->>FE: Cập nhật cấu hình, tính tổng giá
-    end
-
-    alt Chưa đăng nhập → Xuất báo giá
-        User->>FE: Nhấn "Xuất báo giá PDF"
-        FE->>BE: POST /api/v1/build-pc/export-quote {items[]}
-        BE->>BE: Generate PDF
-        BE-->>FE: PDF file
-        FE-->>User: Download PDF
-    else Đã đăng nhập → Kiểm tra AI
-        User->>FE: Nhấn "Kiểm tra tương thích"
-        FE->>BE: POST /api/v1/build-pc/check-compatibility {items[]}
-        BE->>DB: SELECT Product_Attribute cho mỗi SP
-        BE->>BE: Build prompt với thông số kỹ thuật
-        BE->>LLM: Gửi prompt kiểm tra tương thích
-        LLM-->>BE: Kết quả phân tích + gợi ý
-        BE-->>FE: {compatible: true/false, analysis, suggestions[]}
-        FE-->>User: Hiển thị kết quả AI
-
-        opt Thêm vào giỏ
-            User->>FE: Nhấn "Thêm vào giỏ"
-            FE->>BE: POST /api/v1/build-pc/add-to-cart {items[]}
-            loop Mỗi linh kiện
-                BE->>DB: INSERT Cart_Item
-            end
-            BE-->>FE: 200 OK
-        end
-    else Chưa đăng nhập → Nhấn nút cần auth
-        User->>FE: Nhấn "Kiểm tra tương thích" / "Thêm giỏ"
-        FE->>Cache: Lưu cấu hình tạm {session_id}
-        FE-->>User: Redirect đăng nhập
-        User->>FE: Đăng nhập thành công
-        FE->>Cache: GET cấu hình tạm
-        FE-->>User: Khôi phục cấu hình Build PC
-    end
-```
+> **Hình 3.21** — Source: [`diagrams/seq_build_pc.puml`](diagrams/seq_build_pc.puml) | Image: [`diagrams/images/seq_build_pc.png`](diagrams/images/seq_build_pc.png)
 
 #### 3.2.19 Luồng Admin — Quản lý sản phẩm (CRUD)
 
-> **Hình 3.22** — Sequence Diagram — Admin quản lý sản phẩm
-
-```mermaid
-sequenceDiagram
-    actor Admin
-    participant FE as Next.js (Admin CMS)
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-    participant Storage as MinIO
-
-    Note over Admin,DB: Thêm sản phẩm mới
-    Admin->>FE: Nhập thông tin SP + upload ảnh
-    FE->>BE: POST /api/v1/admin/products {name, sku, slug, originalPrice, sellingPrice, description, categoryId, brandId, condition, attributes[]}
-    BE->>BE: Validate JWT + Role (ADMIN)
-    BE->>DB: SELECT Product WHERE sku = ? OR slug = ?
-    alt SKU/Slug trùng
-        BE-->>FE: 409 {message: "SKU hoặc Slug đã tồn tại"}
-    else Hợp lệ
-        BE->>DB: INSERT Product (...)
-        DB-->>BE: product_id
-        loop Mỗi thuộc tính
-            BE->>DB: INSERT Product_Attribute (product_id, attribute_id, attribute_value_id)
-        end
-        BE->>DB: INSERT Inventory (product_id, quantity=0, supplier_id)
-        loop Upload ảnh
-            FE->>BE: POST /api/v1/admin/products/{id}/images (multipart)
-            BE->>Storage: PUT object (products/{product_id}/img_n.jpg)
-            Storage-->>BE: Object URL
-            BE->>DB: INSERT Product_Image (product_id, image_url, is_primary, sort_order)
-        end
-        BE-->>FE: 201 {product}
-        FE-->>Admin: Hiển thị SP vừa tạo
-    end
-
-    Note over Admin,DB: Cập nhật sản phẩm
-    Admin->>FE: Sửa thông tin SP
-    FE->>BE: PUT /api/v1/admin/products/{id} {name, sellingPrice, ...}
-    BE->>DB: UPDATE Product SET ...
-    BE-->>FE: 200 {updatedProduct}
-
-    Note over Admin,DB: Xóa sản phẩm (soft delete)
-    Admin->>FE: Nhấn "Ngừng bán"
-    FE->>BE: DELETE /api/v1/admin/products/{id}
-    BE->>DB: SELECT Product WHERE id = ?
-    BE->>DB: UPDATE Product SET status = 'INACTIVE'
-    BE-->>FE: 200 {message: "Sản phẩm đã ngừng bán"}
-```
+> **Hình 3.22** — Source: [`diagrams/seq_admin_product.puml`](diagrams/seq_admin_product.puml) | Image: [`diagrams/images/seq_admin_product.png`](diagrams/images/seq_admin_product.png)
 
 #### 3.2.20 Luồng Admin — Quản lý danh mục sản phẩm
 
-> **Hình 3.23** — Sequence Diagram — Admin quản lý danh mục
-
-```mermaid
-sequenceDiagram
-    actor Admin
-    participant FE as Next.js (Admin CMS)
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-
-    Note over Admin,DB: Xem cây danh mục
-    Admin->>FE: Mở trang quản lý danh mục
-    FE->>BE: GET /api/v1/admin/categories?tree=true
-    BE->>DB: SELECT Category ORDER BY level, name
-    BE->>BE: Build tree structure (parent-child)
-    BE-->>FE: 200 {categories[{id, name, children[]}]}
-    FE-->>Admin: Hiển thị cây danh mục
-
-    Note over Admin,DB: Thêm danh mục
-    Admin->>FE: Nhập tên, mô tả, chọn danh mục cha
-    FE->>BE: POST /api/v1/admin/categories {name, description, parentId}
-    BE->>DB: SELECT Category WHERE parent_id = ? → tính level
-    BE->>DB: INSERT Category (name, description, parent_id, level)
-    BE-->>FE: 201 {category}
-
-    Note over Admin,DB: Quản lý thuộc tính (Attribute) theo danh mục
-    Admin->>FE: Thêm thuộc tính cho danh mục "CPU"
-    FE->>BE: POST /api/v1/admin/categories/{id}/attributes {name: "Socket"}
-    BE->>DB: INSERT Attribute (name, category_id)
-    FE->>BE: POST /api/v1/admin/attributes/{id}/values {value: "LGA1700"}
-    BE->>DB: INSERT Attribute_Value (attribute_id, value)
-    BE-->>FE: 201 {attribute, values[]}
-
-    Note over Admin,DB: Cập nhật / Xóa danh mục
-    Admin->>FE: Sửa hoặc xóa danh mục
-    FE->>BE: PUT|DELETE /api/v1/admin/categories/{id}
-    BE->>DB: SELECT Product WHERE category_id = ?
-    alt Có sản phẩm → không cho xóa
-        BE-->>FE: 409 {message: "Danh mục đang có sản phẩm, không thể xóa"}
-    else Không có sản phẩm
-        BE->>DB: DELETE Category WHERE id = ?
-        BE-->>FE: 204 No Content
-    end
-```
+> **Hình 3.23** — Source: [`diagrams/seq_admin_category.puml`](diagrams/seq_admin_category.puml) | Image: [`diagrams/images/seq_admin_category.png`](diagrams/images/seq_admin_category.png)
 
 #### 3.2.21 Luồng Admin — Quản lý tồn kho
 
-> **Hình 3.24** — Sequence Diagram — Admin quản lý tồn kho
-
-```mermaid
-sequenceDiagram
-    actor Warehouse as Warehouse Staff
-    participant FE as Next.js (Admin CMS)
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-
-    Note over Warehouse,DB: Xem danh sách tồn kho
-    Warehouse->>FE: Mở trang quản lý kho
-    FE->>BE: GET /api/v1/admin/inventory?page=1&size=20&lowStock=false
-    BE->>BE: Validate JWT + Role (ADMIN | WAREHOUSE)
-    BE->>DB: SELECT Inventory JOIN Product JOIN Supplier ORDER BY quantity ASC
-    BE-->>FE: 200 {inventoryItems[], totalItems}
-    FE-->>Warehouse: Hiển thị danh sách (tên SP, tồn kho, ngưỡng cảnh báo, NCC)
-
-    Note over Warehouse,DB: Nhập hàng từ NCC
-    Warehouse->>FE: Chọn SP, nhập số lượng nhập
-    FE->>BE: POST /api/v1/admin/inventory/import {productId, quantity, supplierId, note}
-    BE->>DB: UPDATE Inventory SET quantity += ?, supplier_id = ?
-    BE->>DB: INSERT Inventory_Log (product_id, type='IMPORT', quantity_change=+?, performed_by, note)
-    BE-->>FE: 200 {updatedInventory}
-    FE-->>Warehouse: Cập nhật số lượng tồn kho
-
-    Note over Warehouse,DB: Kiểm kê / Điều chỉnh kho
-    Warehouse->>FE: Nhập số lượng thực tế sau kiểm kê
-    FE->>BE: POST /api/v1/admin/inventory/adjust {productId, newQuantity, note}
-    BE->>DB: SELECT Inventory WHERE product_id = ?
-    DB-->>BE: Current quantity
-    BE->>BE: diff = newQuantity - currentQuantity
-
-    alt diff < 0 AND newQuantity < 0
-        BE-->>FE: 400 {message: "Số lượng không thể âm"}
-    else Hợp lệ
-        BE->>DB: UPDATE Inventory SET quantity = ?
-        BE->>DB: INSERT Inventory_Log (type='ADJUSTMENT', quantity_change=diff, performed_by, note)
-        BE-->>FE: 200 {updatedInventory, adjustedBy: diff}
-    end
-```
+> **Hình 3.24** — Source: [`diagrams/seq_admin_inventory.puml`](diagrams/seq_admin_inventory.puml) | Image: [`diagrams/images/seq_admin_inventory.png`](diagrams/images/seq_admin_inventory.png)
 
 #### 3.2.22 Luồng Admin — Cập nhật trạng thái đơn hàng
 
-> **Hình 3.25** — Sequence Diagram — Admin cập nhật trạng thái đơn hàng
-
-```mermaid
-sequenceDiagram
-    actor Sales as Sales Staff
-    participant FE as Next.js (Admin CMS)
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-
-    Note over Sales,DB: Xem danh sách đơn hàng
-    Sales->>FE: Mở trang quản lý đơn hàng
-    FE->>BE: GET /api/v1/admin/orders?page=1&size=20&status=PENDING
-    BE->>BE: Validate JWT + Role (SALES | ADMIN)
-    BE->>DB: SELECT Orders JOIN User_Profile JOIN Payment WHERE status = ? ORDER BY created_at DESC
-    BE-->>FE: 200 {orders[], totalItems}
-    FE-->>Sales: Hiển thị danh sách đơn
-
-    Note over Sales,DB: Xác nhận đơn hàng
-    Sales->>FE: Nhấn "Xác nhận" đơn hàng PENDING
-    FE->>BE: PATCH /api/v1/admin/orders/{id}/status {newStatus: "CONFIRMED", note?}
-    BE->>DB: SELECT Orders WHERE id = ?
-    BE->>BE: Validate transition (PENDING → CONFIRMED ✓)
-    BE->>DB: UPDATE Orders SET status = 'CONFIRMED'
-    BE->>DB: INSERT Order_Status_History (old='PENDING', new='CONFIRMED', changed_by, note)
-    BE->>DB: INSERT Notification (user_id, "Đơn hàng #id đã được xác nhận")
-    BE-->>FE: 200 {updatedOrder}
-
-    Note over Sales,DB: Chuyển trạng thái giao hàng
-    Sales->>FE: Cập nhật tracking, chuyển SHIPPING
-    FE->>BE: PATCH /api/v1/admin/orders/{id}/status {newStatus: "SHIPPING"}
-    BE->>DB: UPDATE Orders SET status = 'SHIPPING'
-    BE->>DB: UPDATE Shipping SET status = 'IN_TRANSIT', tracking_number = ?
-    BE->>DB: INSERT Order_Status_History (CONFIRMED → SHIPPING)
-    BE->>DB: INSERT Notification (user_id, "Đơn hàng #id đang được giao")
-    BE-->>FE: 200 {updatedOrder}
-
-    Note over Sales,DB: Hoàn thành đơn
-    Sales->>FE: Xác nhận đã giao thành công
-    FE->>BE: PATCH /api/v1/admin/orders/{id}/status {newStatus: "COMPLETED"}
-    BE->>DB: UPDATE Orders SET status = 'COMPLETED'
-    BE->>DB: UPDATE Shipping SET status = 'DELIVERED', delivered_date = NOW()
-    BE->>DB: INSERT Order_Status_History (SHIPPING → COMPLETED)
-    BE->>DB: INSERT Notification (user_id, "Đơn hàng #id đã giao thành công")
-    BE-->>FE: 200 {updatedOrder}
-```
+> **Hình 3.25** — Source: [`diagrams/seq_admin_order_status.puml`](diagrams/seq_admin_order_status.puml) | Image: [`diagrams/images/seq_admin_order_status.png`](diagrams/images/seq_admin_order_status.png)
 
 #### 3.2.23 Luồng Admin — Quản lý người dùng
 
-> **Hình 3.26** — Sequence Diagram — Admin quản lý người dùng
-
-```mermaid
-sequenceDiagram
-    actor Admin
-    participant FE as Next.js (Admin CMS)
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-
-    Note over Admin,DB: Xem danh sách người dùng
-    Admin->>FE: Mở trang quản lý người dùng
-    FE->>BE: GET /api/v1/admin/users?page=1&size=20&search=keyword
-    BE->>BE: Validate JWT + Role (ADMIN)
-    BE->>DB: SELECT Account JOIN User_Profile JOIN Role WHERE (email ILIKE ? OR full_name ILIKE ?)
-    BE-->>FE: 200 {users[], totalItems}
-    FE-->>Admin: Hiển thị danh sách (email, tên, role, trạng thái)
-
-    Note over Admin,DB: Khóa / Mở khóa tài khoản
-    Admin->>FE: Nhấn "Khóa tài khoản"
-    FE->>BE: PATCH /api/v1/admin/users/{id}/status {isActive: false}
-    BE->>DB: UPDATE Account SET is_active = false WHERE id = ?
-    BE->>DB: DELETE Token WHERE account_id = ? (thu hồi tất cả session)
-    BE-->>FE: 200 {message: "Tài khoản đã bị khóa"}
-    FE-->>Admin: Cập nhật trạng thái
-
-    Admin->>FE: Nhấn "Mở khóa tài khoản"
-    FE->>BE: PATCH /api/v1/admin/users/{id}/status {isActive: true}
-    BE->>DB: UPDATE Account SET is_active = true WHERE id = ?
-    BE-->>FE: 200 {message: "Tài khoản đã mở khóa"}
-
-    Note over Admin,DB: Phân quyền người dùng
-    Admin->>FE: Thay đổi role của user
-    FE->>BE: PATCH /api/v1/admin/users/{id}/role {roleId: 2}
-    BE->>DB: SELECT Role WHERE id = ?
-    BE->>DB: UPDATE Account SET role_id = ? WHERE id = ?
-    BE->>DB: DELETE Token WHERE account_id = ? (buộc đăng nhập lại với quyền mới)
-    BE-->>FE: 200 {updatedUser}
-    FE-->>Admin: Cập nhật role hiển thị
-```
+> **Hình 3.26** — Source: [`diagrams/seq_admin_users.puml`](diagrams/seq_admin_users.puml) | Image: [`diagrams/images/seq_admin_users.png`](diagrams/images/seq_admin_users.png)
 
 #### 3.2.24 Luồng Admin — Quản lý mã giảm giá
 
-> **Hình 3.27** — Sequence Diagram — Admin quản lý mã giảm giá
-
-```mermaid
-sequenceDiagram
-    actor Admin
-    participant FE as Next.js (Admin CMS)
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-
-    Note over Admin,DB: Tạo mã giảm giá
-    Admin->>FE: Nhập thông tin coupon
-    FE->>BE: POST /api/v1/admin/coupons {code, discountType, discountValue, minOrderValue, maxDiscount, maxUses, startDate, endDate}
-    BE->>BE: Validate JWT + Role (ADMIN | SALES)
-    BE->>DB: SELECT Coupon WHERE code = ?
-    alt Mã đã tồn tại
-        BE-->>FE: 409 {message: "Mã giảm giá đã tồn tại"}
-    else Hợp lệ
-        BE->>DB: INSERT Coupon (code, discount_type, discount_value, min_order_value, max_discount, max_uses, start_date, end_date)
-        BE-->>FE: 201 {coupon}
-        FE-->>Admin: Hiển thị coupon vừa tạo
-    end
-
-    Note over Admin,DB: Cập nhật mã giảm giá
-    Admin->>FE: Sửa thông tin coupon
-    FE->>BE: PUT /api/v1/admin/coupons/{id} {discountValue, endDate, maxUses, ...}
-    BE->>DB: SELECT Coupon WHERE id = ?
-    BE->>DB: UPDATE Coupon SET ...
-    BE-->>FE: 200 {updatedCoupon}
-
-    Note over Admin,DB: Xem danh sách & thống kê
-    Admin->>FE: Mở trang quản lý coupon
-    FE->>BE: GET /api/v1/admin/coupons?page=1&size=20&status=active
-    BE->>DB: SELECT Coupon LEFT JOIN (SELECT coupon_id, COUNT(*) FROM Coupon_Usage GROUP BY coupon_id)
-    BE-->>FE: 200 {coupons[], totalItems}
-    FE-->>Admin: Hiển thị danh sách (mã, loại, giá trị, đã dùng/tối đa, thời hạn)
-
-    Note over Admin,DB: Xóa mã giảm giá
-    Admin->>FE: Nhấn "Xóa"
-    FE->>BE: DELETE /api/v1/admin/coupons/{id}
-    BE->>DB: SELECT Coupon_Usage WHERE coupon_id = ?
-    alt Đã có người sử dụng
-        BE-->>FE: 409 {message: "Không thể xóa mã đã được sử dụng"}
-    else Chưa ai sử dụng
-        BE->>DB: DELETE Coupon WHERE id = ?
-        BE-->>FE: 204 No Content
-    end
-```
+> **Hình 3.27** — Source: [`diagrams/seq_admin_coupon.puml`](diagrams/seq_admin_coupon.puml) | Image: [`diagrams/images/seq_admin_coupon.png`](diagrams/images/seq_admin_coupon.png)
 
 #### 3.2.25 Luồng Gửi thông báo (Email & In-app)
 
-> **Hình 3.28** — Sequence Diagram — Gửi thông báo
-
-```mermaid
-sequenceDiagram
-    participant BE as Spring Boot (Backend)
-    participant DB as PostgreSQL
-    participant Email as Email Service (SMTP)
-    participant FE as Next.js (Frontend)
-    actor Customer
-
-    Note over BE,Email: Trigger: Đơn hàng được tạo thành công
-    BE->>DB: INSERT Notification (user_id, title="Đơn hàng mới", message="Đơn #id đã tạo", type='ORDER')
-    BE->>DB: SELECT Account JOIN User_Profile WHERE id = user_id
-    BE->>Email: Gửi email xác nhận đơn hàng (template: order_confirmation)
-    Email-->>Customer: Email: "Xác nhận đơn hàng #id"
-
-    Note over BE,Email: Trigger: Trạng thái đơn thay đổi
-    BE->>DB: INSERT Notification (user_id, title="Cập nhật đơn hàng", message="Đơn #id đang giao", type='ORDER')
-    BE->>Email: Gửi email cập nhật trạng thái
-    Email-->>Customer: Email: "Đơn hàng #id đang được giao"
-
-    Note over FE,DB: Customer xem thông báo
-    Customer->>FE: Nhấn icon 🔔
-    FE->>BE: GET /api/v1/notifications?page=1&size=20
-    BE->>DB: SELECT Notification WHERE user_id = ? ORDER BY created_at DESC
-    BE-->>FE: 200 {notifications[], unreadCount}
-    FE-->>Customer: Hiển thị danh sách thông báo (badge số chưa đọc)
-
-    Customer->>FE: Nhấn vào thông báo
-    FE->>BE: PATCH /api/v1/notifications/{id}/read
-    BE->>DB: UPDATE Notification SET is_read = true WHERE id = ?
-    BE-->>FE: 200 OK
-    FE-->>Customer: Đánh dấu đã đọc, redirect đến link liên quan
-```
+> **Hình 3.28** — Source: [`diagrams/seq_notification.puml`](diagrams/seq_notification.puml) | Image: [`diagrams/images/seq_notification.png`](diagrams/images/seq_notification.png)
 
 ### 3.3 Sơ đồ quan hệ thực thể (ERD)
 
@@ -1762,383 +796,23 @@ Hệ thống quản lý **33 thực thể** chính, được chia thành 5 nhóm
 
 #### 3.3.1 ERD — Nhóm Phân quyền (Auth & User)
 
-> **Hình 3.29** — ERD — Nhóm Phân quyền (Auth & User)
-
-```mermaid
-erDiagram
-    ACCOUNT {
-        bigint id PK
-        varchar email UK
-        varchar password_hash
-        boolean is_active
-        boolean is_verified
-        bigint role_id FK
-        timestamp last_login_at
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    USER_PROFILE {
-        bigint id PK
-        bigint account_id FK
-        varchar full_name
-        varchar phone UK
-        varchar avatar_url
-        date date_of_birth
-        varchar gender
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    ADDRESS {
-        bigint id PK
-        bigint user_id FK
-        varchar label
-        varchar receiver_name
-        varchar receiver_phone
-        varchar province
-        varchar district
-        varchar ward
-        varchar street
-        boolean is_default
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    ROLE {
-        bigint id PK
-        varchar name UK
-        varchar description
-    }
-
-    PERMISSION {
-        bigint id PK
-        varchar code UK
-        varchar description
-    }
-
-    ROLE_PERMISSION {
-        bigint role_id PK
-        bigint permission_id PK
-    }
-
-    TOKEN {
-        bigint id PK
-        bigint account_id FK
-        varchar token_type
-        varchar token_value
-        timestamp expires_at
-        timestamp created_at
-    }
-
-    ROLE ||--o{ ACCOUNT : "has many"
-    ACCOUNT ||--|| USER_PROFILE : "has one"
-    ACCOUNT ||--o{ TOKEN : "has many"
-    USER_PROFILE ||--o{ ADDRESS : "has many"
-    ROLE ||--o{ ROLE_PERMISSION : "has many"
-    PERMISSION ||--o{ ROLE_PERMISSION : "has many"
-```
+> **Hình 3.29** — Source: [`diagrams/erd_auth.puml`](diagrams/erd_auth.puml) | Image: [`diagrams/images/erd_auth.png`](diagrams/images/erd_auth.png)
 
 #### 3.3.2 ERD — Nhóm Sản phẩm (Product Catalog)
 
-> **Hình 3.30** — ERD — Nhóm Sản phẩm (Product Catalog)
-
-```mermaid
-erDiagram
-    CATEGORY {
-        bigint id PK
-        varchar name UK
-        text description
-        bigint parent_id FK
-        int level
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    BRAND {
-        bigint id PK
-        varchar name UK
-        varchar logo_url
-        text description
-    }
-
-    PRODUCT {
-        bigint id PK
-        varchar name
-        varchar sku UK
-        varchar slug UK
-        decimal original_price
-        decimal selling_price
-        text description
-        bigint category_id FK
-        bigint brand_id FK
-        varchar condition
-        varchar status
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    ATTRIBUTE {
-        bigint id PK
-        varchar name
-        bigint category_id FK
-    }
-
-    ATTRIBUTE_VALUE {
-        bigint id PK
-        bigint attribute_id FK
-        varchar value
-    }
-
-    PRODUCT_ATTRIBUTE {
-        bigint product_id PK
-        bigint attribute_id PK
-        bigint attribute_value_id FK
-    }
-
-    PRODUCT_IMAGE {
-        bigint id PK
-        bigint product_id FK
-        varchar image_url
-        boolean is_primary
-        int sort_order
-    }
-
-    CATEGORY ||--o{ CATEGORY : "parent"
-    CATEGORY ||--o{ PRODUCT : "contains"
-    CATEGORY ||--o{ ATTRIBUTE : "defines"
-    BRAND ||--o{ PRODUCT : "produces"
-    ATTRIBUTE ||--o{ ATTRIBUTE_VALUE : "has values"
-    PRODUCT ||--o{ PRODUCT_ATTRIBUTE : "has attributes"
-    PRODUCT ||--o{ PRODUCT_IMAGE : "has images"
-    ATTRIBUTE ||--o{ PRODUCT_ATTRIBUTE : "referenced by"
-    ATTRIBUTE_VALUE ||--o{ PRODUCT_ATTRIBUTE : "referenced by"
-```
+> **Hình 3.30** — Source: [`diagrams/erd_product.puml`](diagrams/erd_product.puml) | Image: [`diagrams/images/erd_product.png`](diagrams/images/erd_product.png)
 
 #### 3.3.3 ERD — Nhóm Mua sắm & Đơn hàng (Shopping & Order)
 
-> **Hình 3.31** — ERD — Nhóm Mua sắm & Đơn hàng (Shopping & Order)
-
-```mermaid
-erDiagram
-    CART {
-        bigint id PK
-        bigint user_id FK
-        varchar session_id
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    CART_ITEM {
-        bigint id PK
-        bigint cart_id FK
-        bigint product_id FK
-        int quantity
-    }
-
-    WISHLIST {
-        bigint id PK
-        bigint user_id FK
-        bigint product_id FK
-        timestamp created_at
-    }
-
-    COUPON {
-        bigint id PK
-        varchar code UK
-        varchar discount_type
-        decimal discount_value
-        decimal min_order_value
-        decimal max_discount
-        int max_uses
-        int used_count
-        timestamp start_date
-        timestamp end_date
-        timestamp created_at
-    }
-
-    ORDERS {
-        bigint id PK
-        bigint user_id FK
-        bigint address_id FK
-        decimal subtotal
-        decimal discount_amount
-        decimal total_amount
-        varchar status
-        text note
-        bigint coupon_id FK
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    ORDER_DETAIL {
-        bigint id PK
-        bigint order_id FK
-        bigint product_id FK
-        int quantity
-        decimal unit_price
-        decimal line_total
-    }
-
-    PAYMENT {
-        bigint id PK
-        bigint order_id FK
-        varchar method
-        decimal amount
-        varchar status
-        varchar transaction_id
-        timestamp paid_at
-        timestamp created_at
-    }
-
-    SHIPPING {
-        bigint id PK
-        bigint order_id FK
-        varchar provider
-        varchar tracking_number
-        decimal shipping_fee
-        varchar status
-        date estimated_date
-        date delivered_date
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    COUPON_USAGE {
-        bigint id PK
-        bigint coupon_id FK
-        bigint user_id FK
-        bigint order_id FK
-        timestamp used_at
-    }
-
-    ORDER_STATUS_HISTORY {
-        bigint id PK
-        bigint order_id FK
-        varchar old_status
-        varchar new_status
-        bigint changed_by FK
-        text note
-        timestamp created_at
-    }
-
-    SUPPLIER {
-        bigint id PK
-        varchar name
-        varchar contact_person
-        varchar phone
-        varchar email
-        text address
-    }
-
-    INVENTORY {
-        bigint id PK
-        bigint product_id FK
-        int quantity
-        int low_stock_threshold
-        bigint supplier_id FK
-        timestamp updated_at
-    }
-
-    INVENTORY_LOG {
-        bigint id PK
-        bigint product_id FK
-        varchar type
-        int quantity_change
-        bigint performed_by FK
-        text note
-        timestamp created_at
-    }
-
-    CART ||--o{ CART_ITEM : "contains"
-    ORDERS ||--o{ ORDER_DETAIL : "contains"
-    ORDERS ||--o{ PAYMENT : "has"
-    ORDERS ||--|| SHIPPING : "has one"
-    ORDERS ||--o{ ORDER_STATUS_HISTORY : "has history"
-    COUPON ||--o{ COUPON_USAGE : "tracked by"
-    COUPON ||--o{ ORDERS : "applied to"
-    SUPPLIER ||--o{ INVENTORY : "supplies"
-```
+> **Hình 3.31** — Source: [`diagrams/erd_shopping_order.puml`](diagrams/erd_shopping_order.puml) | Image: [`diagrams/images/erd_shopping_order.png`](diagrams/images/erd_shopping_order.png)
 
 #### 3.3.4 ERD — Nhóm Tương tác & Bảo hành (Interaction & Warranty)
 
-> **Hình 3.32** — ERD — Nhóm Tương tác & Bảo hành (Interaction & Warranty)
-
-```mermaid
-erDiagram
-    REVIEW {
-        bigint id PK
-        bigint user_id FK
-        bigint product_id FK
-        bigint order_id FK
-        int rating
-        text content
-        timestamp created_at
-    }
-
-    REVIEW_IMAGE {
-        bigint id PK
-        bigint review_id FK
-        varchar image_url
-    }
-
-    WARRANTY_POLICY {
-        bigint id PK
-        bigint category_id FK
-        bigint product_id FK
-        int duration_months
-        text conditions
-        text description
-    }
-
-    WARRANTY_TICKET {
-        bigint id PK
-        bigint user_id FK
-        bigint product_id FK
-        bigint order_id FK
-        varchar serial_number
-        text issue_description
-        varchar status
-        text resolution
-        timestamp resolved_at
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    RETURN_REQUEST {
-        bigint id PK
-        bigint user_id FK
-        bigint order_id FK
-        bigint order_detail_id FK
-        varchar type
-        text reason
-        varchar status
-        decimal refund_amount
-        timestamp resolved_at
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    REVIEW ||--o{ REVIEW_IMAGE : "has images"
-    WARRANTY_POLICY ||--o{ WARRANTY_TICKET : "governs"
-```
+> **Hình 3.32** — Source: [`diagrams/erd_interaction_warranty.puml`](diagrams/erd_interaction_warranty.puml) | Image: [`diagrams/images/erd_interaction_warranty.png`](diagrams/images/erd_interaction_warranty.png)
 
 #### 3.3.5 ERD — Nhóm Thông báo (Notification)
 
-> **Hình 3.33** — ERD — Nhóm Thông báo (Notification)
-
-```mermaid
-erDiagram
-    NOTIFICATION {
-        bigint id PK
-        bigint user_id FK
-        varchar title
-        text message
-        varchar type
-        boolean is_read
-        timestamp created_at
-    }
-```
+> **Hình 3.33** — Source: [`diagrams/erd_notification.puml`](diagrams/erd_notification.puml) | Image: [`diagrams/images/erd_notification.png`](diagrams/images/erd_notification.png)
 
 ### 3.4 Test Case
 

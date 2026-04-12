@@ -1,0 +1,41 @@
+@startuml seq_search_filter
+title Hình 3.10 — Sequence Diagram — Duyệt, Tìm kiếm & Lọc sản phẩm
+
+actor User
+participant "Next.js\n(Frontend)" as FE
+participant "Spring Boot\n(Backend)" as BE
+database "Redis" as Cache
+database "PostgreSQL" as DB
+
+User -> FE : Truy cập trang sản phẩm /\nnhập từ khóa / chọn bộ lọc
+FE -> BE : GET /api/v1/products?search=keyword\n&category=1&brand=2&minPrice=X\n&maxPrice=Y&page=1&size=20&sort=price_asc
+
+BE -> Cache : GET product_list:{hash(query_params)}
+alt Cache hit
+    Cache --> BE : Cached product list
+else Cache miss
+    BE -> DB : SELECT Product JOIN Category\nJOIN Brand JOIN Inventory\nWHERE status='ACTIVE'\nAND (name ILIKE '%keyword%')\nORDER BY ... LIMIT 20 OFFSET 0
+    DB --> BE : Product list + total count
+    BE -> Cache : SETEX product_list:{hash} TTL=300s
+end
+
+BE --> FE : 200 {products[], totalItems,\ntotalPages, currentPage}
+FE --> User : Hiển thị danh sách SP có pagination
+
+opt Lọc theo thuộc tính động
+    User -> FE : Chọn thuộc tính (Socket: LGA1700)
+    FE -> BE : GET /api/v1/products?\ncategory=1&attr_socket=LGA1700
+    BE -> DB : SELECT Product JOIN Product_Attribute\nJOIN Attribute_Value WHERE ...
+    BE --> FE : 200 {filtered products[]}
+    FE --> User : Cập nhật danh sách
+end
+
+opt Xem sản phẩm theo danh mục
+    User -> FE : Chọn danh mục từ menu
+    FE -> BE : GET /api/v1/categories/{id}/products
+    BE -> DB : SELECT Product\nWHERE category_id = ?\nOR category_id IN (children)
+    BE --> FE : 200 {products[], category info}
+    FE --> User : Hiển thị SP theo danh mục
+end
+
+@enduml

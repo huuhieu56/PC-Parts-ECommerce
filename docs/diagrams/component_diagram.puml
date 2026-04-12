@@ -1,0 +1,101 @@
+@startuml component_diagram
+title Hình 2.2 — Component / Package Diagram\nHệ thống PC Parts E-Commerce
+
+skinparam componentStyle uml2
+skinparam package {
+    BackgroundColor #F0F4FF
+    BorderColor #3366CC
+}
+skinparam component {
+    BackgroundColor #E8F0FE
+    BorderColor #1A73E8
+}
+
+package "<<subsystem>> PC Parts E-Commerce Backend" {
+
+    package "Foundation Layer" {
+        [M01: Auth & RBAC] as M01
+    }
+
+    package "Core Commerce Layer" {
+        [M02: Product Catalog] as M02
+        [M03: Shopping] as M03
+        [M06: Inventory] as M06
+    }
+
+    package "Transaction Layer" {
+        [M04: Order & Payment] as M04
+        [M07: Coupon] as M07
+    }
+
+    package "Feature Layer" {
+        [M05: Build PC] as M05
+        [M08: Review] as M08
+        [M09: Warranty & Return] as M09
+    }
+
+    package "Administration Layer" {
+        [M10: Admin & Report] as M10
+    }
+}
+
+package "<<subsystem>> External Services" #FFF3E0 {
+    [VNPay Gateway] as VNPay
+    [MoMo Gateway] as MoMo
+    [LLM API] as LLM
+    [Email Service] as SMTP
+}
+
+' === Provided Interfaces ===
+interface "IAuthentication" as IAuth
+interface "IProductCatalog" as IProd
+interface "ICart" as ICart
+interface "IOrder" as IOrder
+interface "IInventory" as IInv
+interface "ICoupon" as ICoupon
+
+M01 -down- IAuth
+M02 -down- IProd
+M03 -down- ICart
+M04 -down- IOrder
+M06 -down- IInv
+M07 -down- ICoupon
+
+' === Required Interfaces (External) ===
+interface "IPayment" as IPay
+interface "ICompatibility" as ICompat
+interface "INotification" as INotif
+
+VNPay -up- IPay
+LLM -up- ICompat
+SMTP -up- INotif
+
+' === Dependencies on IAuthentication ===
+M03 ..> IAuth : <<use>>
+M04 ..> IAuth : <<use>>
+M05 ..> IAuth : <<use>>
+M08 ..> IAuth : <<use>>
+M09 ..> IAuth : <<use>>
+M10 ..> IAuth : <<use>>
+
+' === Dependencies on IProductCatalog ===
+M03 ..> IProd : <<use>>
+M04 ..> IProd : <<use>>
+M05 ..> IProd : <<use>>
+
+' === Transaction Dependencies ===
+M04 ..> ICart : <<use>>
+M04 ..> IInv : <<use>>
+M04 ..> ICoupon : <<use>>
+
+' === Warranty & Return Dependencies ===
+M09 ..> IOrder : <<use>>
+M09 ..> IInv : <<use>>
+
+' === External Dependencies ===
+M04 ..> IPay : <<use>>
+M04 ..> INotif : <<use>>
+MoMo ..> IPay
+M05 ..> ICompat : <<use>>
+
+@enduml

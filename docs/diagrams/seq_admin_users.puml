@@ -1,0 +1,39 @@
+@startuml seq_admin_users
+title Hình 3.26 — Sequence Diagram — Admin quản lý người dùng
+
+actor Admin
+participant "Next.js\n(Admin CMS)" as FE
+participant "Spring Boot\n(Backend)" as BE
+database "PostgreSQL" as DB
+
+== Xem danh sách người dùng ==
+Admin -> FE : Mở trang quản lý người dùng
+FE -> BE : GET /api/v1/admin/users?\npage=1&size=20&search=keyword
+BE -> BE : Validate JWT + Role (ADMIN)
+BE -> DB : SELECT Account JOIN User_Profile\nJOIN Role WHERE\n(email ILIKE ? OR full_name ILIKE ?)
+BE --> FE : 200 {users[], totalItems}
+FE --> Admin : Hiển thị danh sách\n(email, tên, role, trạng thái)
+
+== Khóa / Mở khóa tài khoản ==
+Admin -> FE : Nhấn "Khóa tài khoản"
+FE -> BE : PATCH /api/v1/admin/users/{id}/status\n{isActive: false}
+BE -> DB : UPDATE Account\nSET is_active = false WHERE id = ?
+BE -> DB : DELETE Token WHERE account_id = ?\n(thu hồi tất cả session)
+BE --> FE : 200 {message: "Tài khoản đã bị khóa"}
+FE --> Admin : Cập nhật trạng thái
+
+Admin -> FE : Nhấn "Mở khóa tài khoản"
+FE -> BE : PATCH /api/v1/admin/users/{id}/status\n{isActive: true}
+BE -> DB : UPDATE Account\nSET is_active = true WHERE id = ?
+BE --> FE : 200 {message: "Tài khoản đã mở khóa"}
+
+== Phân quyền người dùng ==
+Admin -> FE : Thay đổi role của user
+FE -> BE : PATCH /api/v1/admin/users/{id}/role\n{roleId: 2}
+BE -> DB : SELECT Role WHERE id = ?
+BE -> DB : UPDATE Account\nSET role_id = ? WHERE id = ?
+BE -> DB : DELETE Token WHERE account_id = ?\n(buộc đăng nhập lại với quyền mới)
+BE --> FE : 200 {updatedUser}
+FE --> Admin : Cập nhật role hiển thị
+
+@enduml

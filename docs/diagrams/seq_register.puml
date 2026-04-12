@@ -1,0 +1,27 @@
+@startuml seq_register
+title Hình 3.4 — Sequence Diagram — Đăng ký tài khoản
+
+actor Customer
+participant "Next.js\n(Frontend)" as FE
+participant "Spring Boot\n(Backend)" as BE
+database "PostgreSQL" as DB
+
+Customer -> FE : Nhập email, password, fullName, phone
+FE -> FE : Validate client-side\n(format email, độ mạnh password)
+FE -> BE : POST /api/v1/auth/register\n{email, password, fullName, phone}
+
+BE -> DB : SELECT Account WHERE email = ?
+DB --> BE : Result
+
+alt Email đã tồn tại
+    BE --> FE : 409 Conflict\n{message: "Email đã được sử dụng"}
+    FE --> Customer : Hiển thị lỗi
+else Email hợp lệ
+    BE -> BE : BCrypt hash password
+    BE -> DB : INSERT Account\n(email, password_hash, role_id=CUSTOMER, is_active=true)
+    BE -> DB : INSERT User_Profile\n(account_id, full_name, phone)
+    BE --> FE : 201 {id, email, fullName}
+    FE --> Customer : Hiển thị "Đăng ký thành công"\nchuyển hướng trang đăng nhập
+end
+
+@enduml

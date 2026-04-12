@@ -1,0 +1,32 @@
+@startuml seq_wishlist
+title Hình 3.20 — Sequence Diagram — Quản lý Wishlist
+
+actor Customer
+participant "Next.js\n(Frontend)" as FE
+participant "Spring Boot\n(Backend)" as BE
+database "PostgreSQL" as DB
+
+== Thêm vào Wishlist ==
+Customer -> FE : Nhấn icon ♡ trên sản phẩm
+FE -> BE : POST /api/v1/wishlist\n{productId}
+BE -> BE : Validate JWT → user_id
+
+BE -> DB : SELECT Wishlist\nWHERE user_id = ? AND product_id = ?
+alt Đã có trong Wishlist (toggle off)
+    BE -> DB : DELETE Wishlist\nWHERE user_id = ? AND product_id = ?
+    BE --> FE : 200 {action: "REMOVED"}
+    FE --> Customer : Icon ♡ chuyển về trắng
+else Chưa có (toggle on)
+    BE -> DB : INSERT Wishlist\n(user_id, product_id)
+    BE --> FE : 201 {action: "ADDED"}
+    FE --> Customer : Icon ♥ chuyển sang đỏ
+end
+
+== Xem danh sách Wishlist ==
+Customer -> FE : Mở trang Wishlist
+FE -> BE : GET /api/v1/wishlist?\npage=1&size=20
+BE -> DB : SELECT Wishlist JOIN Product\nJOIN Product_Image JOIN Inventory\nWHERE user_id = ?
+BE --> FE : 200 {wishlistItems[], totalItems}
+FE --> Customer : Hiển thị danh sách SP yêu thích\n(tên, ảnh, giá, tình trạng kho)
+
+@enduml

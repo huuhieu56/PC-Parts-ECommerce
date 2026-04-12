@@ -1,0 +1,39 @@
+@startuml seq_payment_callback
+title Hình 3.14 — Sequence Diagram — Thanh toán Online Callback
+
+actor Customer
+participant "Next.js\n(Frontend)" as FE
+participant "VNPay / MoMo\nGateway" as Pay
+participant "Spring Boot\n(Backend)" as BE
+database "PostgreSQL" as DB
+
+note over Customer, DB : Sau khi tạo đơn (xem 3.2.10),\nCustomer được redirect sang cổng thanh toán
+
+Customer -> Pay : Nhập thông tin thanh toán & xác nhận
+Pay -> Pay : Xử lý giao dịch
+
+alt Thanh toán thành công
+    Pay -> BE : IPN Callback: GET /api/v1/payments/vnpay-callback\n?vnp_TxnRef=orderId&vnp_ResponseCode=00\n&vnp_SecureHash=xxx
+    BE -> BE : Verify signature (HMAC SHA512)
+    BE -> DB : SELECT Payment WHERE order_id = ?
+    BE -> DB : UPDATE Payment SET status = 'SUCCESS',\ntransaction_id = ?, paid_at = NOW()
+    BE -> DB : UPDATE Orders SET status = 'CONFIRMED'
+    BE -> DB : INSERT Order_Status_History\n(PENDING → CONFIRMED)
+    BE -> DB : INSERT Notification\n(user_id, "Thanh toán thành công")
+    BE --> Pay : 200 OK
+
+    Pay -> FE : Redirect /order-success?orderId=xxx
+    FE -> BE : GET /api/v1/orders/{id}
+    BE --> FE : 200 {order details}
+    FE --> Customer : Hiển thị "Đặt hàng thành công"
+
+else Thanh toán thất bại
+    Pay -> BE : IPN Callback: vnp_ResponseCode != 00
+    BE -> DB : UPDATE Payment SET status = 'FAILED'
+    BE --> Pay : 200 OK
+
+    Pay -> FE : Redirect /order-failed?orderId=xxx
+    FE --> Customer : Hiển thị "Thanh toán thất bại",\ncho phép thử lại
+end
+
+@enduml

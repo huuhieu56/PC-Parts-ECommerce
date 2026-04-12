@@ -1,0 +1,33 @@
+@startuml seq_logout_refresh
+title Hình 3.6 — Sequence Diagram — Đăng xuất & Refresh Token
+
+actor Customer
+participant "Next.js\n(Frontend)" as FE
+participant "Spring Boot\n(Backend)" as BE
+database "PostgreSQL" as DB
+database "Redis" as Cache
+
+== Luồng Refresh Token ==
+FE -> FE : Access Token hết hạn (15 phút)
+FE -> BE : POST /api/v1/auth/refresh-token\n{refreshToken}
+BE -> DB : SELECT Token WHERE token_value = ?\nAND expires_at > NOW()
+
+alt Refresh Token hợp lệ
+    BE -> BE : Sinh Access Token mới
+    BE --> FE : 200 {accessToken}
+    FE -> FE : Cập nhật token trong store
+else Refresh Token hết hạn / không hợp lệ
+    BE --> FE : 401 Unauthorized
+    FE -> FE : Xóa token, redirect đăng nhập
+end
+
+== Luồng Đăng xuất ==
+Customer -> FE : Nhấn "Đăng xuất"
+FE -> BE : POST /api/v1/auth/logout\n{refreshToken}
+BE -> DB : DELETE Token WHERE token_value = ?
+BE -> Cache : DEL session:{user_id}
+BE --> FE : 200 OK
+FE -> FE : Xóa token, xóa Zustand store
+FE --> Customer : Redirect về trang chủ
+
+@enduml

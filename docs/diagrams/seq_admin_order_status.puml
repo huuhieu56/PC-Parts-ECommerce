@@ -1,0 +1,45 @@
+@startuml seq_admin_order_status
+title Hình 3.25 — Sequence Diagram — Admin cập nhật trạng thái đơn hàng
+
+actor "Sales Staff" as Sales
+participant "Next.js\n(Admin CMS)" as FE
+participant "Spring Boot\n(Backend)" as BE
+database "PostgreSQL" as DB
+
+== Xem danh sách đơn hàng ==
+Sales -> FE : Mở trang quản lý đơn hàng
+FE -> BE : GET /api/v1/admin/orders?\npage=1&size=20&status=PENDING
+BE -> BE : Validate JWT + Role\n(SALES | ADMIN)
+BE -> DB : SELECT Orders JOIN User_Profile\nJOIN Payment WHERE status = ?\nORDER BY created_at DESC
+BE --> FE : 200 {orders[], totalItems}
+FE --> Sales : Hiển thị danh sách đơn
+
+== Xác nhận đơn hàng ==
+Sales -> FE : Nhấn "Xác nhận"\nđơn hàng PENDING
+FE -> BE : PATCH /api/v1/admin/orders/{id}/status\n{newStatus: "CONFIRMED", note?}
+BE -> DB : SELECT Orders WHERE id = ?
+BE -> BE : Validate transition\n(PENDING → CONFIRMED ✓)
+BE -> DB : UPDATE Orders\nSET status = 'CONFIRMED'
+BE -> DB : INSERT Order_Status_History\n(old='PENDING', new='CONFIRMED',\nchanged_by, note)
+BE -> DB : INSERT Notification\n(user_id, "Đơn hàng #id\nđã được xác nhận")
+BE --> FE : 200 {updatedOrder}
+
+== Chuyển trạng thái giao hàng ==
+Sales -> FE : Cập nhật tracking,\nchuyển SHIPPING
+FE -> BE : PATCH /api/v1/admin/orders/{id}/status\n{newStatus: "SHIPPING"}
+BE -> DB : UPDATE Orders\nSET status = 'SHIPPING'
+BE -> DB : UPDATE Shipping\nSET status = 'IN_TRANSIT',\ntracking_number = ?
+BE -> DB : INSERT Order_Status_History\n(CONFIRMED → SHIPPING)
+BE -> DB : INSERT Notification\n(user_id, "Đơn hàng #id đang được giao")
+BE --> FE : 200 {updatedOrder}
+
+== Hoàn thành đơn ==
+Sales -> FE : Xác nhận đã giao thành công
+FE -> BE : PATCH /api/v1/admin/orders/{id}/status\n{newStatus: "COMPLETED"}
+BE -> DB : UPDATE Orders\nSET status = 'COMPLETED'
+BE -> DB : UPDATE Shipping\nSET status = 'DELIVERED',\ndelivered_date = NOW()
+BE -> DB : INSERT Order_Status_History\n(SHIPPING → COMPLETED)
+BE -> DB : INSERT Notification\n(user_id, "Đơn hàng #id\nđã giao thành công")
+BE --> FE : 200 {updatedOrder}
+
+@enduml

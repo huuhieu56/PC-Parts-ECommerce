@@ -1,0 +1,29 @@
+@startuml seq_warranty
+title Hình 3.18 — Sequence Diagram — Gửi yêu cầu bảo hành
+
+actor Customer
+participant "Next.js" as FE
+participant "Spring Boot" as BE
+database "PostgreSQL" as DB
+
+Customer -> FE : Mở form bảo hành
+FE -> BE : POST /api/v1/warranty-tickets\n{product_id, order_id,\nserial_number, issue_description}
+BE -> BE : Validate JWT (Customer)
+BE -> DB : SELECT Order_Detail\nWHERE order_id AND product_id
+BE -> DB : SELECT Warranty_Policy\n(ưu tiên Product > Category)
+BE -> BE : Kiểm tra còn hạn BH\n(order.created_at + duration_months > NOW)
+
+alt Hết hạn BH
+    BE --> FE : 400 {message: "Sản phẩm\nđã hết hạn bảo hành"}
+else Còn hạn
+    BE -> DB : INSERT Warranty_Ticket\n(status=RECEIVED)
+    BE --> FE : 201 {ticketId, status}
+    FE --> Customer : "Phiếu BH #xxx\nđã tạo thành công"
+end
+
+note over BE, DB : Phía Admin/Sales xử lý
+BE -> DB : UPDATE Warranty_Ticket\nSET status=PROCESSING
+BE -> DB : UPDATE Warranty_Ticket\nSET status=REPAIRED, resolution="..."
+BE -> DB : UPDATE Warranty_Ticket\nSET status=RETURNED
+
+@enduml
