@@ -1,0 +1,62 @@
+@startuml uc_admin_inventory
+left to right direction
+skinparam packageStyle rectangle
+
+title Hình UC.5 — Use Case Diagram — Quản lý Kho hàng (Admin/Warehouse)
+
+actor "Quản trị viên\n(Admin)" as Admin
+actor "Nhân viên kho\n(Warehouse)" as Warehouse
+
+Admin --|> Warehouse
+
+rectangle "Quản lý Kho hàng (UC-AD-04)" {
+    package "Tồn kho" {
+        usecase "Xem danh sách\ntồn kho" as AD04_1
+        usecase "Cảnh báo\nlow_stock_threshold" as AD04_warn
+    }
+
+    package "Nhập hàng" {
+        usecase "Nhập hàng mới" as AD04_2
+        usecase "Tăng Inventory.quantity\n& tạo Inventory_Log (Nhập)" as AD04_2a
+    }
+
+    package "Kiểm kê / Điều chỉnh" {
+        usecase "Kiểm kê & Điều chỉnh\ntồn kho" as AD04_3
+        usecase "Tạo Inventory_Log\n(Điều chỉnh)" as AD04_3a
+    }
+
+    package "Quản lý Nhà cung cấp" {
+        usecase "CRUD Supplier\n(tên, SĐT, email, ...)" as AD04_sup
+        usecase "Gắn Supplier chính\nvào Inventory" as AD04_sup2
+    }
+
+    ' Luồng ngoại lệ
+    usecase "Lỗi: Số lượng nhập ≤ 0" as EX01
+    usecase "Cảnh báo: Điều chỉnh âm\ndẫn đến tồn kho < 0" as EX02
+    usecase "Lỗi: Xóa Supplier\nđang được sử dụng" as EX03
+
+    note right of AD04_1
+        Hiển thị: Product + quantity
+        + low_stock_threshold
+        + Supplier chính
+    end note
+}
+
+' Warehouse relationships
+Warehouse --> AD04_1
+Warehouse --> AD04_2
+Warehouse --> AD04_3
+Warehouse --> AD04_sup
+
+' Include
+AD04_2 ..> AD04_2a : <<include>>
+AD04_3 ..> AD04_3a : <<include>>
+AD04_1 ..> AD04_warn : <<extend>>
+AD04_sup ..> AD04_sup2 : <<include>>
+
+' Exception extends
+AD04_2 ..> EX01 : <<extend>>
+AD04_3 ..> EX02 : <<extend>>
+AD04_sup ..> EX03 : <<extend>>
+
+@enduml

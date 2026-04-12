@@ -1,0 +1,76 @@
+@startuml uc_admin_order
+left to right direction
+skinparam packageStyle rectangle
+
+title Hình UC.4 — Use Case Diagram — Quản lý Đơn hàng & Vận chuyển (Admin/Sales)
+
+actor "Quản trị viên\n(Admin)" as Admin
+actor "Nhân viên bán hàng\n(Sales)" as Sales
+actor "Email Service" as Email <<external>>
+
+Admin --|> Sales
+
+rectangle "Quản lý Đơn hàng & Vận chuyển" {
+    package "Quản lý Đơn hàng (UC-AD-03)" {
+        usecase "Xem danh sách\nđơn hàng" as AD03_1
+        usecase "Xem chi tiết\nđơn hàng" as AD03_2
+        usecase "Cập nhật trạng thái\nđơn hàng" as AD03_3
+        usecase "Ghi Order_Status_History" as AD03_4
+        usecase "Gửi email thông báo\ncho khách" as AD03_5
+    }
+
+    package "Hủy đơn hàng" {
+        usecase "Hoàn kho\n(tạo Inventory_Log)" as AD03_cancel1
+        usecase "Phục hồi Coupon\n(giảm used_count)" as AD03_cancel2
+    }
+
+    package "Quản lý Vận chuyển (UC-AD-08)" {
+        usecase "Chọn đơn vị\nvận chuyển" as AD08_1
+        usecase "Nhập mã vận đơn &\nphí vận chuyển" as AD08_2
+        usecase "Cập nhật trạng thái\nShipping" as AD08_3
+        usecase "Tự động chuyển\nOrder → Hoàn thành" as AD08_auto
+    }
+
+    ' Luồng ngoại lệ
+    usecase "Lỗi: Chuyển trạng thái\nkhông hợp lệ" as EX01
+    usecase "Lỗi: Mã vận đơn\ntrống" as EX02
+    usecase "Shipping thất bại →\nGiao lại / Hủy đơn" as EX03
+
+    ' Trạng thái hợp lệ
+    note right of AD03_3
+        Luồng trạng thái:
+        Chờ xử lý → Đã xác nhận
+        Đã xác nhận → Đang giao
+        Đang giao → Hoàn thành
+        Bất kỳ (trừ HT, ĐH) → Đã hủy
+    end note
+}
+
+' Sales relationships
+Sales --> AD03_1
+Sales --> AD03_2
+Sales --> AD03_3
+Sales --> AD08_1
+Sales --> AD08_2
+Sales --> AD08_3
+
+' Include
+AD03_3 ..> AD03_4 : <<include>>
+AD03_3 ..> AD03_5 : <<include>>
+
+' Cancel extends
+AD03_3 ..> AD03_cancel1 : <<extend>>\n[khi hủy đơn]
+AD03_3 ..> AD03_cancel2 : <<extend>>\n[khi hủy đơn có Coupon]
+
+' Shipping auto
+AD08_3 ..> AD08_auto : <<extend>>\n[khi Đã giao]
+
+' Exception extends
+AD03_3 ..> EX01 : <<extend>>
+AD08_2 ..> EX02 : <<extend>>
+AD08_3 ..> EX03 : <<extend>>
+
+' External
+AD03_5 --> Email
+
+@enduml

@@ -224,7 +224,9 @@ Backend được tách thêm thành các tầng nội bộ (Controller → Servi
 
 > **Hình 2.2** — Component / Package Diagram
 >
-> Source: [`diagrams/component_diagram.puml`](diagrams/component_diagram.puml) | Image: [`diagrams/images/component_diagram.png`](diagrams/images/component_diagram.png)
+> Source: [`diagrams/component_diagram.puml`](diagrams/component_diagram.puml) 
+>
+![diagrams/images/component_diagram.png](diagrams/images/component_diagram.png)
 
 Sơ đồ thành phần (UML Component Diagram) mô tả các **component** chức năng chính của hệ thống backend, các **interface** mà chúng cung cấp (provided) và yêu cầu (required), cùng các **dependency** giữa chúng.
 
@@ -350,7 +352,9 @@ M05 ..> ICompat : <<use>>
 
 > **Hình 2.3** — Deployment Diagram
 >
-> Source: [`diagrams/deployment_diagram.puml`](diagrams/deployment_diagram.puml) | Image: [`diagrams/images/deployment_diagram.png`](diagrams/images/deployment_diagram.png)
+> Source: [`diagrams/deployment_diagram.puml`](diagrams/deployment_diagram.puml) 
+>
+![diagrams/images/deployment_diagram.png](diagrams/images/deployment_diagram.png)
 
 Sơ đồ triển khai (UML Deployment Diagram) mô tả cấu hình các **node** vật lý/ảo trong hệ thống và các **artifact** được deploy trên từng node, cùng đường kết nối giữa chúng.
 
@@ -426,7 +430,9 @@ backend --> smtp : <<SMTP>>
 
 > **Hình 3.1** — Class Diagram — Module Authentication & Authorization
 >
-> Source: [`diagrams/class_auth.puml`](diagrams/class_auth.puml) | Image: [`diagrams/images/class_auth.png`](diagrams/images/class_auth.png)
+> Source: [`diagrams/class_auth.puml`](diagrams/class_auth.puml) 
+>
+![diagrams/images/class_auth.png](diagrams/images/class_auth.png)
 
 ```plantuml
 @startuml class_auth
@@ -503,7 +509,9 @@ Role "*" --> "*" Permission
 
 > **Hình 3.2** — Class Diagram — Module Product Catalog
 >
-> Source: [`diagrams/class_product.puml`](diagrams/class_product.puml) | Image: [`diagrams/images/class_product.png`](diagrams/images/class_product.png)
+> Source: [`diagrams/class_product.puml`](diagrams/class_product.puml) 
+>
+![diagrams/images/class_product.png](diagrams/images/class_product.png)
 
 ```plantuml
 @startuml class_product
@@ -595,7 +603,9 @@ ProductAttribute --> AttributeValue
 
 > **Hình 3.3** — Class Diagram — Module Order & Payment
 >
-> Source: [`diagrams/class_order.puml`](diagrams/class_order.puml) | Image: [`diagrams/images/class_order.png`](diagrams/images/class_order.png)
+> Source: [`diagrams/class_order.puml`](diagrams/class_order.puml) 
+>
+![diagrams/images/class_order.png](diagrams/images/class_order.png)
 
 ```plantuml
 @startuml class_order
@@ -692,103 +702,153 @@ OrderDetail --> Product
 
 #### 3.2.1 Luồng Đăng ký tài khoản
 
-> **Hình 3.4** — Source: [`diagrams/seq_register.puml`](diagrams/seq_register.puml) | Image: [`diagrams/images/seq_register.png`](diagrams/images/seq_register.png)
+> **Hình 3.4** — Source: [`diagrams/seq_register.puml`](diagrams/seq_register.puml) 
+>
+![diagrams/images/seq_register.png](diagrams/images/seq_register.png)
 
 #### 3.2.2 Luồng Đăng nhập & Merge giỏ hàng
 
-> **Hình 3.5** — Source: [`diagrams/seq_login.puml`](diagrams/seq_login.puml) | Image: [`diagrams/images/seq_login.png`](diagrams/images/seq_login.png)
+> **Hình 3.5** — Source: [`diagrams/seq_login.puml`](diagrams/seq_login.puml) 
+>
+![diagrams/images/seq_login.png](diagrams/images/seq_login.png)
 
 #### 3.2.3 Luồng Đăng xuất & Refresh Token
 
-> **Hình 3.6** — Source: [`diagrams/seq_logout_refresh.puml`](diagrams/seq_logout_refresh.puml) | Image: [`diagrams/images/seq_logout_refresh.png`](diagrams/images/seq_logout_refresh.png)
+> **Hình 3.6** — Source: [`diagrams/seq_logout_refresh.puml`](diagrams/seq_logout_refresh.puml) 
+>
+![diagrams/images/seq_logout_refresh.png](diagrams/images/seq_logout_refresh.png)
 
 #### 3.2.4 Luồng Thay đổi mật khẩu
 
-> **Hình 3.7** — Source: [`diagrams/seq_change_password.puml`](diagrams/seq_change_password.puml) | Image: [`diagrams/images/seq_change_password.png`](diagrams/images/seq_change_password.png)
+> **Hình 3.7** — Source: [`diagrams/seq_change_password.puml`](diagrams/seq_change_password.puml) 
+>
+![diagrams/images/seq_change_password.png](diagrams/images/seq_change_password.png)
 
 #### 3.2.5 Luồng Quên & Thiết lập lại mật khẩu
 
-> **Hình 3.8** — Source: [`diagrams/seq_forgot_password.puml`](diagrams/seq_forgot_password.puml) | Image: [`diagrams/images/seq_forgot_password.png`](diagrams/images/seq_forgot_password.png)
+> **Hình 3.8** — Source: [`diagrams/seq_forgot_password.puml`](diagrams/seq_forgot_password.puml) 
+>
+![diagrams/images/seq_forgot_password.png](diagrams/images/seq_forgot_password.png)
 
 #### 3.2.6 Luồng Cập nhật thông tin cá nhân
 
-> **Hình 3.9** — Source: [`diagrams/seq_update_profile.puml`](diagrams/seq_update_profile.puml) | Image: [`diagrams/images/seq_update_profile.png`](diagrams/images/seq_update_profile.png)
+> **Hình 3.9** — Source: [`diagrams/seq_update_profile.puml`](diagrams/seq_update_profile.puml) 
+>
+![diagrams/images/seq_update_profile.png](diagrams/images/seq_update_profile.png)
 
 #### 3.2.7 Luồng Duyệt, Tìm kiếm & Lọc sản phẩm
 
-> **Hình 3.10** — Source: [`diagrams/seq_search_filter.puml`](diagrams/seq_search_filter.puml) | Image: [`diagrams/images/seq_search_filter.png`](diagrams/images/seq_search_filter.png)
+> **Hình 3.10** — Source: [`diagrams/seq_search_filter.puml`](diagrams/seq_search_filter.puml) 
+>
+![diagrams/images/seq_search_filter.png](diagrams/images/seq_search_filter.png)
 
 #### 3.2.8 Luồng Xem chi tiết sản phẩm
 
-> **Hình 3.11** — Source: [`diagrams/seq_product_detail.puml`](diagrams/seq_product_detail.puml) | Image: [`diagrams/images/seq_product_detail.png`](diagrams/images/seq_product_detail.png)
+> **Hình 3.11** — Source: [`diagrams/seq_product_detail.puml`](diagrams/seq_product_detail.puml) 
+>
+![diagrams/images/seq_product_detail.png](diagrams/images/seq_product_detail.png)
 
 #### 3.2.9 Luồng Quản lý giỏ hàng (Thêm / Sửa / Xóa)
 
-> **Hình 3.12** — Source: [`diagrams/seq_cart.puml`](diagrams/seq_cart.puml) | Image: [`diagrams/images/seq_cart.png`](diagrams/images/seq_cart.png)
+> **Hình 3.12** — Source: [`diagrams/seq_cart.puml`](diagrams/seq_cart.puml) 
+>
+![diagrams/images/seq_cart.png](diagrams/images/seq_cart.png)
 
 #### 3.2.10 Luồng Checkout & Tạo đơn hàng
 
-> **Hình 3.13** — Source: [`diagrams/seq_checkout.puml`](diagrams/seq_checkout.puml) | Image: [`diagrams/images/seq_checkout.png`](diagrams/images/seq_checkout.png)
+> **Hình 3.13** — Source: [`diagrams/seq_checkout.puml`](diagrams/seq_checkout.puml) 
+>
+![diagrams/images/seq_checkout.png](diagrams/images/seq_checkout.png)
 
 #### 3.2.11 Luồng Thanh toán Online — Callback VNPay/MoMo
 
-> **Hình 3.14** — Source: [`diagrams/seq_payment_callback.puml`](diagrams/seq_payment_callback.puml) | Image: [`diagrams/images/seq_payment_callback.png`](diagrams/images/seq_payment_callback.png)
+> **Hình 3.14** — Source: [`diagrams/seq_payment_callback.puml`](diagrams/seq_payment_callback.puml) 
+>
+![diagrams/images/seq_payment_callback.png](diagrams/images/seq_payment_callback.png)
 
 #### 3.2.12 Luồng Xem lịch sử & Chi tiết đơn hàng
 
-> **Hình 3.15** — Source: [`diagrams/seq_order_history.puml`](diagrams/seq_order_history.puml) | Image: [`diagrams/images/seq_order_history.png`](diagrams/images/seq_order_history.png)
+> **Hình 3.15** — Source: [`diagrams/seq_order_history.puml`](diagrams/seq_order_history.puml) 
+>
+![diagrams/images/seq_order_history.png](diagrams/images/seq_order_history.png)
 
 #### 3.2.13 Luồng Hủy đơn hàng
 
-> **Hình 3.16** — Source: [`diagrams/seq_cancel_order.puml`](diagrams/seq_cancel_order.puml) | Image: [`diagrams/images/seq_cancel_order.png`](diagrams/images/seq_cancel_order.png)
+> **Hình 3.16** — Source: [`diagrams/seq_cancel_order.puml`](diagrams/seq_cancel_order.puml) 
+>
+![diagrams/images/seq_cancel_order.png](diagrams/images/seq_cancel_order.png)
 
 #### 3.2.14 Luồng Đổi trả & Hoàn tiền
 
-> **Hình 3.17** — Source: [`diagrams/seq_return_refund.puml`](diagrams/seq_return_refund.puml) | Image: [`diagrams/images/seq_return_refund.png`](diagrams/images/seq_return_refund.png)
+> **Hình 3.17** — Source: [`diagrams/seq_return_refund.puml`](diagrams/seq_return_refund.puml) 
+>
+![diagrams/images/seq_return_refund.png](diagrams/images/seq_return_refund.png)
 
 #### 3.2.15 Luồng Gửi yêu cầu bảo hành
 
-> **Hình 3.18** — Source: [`diagrams/seq_warranty.puml`](diagrams/seq_warranty.puml) | Image: [`diagrams/images/seq_warranty.png`](diagrams/images/seq_warranty.png)
+> **Hình 3.18** — Source: [`diagrams/seq_warranty.puml`](diagrams/seq_warranty.puml) 
+>
+![diagrams/images/seq_warranty.png](diagrams/images/seq_warranty.png)
 
 #### 3.2.16 Luồng Đánh giá sản phẩm (Viết / Sửa / Xóa)
 
-> **Hình 3.19** — Source: [`diagrams/seq_review.puml`](diagrams/seq_review.puml) | Image: [`diagrams/images/seq_review.png`](diagrams/images/seq_review.png)
+> **Hình 3.19** — Source: [`diagrams/seq_review.puml`](diagrams/seq_review.puml) 
+>
+![diagrams/images/seq_review.png](diagrams/images/seq_review.png)
 
 #### 3.2.17 Luồng Quản lý Wishlist
 
-> **Hình 3.20** — Source: [`diagrams/seq_wishlist.puml`](diagrams/seq_wishlist.puml) | Image: [`diagrams/images/seq_wishlist.png`](diagrams/images/seq_wishlist.png)
+> **Hình 3.20** — Source: [`diagrams/seq_wishlist.puml`](diagrams/seq_wishlist.puml) 
+>
+![diagrams/images/seq_wishlist.png](diagrams/images/seq_wishlist.png)
 
 #### 3.2.18 Luồng Build PC + Kiểm tra tương thích AI
 
-> **Hình 3.21** — Source: [`diagrams/seq_build_pc.puml`](diagrams/seq_build_pc.puml) | Image: [`diagrams/images/seq_build_pc.png`](diagrams/images/seq_build_pc.png)
+> **Hình 3.21** — Source: [`diagrams/seq_build_pc.puml`](diagrams/seq_build_pc.puml) 
+>
+![diagrams/images/seq_build_pc.png](diagrams/images/seq_build_pc.png)
 
 #### 3.2.19 Luồng Admin — Quản lý sản phẩm (CRUD)
 
-> **Hình 3.22** — Source: [`diagrams/seq_admin_product.puml`](diagrams/seq_admin_product.puml) | Image: [`diagrams/images/seq_admin_product.png`](diagrams/images/seq_admin_product.png)
+> **Hình 3.22** — Source: [`diagrams/seq_admin_product.puml`](diagrams/seq_admin_product.puml) 
+>
+![diagrams/images/seq_admin_product.png](diagrams/images/seq_admin_product.png)
 
 #### 3.2.20 Luồng Admin — Quản lý danh mục sản phẩm
 
-> **Hình 3.23** — Source: [`diagrams/seq_admin_category.puml`](diagrams/seq_admin_category.puml) | Image: [`diagrams/images/seq_admin_category.png`](diagrams/images/seq_admin_category.png)
+> **Hình 3.23** — Source: [`diagrams/seq_admin_category.puml`](diagrams/seq_admin_category.puml) 
+>
+![diagrams/images/seq_admin_category.png](diagrams/images/seq_admin_category.png)
 
 #### 3.2.21 Luồng Admin — Quản lý tồn kho
 
-> **Hình 3.24** — Source: [`diagrams/seq_admin_inventory.puml`](diagrams/seq_admin_inventory.puml) | Image: [`diagrams/images/seq_admin_inventory.png`](diagrams/images/seq_admin_inventory.png)
+> **Hình 3.24** — Source: [`diagrams/seq_admin_inventory.puml`](diagrams/seq_admin_inventory.puml) 
+>
+![diagrams/images/seq_admin_inventory.png](diagrams/images/seq_admin_inventory.png)
 
 #### 3.2.22 Luồng Admin — Cập nhật trạng thái đơn hàng
 
-> **Hình 3.25** — Source: [`diagrams/seq_admin_order_status.puml`](diagrams/seq_admin_order_status.puml) | Image: [`diagrams/images/seq_admin_order_status.png`](diagrams/images/seq_admin_order_status.png)
+> **Hình 3.25** — Source: [`diagrams/seq_admin_order_status.puml`](diagrams/seq_admin_order_status.puml) 
+>
+![diagrams/images/seq_admin_order_status.png](diagrams/images/seq_admin_order_status.png)
 
 #### 3.2.23 Luồng Admin — Quản lý người dùng
 
-> **Hình 3.26** — Source: [`diagrams/seq_admin_users.puml`](diagrams/seq_admin_users.puml) | Image: [`diagrams/images/seq_admin_users.png`](diagrams/images/seq_admin_users.png)
+> **Hình 3.26** — Source: [`diagrams/seq_admin_users.puml`](diagrams/seq_admin_users.puml) 
+>
+![diagrams/images/seq_admin_users.png](diagrams/images/seq_admin_users.png)
 
 #### 3.2.24 Luồng Admin — Quản lý mã giảm giá
 
-> **Hình 3.27** — Source: [`diagrams/seq_admin_coupon.puml`](diagrams/seq_admin_coupon.puml) | Image: [`diagrams/images/seq_admin_coupon.png`](diagrams/images/seq_admin_coupon.png)
+> **Hình 3.27** — Source: [`diagrams/seq_admin_coupon.puml`](diagrams/seq_admin_coupon.puml) 
+>
+![diagrams/images/seq_admin_coupon.png](diagrams/images/seq_admin_coupon.png)
 
 #### 3.2.25 Luồng Gửi thông báo (Email & In-app)
 
-> **Hình 3.28** — Source: [`diagrams/seq_notification.puml`](diagrams/seq_notification.puml) | Image: [`diagrams/images/seq_notification.png`](diagrams/images/seq_notification.png)
+> **Hình 3.28** — Source: [`diagrams/seq_notification.puml`](diagrams/seq_notification.puml) 
+>
+![diagrams/images/seq_notification.png](diagrams/images/seq_notification.png)
 
 ### 3.3 Sơ đồ quan hệ thực thể (ERD)
 
@@ -796,23 +856,33 @@ Hệ thống quản lý **33 thực thể** chính, được chia thành 5 nhóm
 
 #### 3.3.1 ERD — Nhóm Phân quyền (Auth & User)
 
-> **Hình 3.29** — Source: [`diagrams/erd_auth.puml`](diagrams/erd_auth.puml) | Image: [`diagrams/images/erd_auth.png`](diagrams/images/erd_auth.png)
+> **Hình 3.29** — Source: [`diagrams/erd_auth.puml`](diagrams/erd_auth.puml) 
+>
+![diagrams/images/erd_auth.png](diagrams/images/erd_auth.png)
 
 #### 3.3.2 ERD — Nhóm Sản phẩm (Product Catalog)
 
-> **Hình 3.30** — Source: [`diagrams/erd_product.puml`](diagrams/erd_product.puml) | Image: [`diagrams/images/erd_product.png`](diagrams/images/erd_product.png)
+> **Hình 3.30** — Source: [`diagrams/erd_product.puml`](diagrams/erd_product.puml) 
+>
+![diagrams/images/erd_product.png](diagrams/images/erd_product.png)
 
 #### 3.3.3 ERD — Nhóm Mua sắm & Đơn hàng (Shopping & Order)
 
-> **Hình 3.31** — Source: [`diagrams/erd_shopping_order.puml`](diagrams/erd_shopping_order.puml) | Image: [`diagrams/images/erd_shopping_order.png`](diagrams/images/erd_shopping_order.png)
+> **Hình 3.31** — Source: [`diagrams/erd_shopping_order.puml`](diagrams/erd_shopping_order.puml) 
+>
+![diagrams/images/erd_shopping_order.png](diagrams/images/erd_shopping_order.png)
 
 #### 3.3.4 ERD — Nhóm Tương tác & Bảo hành (Interaction & Warranty)
 
-> **Hình 3.32** — Source: [`diagrams/erd_interaction_warranty.puml`](diagrams/erd_interaction_warranty.puml) | Image: [`diagrams/images/erd_interaction_warranty.png`](diagrams/images/erd_interaction_warranty.png)
+> **Hình 3.32** — Source: [`diagrams/erd_interaction_warranty.puml`](diagrams/erd_interaction_warranty.puml) 
+>
+![diagrams/images/erd_interaction_warranty.png](diagrams/images/erd_interaction_warranty.png)
 
 #### 3.3.5 ERD — Nhóm Thông báo (Notification)
 
-> **Hình 3.33** — Source: [`diagrams/erd_notification.puml`](diagrams/erd_notification.puml) | Image: [`diagrams/images/erd_notification.png`](diagrams/images/erd_notification.png)
+> **Hình 3.33** — Source: [`diagrams/erd_notification.puml`](diagrams/erd_notification.puml) 
+>
+![diagrams/images/erd_notification.png](diagrams/images/erd_notification.png)
 
 ### 3.4 Test Case
 

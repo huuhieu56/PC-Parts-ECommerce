@@ -1,0 +1,90 @@
+@startuml uc_admin_system
+left to right direction
+skinparam packageStyle rectangle
+
+title Hình UC.6 — Use Case Diagram — Quản lý Hệ thống\n(Admin / Sales)
+
+actor "Quản trị viên\n(Admin)" as Admin
+actor "Nhân viên bán hàng\n(Sales)" as Sales
+
+Admin --|> Sales
+
+rectangle "Quản lý Hệ thống" {
+    package "Quản lý Tài khoản (UC-AD-06)" {
+        usecase "Xem danh sách\ntài khoản" as AD06_1
+        usecase "Tạo tài khoản\nnội bộ (Sales/Warehouse)" as AD06_2
+        usecase "Khóa / Mở khóa\ntài khoản" as AD06_3
+        usecase "Gán Role / Permission" as AD06_4
+        usecase "Xóa Token/Session\n(buộc đăng xuất)" as AD06_5
+    }
+
+    package "Quản lý Mã giảm giá (UC-AD-07)" {
+        usecase "Tạo Coupon mới" as AD07_1
+        usecase "Sửa Coupon" as AD07_2
+        usecase "Xóa Coupon" as AD07_3
+    }
+
+    package "Thống kê Doanh thu (UC-AD-05)" {
+        usecase "Xem báo cáo\nthống kê doanh thu" as AD05_1
+        usecase "Lọc theo thời gian,\nCategory, trạng thái" as AD05_2
+    }
+
+    package "Xử lý Bảo hành (UC-AD-09)" {
+        usecase "Quản lý chính sách\nbảo hành (Warranty_Policy)" as AD09_1
+        usecase "Xem & Xử lý phiếu\nbảo hành (Warranty_Ticket)" as AD09_2
+        usecase "Cập nhật trạng thái:\nTiếp nhận → Xử lý →\nĐã sửa/Từ chối → Trả khách" as AD09_3
+    }
+
+    package "Xử lý Đổi trả (UC-AD-10)" {
+        usecase "Xem & Xử lý\nyêu cầu Return/Refund" as AD10_1
+        usecase "Duyệt Hoàn tiền\n(Payment Refunded)" as AD10_2
+        usecase "Duyệt Đổi hàng\n(Order mới)" as AD10_3
+        usecase "Hoàn kho sản phẩm\n(Inventory_Log)" as AD10_4
+    }
+
+    package "Quản lý Banner (UC-AD-11)" {
+        usecase "CRUD Banner/Slider\n(tiêu đề, ảnh, URL)" as AD11_1
+        usecase "Sắp xếp thứ tự\nhiển thị (kéo thả)" as AD11_2
+    }
+
+    ' Luồng ngoại lệ
+    usecase "Lỗi: Khóa\nchính mình" as EX_lock
+    usecase "Lỗi: Email\nđã tồn tại" as EX_email
+    usecase "Lỗi: Code Coupon\nđã tồn tại" as EX_code
+    usecase "Cảnh báo: Sửa Coupon\nđã có used_count > 0" as EX_used
+    usecase "Lỗi: Từ chối\nkhông nhập lý do" as EX_reason
+}
+
+' Admin only
+Admin --> AD06_1
+Admin --> AD06_2
+Admin --> AD06_3
+Admin --> AD06_4
+Admin --> AD09_1
+Admin --> AD11_1
+Admin --> AD11_2
+
+' Sales (inherited by Admin)
+Sales --> AD07_1
+Sales --> AD07_2
+Sales --> AD07_3
+Sales --> AD05_1
+Sales --> AD09_2
+Sales --> AD10_1
+
+' Include
+AD06_3 ..> AD06_5 : <<include>>\n[khi khóa]
+AD05_1 ..> AD05_2 : <<include>>
+AD09_2 ..> AD09_3 : <<include>>
+AD10_1 ..> AD10_2 : <<extend>>\n[Hoàn tiền]
+AD10_1 ..> AD10_3 : <<extend>>\n[Đổi hàng]
+AD10_1 ..> AD10_4 : <<include>>\n[khi duyệt]
+
+' Exception extends
+AD06_3 ..> EX_lock : <<extend>>
+AD06_2 ..> EX_email : <<extend>>
+AD07_1 ..> EX_code : <<extend>>
+AD07_2 ..> EX_used : <<extend>>
+AD10_1 ..> EX_reason : <<extend>>\n[Từ chối không lý do]
+
+@enduml

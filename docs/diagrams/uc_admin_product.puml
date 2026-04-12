@@ -1,0 +1,66 @@
+@startuml uc_admin_product
+left to right direction
+skinparam packageStyle rectangle
+
+title Hình UC.3 — Use Case Diagram — Quản lý Sản phẩm & Danh mục (Admin)
+
+actor "Quản trị viên\n(Admin)" as Admin
+
+rectangle "Quản lý Sản phẩm & Danh mục" {
+    package "Quản lý Danh mục (UC-AD-01)" {
+        usecase "Tạo danh mục mới" as AD01_1
+        usecase "Sửa danh mục" as AD01_2
+        usecase "Xóa danh mục" as AD01_3
+        usecase "Chọn danh mục cha\n(parent_id)" as AD01_4
+        usecase "Thêm Attribute &\nAttribute_Value" as AD01_5
+    }
+
+    package "Quản lý Sản phẩm (UC-AD-02)" {
+        usecase "Thêm sản phẩm mới" as AD02_1
+        usecase "Sửa sản phẩm" as AD02_2
+        usecase "Xóa sản phẩm" as AD02_3
+        usecase "Gán Attribute cho\nsản phẩm" as AD02_4
+        usecase "Upload ảnh sản phẩm\n(MinIO)" as AD02_5
+        usecase "Chọn Category &\nBrand" as AD02_6
+    }
+
+    package "Quản lý Thương hiệu" {
+        usecase "CRUD Brand\n(tên, logo, mô tả)" as AD02_brand
+    }
+
+    ' Luồng ngoại lệ
+    usecase "Lỗi: Tên danh mục\nđã tồn tại" as EX01
+    usecase "Lỗi: Không thể xóa\ndanh mục có sản phẩm" as EX02
+    usecase "Lỗi: SKU đã\ntồn tại" as EX03
+    usecase "Lỗi: Ảnh sai định dạng\nhoặc quá 5MB" as EX04
+    usecase "Lỗi: Xóa SP có\nđơn chưa hoàn thành" as EX05
+    usecase "Lỗi: Xóa Brand có\nsản phẩm" as EX06
+}
+
+' Admin → UC-AD-01
+Admin --> AD01_1
+Admin --> AD01_2
+Admin --> AD01_3
+
+' Admin → UC-AD-02
+Admin --> AD02_1
+Admin --> AD02_2
+Admin --> AD02_3
+Admin --> AD02_brand
+
+' Include relationships
+AD01_1 ..> AD01_4 : <<include>>
+AD01_1 ..> AD01_5 : <<include>>
+AD02_1 ..> AD02_4 : <<include>>
+AD02_1 ..> AD02_5 : <<include>>
+AD02_1 ..> AD02_6 : <<include>>
+
+' Exception extends
+AD01_1 ..> EX01 : <<extend>>
+AD01_3 ..> EX02 : <<extend>>
+AD02_1 ..> EX03 : <<extend>>
+AD02_5 ..> EX04 : <<extend>>
+AD02_3 ..> EX05 : <<extend>>
+AD02_brand ..> EX06 : <<extend>>
+
+@enduml

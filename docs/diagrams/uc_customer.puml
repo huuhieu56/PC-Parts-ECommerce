@@ -1,0 +1,95 @@
+@startuml uc_customer
+left to right direction
+skinparam packageStyle rectangle
+
+title Hình UC.2 — Use Case Diagram — Khách vãng lai & Khách hàng
+
+actor "Khách vãng lai\n(Guest)" as Guest
+actor "Khách hàng\n(Customer)" as Customer
+
+actor "VNPay/MoMo" as Payment <<external>>
+actor "LLM API" as LLM <<external>>
+actor "Email Service" as Email <<external>>
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+    package "Xác thực & Tài khoản" {
+        usecase "UC-CUS-04\nĐăng ký" as UC04
+        usecase "UC-CUS-05\nĐăng nhập" as UC05
+        usecase "UC-CUS-06\nĐăng xuất" as UC06
+        usecase "UC-CUS-16\nThay đổi mật khẩu" as UC16
+        usecase "UC-CUS-15\nQuên / Thiết lập\nlại mật khẩu" as UC15
+        usecase "UC-CUS-14\nQuản lý thông tin\ncá nhân" as UC14
+    }
+
+    package "Trải nghiệm mua sắm" {
+        usecase "UC-CUS-01\nTìm kiếm & Lọc\nsản phẩm" as UC01
+        usecase "UC-CUS-03\nQuản lý giỏ hàng" as UC03
+        usecase "UC-CUS-02\nTạo đơn hàng &\nThanh toán (Checkout)" as UC02
+        usecase "UC-CUS-09\nQuản lý danh sách\nyêu thích (Wishlist)" as UC09
+    }
+
+    package "Build PC" {
+        usecase "UC-CUS-08\nXây dựng cấu hình PC" as UC08
+        usecase "Chọn linh kiện &\nTính tổng giá" as UC08a
+        usecase "Xuất báo giá PDF" as UC08b
+        usecase "Kiểm tra tương thích\n(AI)" as UC08c
+        usecase "Thêm vào giỏ hàng /\nTạo đơn hàng" as UC08d
+    }
+
+    package "Đơn hàng & Theo dõi" {
+        usecase "UC-CUS-13\nXem lịch sử đơn hàng\n& Theo dõi vận chuyển" as UC13
+        usecase "UC-CUS-12\nQuản lý địa chỉ\ngiao hàng" as UC12
+        usecase "UC-CUS-17\nNhận thông báo\ntrạng thái đơn hàng" as UC17
+    }
+
+    package "Bảo hành & Đổi trả" {
+        usecase "UC-CUS-10\nYêu cầu bảo hành" as UC10
+        usecase "UC-CUS-11\nYêu cầu đổi trả /\nHoàn tiền" as UC11
+    }
+
+    package "Đánh giá" {
+        usecase "UC-CUS-07\nĐánh giá sản phẩm" as UC07
+    }
+}
+
+' Guest — Không cần đăng nhập
+Guest --> UC04
+Guest --> UC05
+Guest --> UC01
+Guest --> UC03 : "Giỏ Session"
+Guest --> UC08a
+Guest --> UC08b
+
+' Customer inherits Guest
+Customer --|> Guest
+
+' Customer — Cần đăng nhập
+Customer --> UC06
+Customer --> UC14
+Customer --> UC15
+Customer --> UC16
+Customer --> UC02
+Customer --> UC03 : "Giỏ DB\n(merge khi đăng nhập)"
+Customer --> UC09
+Customer --> UC08c
+Customer --> UC08d
+Customer --> UC12
+Customer --> UC13
+Customer --> UC17
+Customer --> UC10
+Customer --> UC11
+Customer --> UC07
+
+' Build PC includes
+UC08 ..> UC08a : <<include>>
+UC08 ..> UC08b : <<include>>
+UC08 ..> UC08c : <<extend>>
+UC08 ..> UC08d : <<extend>>
+
+' External
+UC02 --> Payment
+UC08c --> LLM
+UC17 --> Email
+UC15 --> Email
+
+@enduml

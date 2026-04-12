@@ -1,0 +1,122 @@
+@startuml uc_overview
+left to right direction
+skinparam packageStyle rectangle
+
+title Hình UC.1 — Use Case Diagram — Tổng quan hệ thống\nPC Parts E-Commerce
+
+actor "Khách vãng lai\n(Guest)" as Guest
+actor "Khách hàng\n(Customer)" as Customer
+actor "Quản trị viên\n(Admin)" as Admin
+actor "Nhân viên bán hàng\n(Sales)" as Sales
+actor "Nhân viên kho\n(Warehouse)" as Warehouse
+
+actor "VNPay/MoMo" as Payment <<external>>
+actor "LLM API" as LLM <<external>>
+actor "Email Service" as Email <<external>>
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+    package "Xác thực & Tài khoản" {
+        usecase "Đăng ký\n(UC-CUS-04)" as UC04
+        usecase "Đăng nhập\n(UC-CUS-05)" as UC05
+        usecase "Đăng xuất\n(UC-CUS-06)" as UC06
+        usecase "Thay đổi mật khẩu\n(UC-CUS-16)" as UC16
+        usecase "Quên mật khẩu\n(UC-CUS-15)" as UC15
+        usecase "Quản lý thông tin\ncá nhân (UC-CUS-14)" as UC14
+    }
+
+    package "Mua sắm" {
+        usecase "Tìm kiếm & Lọc\nsản phẩm (UC-CUS-01)" as UC01
+        usecase "Quản lý giỏ hàng\n(UC-CUS-03)" as UC03
+        usecase "Tạo đơn hàng &\nThanh toán (UC-CUS-02)" as UC02
+        usecase "Quản lý Wishlist\n(UC-CUS-09)" as UC09
+    }
+
+    package "Build PC" {
+        usecase "Xây dựng cấu hình PC\n(UC-CUS-08)" as UC08
+    }
+
+    package "Đơn hàng & Tương tác" {
+        usecase "Xem lịch sử đơn hàng\n(UC-CUS-13)" as UC13
+        usecase "Quản lý địa chỉ\n(UC-CUS-12)" as UC12
+        usecase "Đánh giá sản phẩm\n(UC-CUS-07)" as UC07
+        usecase "Yêu cầu bảo hành\n(UC-CUS-10)" as UC10
+        usecase "Yêu cầu đổi trả\n(UC-CUS-11)" as UC11
+        usecase "Nhận thông báo\n(UC-CUS-17)" as UC17
+    }
+
+    package "Quản trị — Sản phẩm" {
+        usecase "Quản lý danh mục\n& thuộc tính (UC-AD-01)" as AD01
+        usecase "Quản lý sản phẩm\n(UC-AD-02)" as AD02
+    }
+
+    package "Quản trị — Đơn hàng" {
+        usecase "Quản lý đơn hàng\n(UC-AD-03)" as AD03
+        usecase "Quản lý vận chuyển\n(UC-AD-08)" as AD08
+        usecase "Xử lý bảo hành\n(UC-AD-09)" as AD09
+        usecase "Xử lý đổi trả\n(UC-AD-10)" as AD10
+        usecase "Quản lý mã giảm giá\n(UC-AD-07)" as AD07
+        usecase "Thống kê doanh thu\n(UC-AD-05)" as AD05
+    }
+
+    package "Quản trị — Kho hàng" {
+        usecase "Quản lý kho hàng\n(UC-AD-04)" as AD04
+    }
+
+    package "Quản trị — Hệ thống" {
+        usecase "Quản lý tài khoản\n(UC-AD-06)" as AD06
+        usecase "Quản lý banner\n(UC-AD-11)" as AD11
+    }
+}
+
+' Guest relationships
+Guest --> UC04
+Guest --> UC01
+Guest --> UC03
+Guest --> UC05
+Guest --> UC08
+
+' Customer relationships
+Customer --> UC02
+Customer --> UC06
+Customer --> UC07
+Customer --> UC09
+Customer --> UC10
+Customer --> UC11
+Customer --> UC12
+Customer --> UC13
+Customer --> UC14
+Customer --> UC15
+Customer --> UC16
+Customer --> UC17
+
+' Customer extends Guest
+Customer --|> Guest
+
+' Admin relationships
+Admin --> AD01
+Admin --> AD02
+Admin --> AD06
+Admin --> AD11
+
+' Admin extends Sales & Warehouse
+Admin --|> Sales
+Admin --|> Warehouse
+
+' Sales relationships
+Sales --> AD03
+Sales --> AD05
+Sales --> AD07
+Sales --> AD08
+Sales --> AD09
+Sales --> AD10
+
+' Warehouse relationships
+Warehouse --> AD04
+
+' External systems
+UC02 --> Payment
+UC08 --> LLM
+UC17 --> Email
+AD03 --> Email
+
+@enduml
