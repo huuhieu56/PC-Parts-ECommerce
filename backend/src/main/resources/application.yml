@@ -91,6 +91,7 @@ minio:
   access-key: ${MINIO_ACCESS_KEY:minioadmin}
   secret-key: ${MINIO_SECRET_KEY}
   bucket: ${MINIO_BUCKET:pcparts}
+  public-url: ${MINIO_PUBLIC_URL:http://localhost:9000} 
 
 # --- Cerebras AI (LLM) ---
 cerebras:
