@@ -1,5 +1,5 @@
 @startuml seq_admin_inventory
-title Hình 3.24 — Sequence Diagram — Admin quản lý tồn kho
+title Hình 3.30 — Sequence Diagram — Admin quản lý tồn kho
 
 actor "Warehouse Staff" as Warehouse
 participant "Next.js\n(Admin CMS)" as FE

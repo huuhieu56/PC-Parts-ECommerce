@@ -1,5 +1,5 @@
 @startuml seq_logout_refresh
-title Hình 3.6 — Sequence Diagram — Đăng xuất & Refresh Token
+title Hình 3.12 — Sequence Diagram — Đăng xuất & Refresh Token
 
 actor Customer
 participant "Next.js\n(Frontend)" as FE

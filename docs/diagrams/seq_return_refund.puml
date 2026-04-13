@@ -1,5 +1,5 @@
 @startuml seq_return_refund
-title Hình 3.17 — Sequence Diagram — Đổi trả & Hoàn tiền
+title Hình 3.23 — Sequence Diagram — Đổi trả & Hoàn tiền
 
 actor Customer
 participant "Next.js" as FE

@@ -1,5 +1,5 @@
 @startuml seq_order_history
-title Hình 3.15 — Sequence Diagram — Xem lịch sử & Chi tiết đơn hàng
+title Hình 3.21 — Sequence Diagram — Xem lịch sử & Chi tiết đơn hàng
 
 actor Customer
 participant "Next.js\n(Frontend)" as FE

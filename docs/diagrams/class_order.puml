@@ -1,5 +1,5 @@
 @startuml class_order
-title Hình 3.3 — Class Diagram — Module Order & Payment
+title Hình 3.4 — Class Diagram — Module Order & Payment
 
 skinparam classAttributeIconSize 0
 skinparam class {
@@ -18,7 +18,7 @@ class Order {
     - note : String
     - coupon : Coupon
     - details : List<OrderDetail>
-    - payment : Payment
+    - payments : List<Payment>
     - shipping : Shipping
     + cancel() : void
     + updateStatus(newStatus) : void
@@ -74,9 +74,7 @@ enum OrderStatus {
 
 enum PaymentMethod {
     COD
-    VNPAY
     MOMO
-    BANK_TRANSFER
 }
 
 enum PaymentStatus {
@@ -87,7 +85,7 @@ enum PaymentStatus {
 }
 
 Order "1" --> "*" OrderDetail
-Order "1" --> "1" Payment
+Order "1" --> "*" Payment
 Order "1" --> "1" Shipping
 Order "1" --> "*" OrderStatusHistory
 OrderDetail --> Product

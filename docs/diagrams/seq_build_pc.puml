@@ -1,5 +1,5 @@
 @startuml seq_build_pc
-title Hình 3.21 — Sequence Diagram — Build PC + Kiểm tra tương thích AI
+title Hình 3.27 — Sequence Diagram — Build PC + Kiểm tra tương thích AI
 
 actor User
 participant "Next.js" as FE

@@ -1,5 +1,5 @@
 @startuml seq_review
-title Hình 3.19 — Sequence Diagram — Đánh giá sản phẩm
+title Hình 3.25 — Sequence Diagram — Đánh giá sản phẩm
 
 actor Customer
 participant "Next.js\n(Frontend)" as FE

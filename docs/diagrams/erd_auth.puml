@@ -1,5 +1,5 @@
 @startuml erd_auth
-title Hình 3.29 — ERD — Nhóm Phân quyền (Auth & User)
+title Hình 3.35 — ERD — Nhóm Phân quyền (Auth & User)
 
 skinparam class {
     BackgroundColor #E8F0FE

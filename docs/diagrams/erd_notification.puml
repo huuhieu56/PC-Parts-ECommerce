@@ -1,5 +1,5 @@
 @startuml erd_notification
-title Hình 3.33 — ERD — Nhóm Thông báo (Notification)
+title Hình 3.39 — ERD — Nhóm Thông báo (Notification)
 
 skinparam class {
     BackgroundColor #E8F0FE

@@ -1,5 +1,5 @@
 @startuml seq_admin_coupon
-title Hình 3.27 — Sequence Diagram — Admin quản lý mã giảm giá
+title Hình 3.33 — Sequence Diagram — Admin quản lý mã giảm giá
 
 actor Admin
 participant "Next.js\n(Admin CMS)" as FE

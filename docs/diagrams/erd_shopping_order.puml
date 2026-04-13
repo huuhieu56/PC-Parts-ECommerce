@@ -1,5 +1,5 @@
 @startuml erd_shopping_order
-title Hình 3.31 — ERD — Nhóm Mua sắm & Đơn hàng (Shopping & Order)
+title Hình 3.37 — ERD — Nhóm Mua sắm & Đơn hàng (Shopping & Order)
 
 skinparam class {
     BackgroundColor #E8F0FE

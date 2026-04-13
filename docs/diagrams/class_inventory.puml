@@ -1,0 +1,48 @@
+@startuml class_inventory
+title Hình 3.5 — Class Diagram — Module Inventory
+
+class Inventory {
+    - id : Long
+    - product : Product
+    - quantity : Integer
+    - lowStockThreshold : Integer
+    - supplier : Supplier
+    - updatedAt : LocalDateTime
+    + isLowStock() : Boolean
+    + adjustQuantity(delta) : void
+    + importStock(quantity) : void
+}
+
+class InventoryLog {
+    - id : Long
+    - product : Product
+    - type : InventoryLogType
+    - quantityChange : Integer
+    - performedBy : Account
+    - note : String
+    - createdAt : LocalDateTime
+}
+
+class Supplier {
+    - id : Long
+    - name : String
+    - contactPerson : String
+    - phone : String
+    - email : String
+    - address : String
+}
+
+enum InventoryLogType {
+    IMPORT
+    SALE
+    RETURN
+    ADJUSTMENT
+}
+
+Inventory --> Product
+Inventory --> Supplier
+InventoryLog --> Product
+InventoryLog --> Account
+InventoryLog --> InventoryLogType
+Supplier "1" --> "*" Inventory : supplies
+@enduml

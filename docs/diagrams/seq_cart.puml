@@ -1,5 +1,5 @@
 @startuml seq_cart
-title Hình 3.12 — Sequence Diagram — Quản lý giỏ hàng (Guest & Customer)
+title Hình 3.18 — Sequence Diagram — Quản lý giỏ hàng (Guest & Customer)
 
 actor User
 participant "Next.js\n(Frontend)" as FE

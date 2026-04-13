@@ -1,5 +1,5 @@
 @startuml seq_wishlist
-title Hình 3.20 — Sequence Diagram — Quản lý Wishlist
+title Hình 3.26 — Sequence Diagram — Quản lý Wishlist
 
 actor Customer
 participant "Next.js\n(Frontend)" as FE

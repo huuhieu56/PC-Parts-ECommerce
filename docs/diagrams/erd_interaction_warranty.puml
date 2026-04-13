@@ -1,5 +1,5 @@
 @startuml erd_interaction_warranty
-title Hình 3.32 — ERD — Nhóm Tương tác & Bảo hành (Interaction & Warranty)
+title Hình 3.38 — ERD — Nhóm Tương tác & Bảo hành (Interaction & Warranty)
 
 skinparam class {
     BackgroundColor #E8F0FE

@@ -1,5 +1,5 @@
 @startuml seq_admin_order_status
-title Hình 3.25 — Sequence Diagram — Admin cập nhật trạng thái đơn hàng
+title Hình 3.31 — Sequence Diagram — Admin cập nhật trạng thái đơn hàng
 
 actor "Sales Staff" as Sales
 participant "Next.js\n(Admin CMS)" as FE

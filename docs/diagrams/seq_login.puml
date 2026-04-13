@@ -1,5 +1,5 @@
 @startuml seq_login
-title Hình 3.5 — Sequence Diagram — Đăng nhập & Merge giỏ hàng
+title Hình 3.11 — Sequence Diagram — Đăng nhập & Merge giỏ hàng
 
 actor Customer
 participant "Next.js\n(Frontend)" as FE

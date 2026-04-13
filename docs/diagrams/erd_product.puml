@@ -1,5 +1,5 @@
 @startuml erd_product
-title Hình 3.30 — ERD — Nhóm Sản phẩm (Product Catalog)
+title Hình 3.36 — ERD — Nhóm Sản phẩm (Product Catalog)
 
 skinparam class {
     BackgroundColor #E8F0FE

@@ -1,11 +1,11 @@
 @startuml seq_checkout
-title Hình 3.13 — Sequence Diagram — Checkout & Tạo đơn hàng
+title Hình 3.19 — Sequence Diagram — Checkout & Tạo đơn hàng
 
 actor Customer
 participant "Next.js" as FE
 participant "Spring Boot" as BE
 database "PostgreSQL" as DB
-participant "VNPay/MoMo" as Pay
+participant "MoMo Gateway" as Pay
 
 Customer -> FE : Nhấn "Đặt hàng"
 FE -> BE : POST /api/v1/orders\n{address_id, payment_method, coupon_code?}
@@ -39,7 +39,7 @@ else Đủ hàng
 
     BE -> DB : DELETE Cart_Item (đã đặt)
 
-    alt Thanh toán Online (VNPay/MoMo)
+    alt Thanh toán Online (MoMo)
         BE -> Pay : Tạo payment URL
         Pay --> BE : Payment URL
         BE --> FE : 200 {orderId, paymentUrl}
@@ -47,7 +47,7 @@ else Đủ hàng
         Customer -> Pay : Thanh toán
         Pay -> BE : IPN Callback\n{transactionId, status}
         BE -> DB : UPDATE Payment\nSET status=SUCCESS
-    else COD / Chuyển khoản
+    else COD
         BE --> FE : 201 {orderId}
     end
 

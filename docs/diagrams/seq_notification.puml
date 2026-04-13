@@ -1,5 +1,5 @@
 @startuml seq_notification
-title Hình 3.28 — Sequence Diagram — Gửi thông báo
+title Hình 3.34 — Sequence Diagram — Gửi thông báo
 
 participant "Spring Boot\n(Backend)" as BE
 database "PostgreSQL" as DB

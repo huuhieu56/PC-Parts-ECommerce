@@ -1,5 +1,5 @@
 @startuml seq_update_profile
-title Hình 3.9 — Sequence Diagram — Cập nhật thông tin cá nhân
+title Hình 3.15 — Sequence Diagram — Cập nhật thông tin cá nhân
 
 actor Customer
 participant "Next.js\n(Frontend)" as FE

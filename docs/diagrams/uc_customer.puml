@@ -7,7 +7,7 @@ title Hình UC.2 — Use Case Diagram — Khách vãng lai & Khách hàng
 actor "Khách vãng lai\n(Guest)" as Guest
 actor "Khách hàng\n(Customer)" as Customer
 
-actor "VNPay/MoMo" as Payment <<external>>
+actor "MoMo" as Payment <<external>>
 actor "LLM API" as LLM <<external>>
 actor "Email Service" as Email <<external>>
 

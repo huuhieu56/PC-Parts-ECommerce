@@ -10,7 +10,7 @@ actor "Quản trị viên\n(Admin)" as Admin
 actor "Nhân viên bán hàng\n(Sales)" as Sales
 actor "Nhân viên kho\n(Warehouse)" as Warehouse
 
-actor "VNPay/MoMo" as Payment <<external>>
+actor "MoMo" as Payment <<external>>
 actor "LLM API" as LLM <<external>>
 actor "Email Service" as Email <<external>>
 

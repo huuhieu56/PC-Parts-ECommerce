@@ -26,7 +26,6 @@ node "<<execution environment>>\nApplication Server" as appserver {
 }
 
 node "<<device>>\nExternal Services" as ext {
-    artifact "VNPay Gateway" as vnpay
     artifact "MoMo Gateway" as momo
     artifact "LLM API Provider" as llm
     artifact "Email Service" as smtp
@@ -40,7 +39,6 @@ backend --> postgres : <<JDBC>>
 backend --> redis : <<TCP>>
 backend --> minio : <<S3 API>>
 
-backend --> vnpay : <<HTTPS>>
 backend --> momo : <<HTTPS>>
 backend --> llm : <<HTTPS>>
 backend --> smtp : <<SMTP>>

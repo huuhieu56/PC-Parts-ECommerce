@@ -1,0 +1,38 @@
+@startuml class_coupon
+title Hình 3.6 — Class Diagram — Module Coupon
+
+class Coupon {
+    - id : Long
+    - code : String
+    - discountType : DiscountType
+    - discountValue : BigDecimal
+    - minOrderValue : BigDecimal
+    - maxDiscount : BigDecimal
+    - maxUses : Integer
+    - usedCount : Integer
+    - startDate : LocalDateTime
+    - endDate : LocalDateTime
+    - createdAt : LocalDateTime
+    + isValid() : Boolean
+    + isExpired() : Boolean
+    + calculateDiscount(orderTotal) : BigDecimal
+}
+
+class CouponUsage {
+    - id : Long
+    - coupon : Coupon
+    - user : User
+    - order : Order
+    - usedAt : LocalDateTime
+}
+
+enum DiscountType {
+    PERCENTAGE
+    FIXED_AMOUNT
+}
+
+Coupon "1" --> "*" CouponUsage : tracked by
+Coupon --> DiscountType
+CouponUsage --> User
+CouponUsage --> Order
+@enduml

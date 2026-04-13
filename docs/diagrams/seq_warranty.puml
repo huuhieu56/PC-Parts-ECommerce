@@ -1,5 +1,5 @@
 @startuml seq_warranty
-title Hình 3.18 — Sequence Diagram — Gửi yêu cầu bảo hành
+title Hình 3.24 — Sequence Diagram — Gửi yêu cầu bảo hành
 
 actor Customer
 participant "Next.js" as FE

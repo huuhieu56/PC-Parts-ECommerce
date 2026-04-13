@@ -1,5 +1,5 @@
 @startuml seq_register
-title Hình 3.4 — Sequence Diagram — Đăng ký tài khoản
+title Hình 3.10 — Sequence Diagram — Đăng ký tài khoản
 
 actor Customer
 participant "Next.js\n(Frontend)" as FE

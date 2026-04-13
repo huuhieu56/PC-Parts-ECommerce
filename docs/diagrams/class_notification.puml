@@ -1,0 +1,25 @@
+@startuml class_notification
+title Hình 3.9 — Class Diagram — Module Notification
+
+class Notification {
+    - id : Long
+    - user : User
+    - title : String
+    - message : String
+    - type : NotificationType
+    - isRead : Boolean
+    - createdAt : LocalDateTime
+    + markAsRead() : void
+}
+
+enum NotificationType {
+    ORDER_STATUS
+    PAYMENT
+    PROMOTION
+    WARRANTY
+    SYSTEM
+}
+
+Notification --> User
+Notification --> NotificationType
+@enduml

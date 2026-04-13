@@ -1,0 +1,38 @@
+@startuml class_shopping
+title Hình 3.3 — Class Diagram — Module Shopping (Cart & Wishlist)
+
+class Cart {
+    - id : Long
+    - user : User
+    - sessionId : String
+    - items : List<CartItem>
+    - createdAt : LocalDateTime
+    - updatedAt : LocalDateTime
+    + addItem(product, quantity) : CartItem
+    + updateItemQuantity(itemId, quantity) : CartItem
+    + removeItem(itemId) : void
+    + clear() : void
+    + getTotalPrice() : BigDecimal
+}
+
+class CartItem {
+    - id : Long
+    - cart : Cart
+    - product : Product
+    - quantity : Integer
+    + getLineTotal() : BigDecimal
+}
+
+class Wishlist {
+    - id : Long
+    - user : User
+    - product : Product
+    - createdAt : LocalDateTime
+}
+
+Cart "1" --> "*" CartItem : contains
+CartItem --> Product
+Cart --> User
+Wishlist --> User
+Wishlist --> Product
+@enduml

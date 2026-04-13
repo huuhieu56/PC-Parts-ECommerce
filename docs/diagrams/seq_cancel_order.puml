@@ -1,5 +1,5 @@
 @startuml seq_cancel_order
-title Hình 3.16 — Sequence Diagram — Hủy đơn hàng
+title Hình 3.22 — Sequence Diagram — Hủy đơn hàng
 
 actor Customer
 participant "Next.js\n(Frontend)" as FE
@@ -32,7 +32,7 @@ else Đơn hàng PENDING
 
     opt Đã thanh toán Online
         BE -> DB : UPDATE Payment\nSET status = 'REFUNDED'
-        note over BE : Trigger hoàn tiền\nqua VNPay/MoMo API
+        note over BE : Trigger hoàn tiền\nqua MoMo API
     end
 
     BE -> DB : INSERT Notification\n(user_id, "Đơn hàng #id đã được hủy")

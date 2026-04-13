@@ -50,13 +50,14 @@ Hệ thống bao gồm các module chức năng chính sau:
 | M01 | Xác thực & Phân quyền | Đăng ký, Đăng nhập, RBAC (Role-Based Access Control) |
 | M02 | Quản lý Sản phẩm | CRUD Product, Category, Brand, Attribute, Product\_Image |
 | M03 | Trải nghiệm Mua sắm | Tìm kiếm/Lọc, Giỏ hàng (Guest + Customer), Wishlist |
-| M04 | Đơn hàng & Thanh toán | Checkout, Payment (COD/VNPay/MoMo/CK), Shipping |
+| M04 | Đơn hàng & Thanh toán | Checkout, Payment (COD/MoMo), Shipping |
 | M05 | Xây dựng Cấu hình PC | Build PC, AI (LLM) kiểm tra tương thích |
 | M06 | Quản lý Kho hàng | Inventory, Inventory\_Log, Supplier |
 | M07 | Khuyến mãi | Coupon, Coupon\_Usage |
 | M08 | Tương tác Người dùng | Review, Review\_Image |
 | M09 | Bảo hành & Đổi trả | Warranty\_Policy, Warranty\_Ticket, Return/Refund |
-| M10 | Quản trị Hệ thống | Quản lý tài khoản, Thống kê doanh thu |
+| M10 | Thông báo | Notification (Email & In-app) |
+| M11 | Quản trị Hệ thống | Quản lý tài khoản, Thống kê doanh thu |
 
 ### 1.3. Tài liệu tham chiếu (References)
 
@@ -160,7 +161,7 @@ Hệ thống được thiết kế theo kiến trúc **Monolithic phân lớp (L
 ┌──────────────────────────────┼──────────────────────────────────┐
 │              EXTERNAL SERVICES (Dịch vụ bên ngoài)               │
 │   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐       │
-│   │  VNPay /     │   │  LLM API     │   │  Email       │       │
+│   │  MoMo        │   │  LLM API     │   │  Email       │       │
 │   │  MoMo API    │   │  (AI tương   │   │  Service     │       │
 │   │  (Thanh toán)│   │   thích)     │   │  (SMTP)      │       │
 │   └──────────────┘   └──────────────┘   └──────────────┘       │
@@ -179,7 +180,7 @@ Hệ thống được thiết kế theo kiến trúc **Monolithic phân lớp (L
 | **Data Layer** | Lưu trữ dữ liệu chính | PostgreSQL |
 | **Cache Layer** | Session (Guest Cart), Caching dữ liệu hot | Redis |
 | **File Storage** | Hình ảnh sản phẩm, Review, PDF báo giá | MinIO |
-| **External Integration** | Cổng thanh toán, AI (LLM), Email | VNPay/MoMo SDK, LLM API (không cố định nhà cung cấp), SMTP |
+| **External Integration** | Cổng thanh toán, AI (LLM), Email | MoMo SDK, LLM API (không cố định nhà cung cấp), SMTP |
 
 ### 2.4. Nguyên tắc thiết kế (Design Principles)
 
@@ -481,7 +482,7 @@ Hệ thống quản lý **32 thực thể (Entity)** chính, được nhóm thà
 |:----|:--------------|:----------|:------|
 | id | BIGINT | PK, AUTO\_INCREMENT | Khóa chính |
 | order\_id | BIGINT | FK → Order(id), NOT NULL | Đơn hàng |
-| method | VARCHAR(20) | NOT NULL | COD, VNPAY, MOMO, BANK\_TRANSFER |
+| method | VARCHAR(20) | NOT NULL | COD, MOMO |
 | amount | DECIMAL(15,2) | NOT NULL | Số tiền |
 | status | VARCHAR(20) | DEFAULT 'PENDING' | PENDING, SUCCESS, FAILED, REFUNDED |
 | transaction\_id | VARCHAR(255) | NULLABLE | Mã giao dịch từ cổng thanh toán |
@@ -705,13 +706,13 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 
 #### 4.2.5. Module Build PC (M05)
 
-> **Ghi chú kiến trúc:** Build PC là tính năng **frontend-only**. Người dùng chọn linh kiện, tính giá, xuất báo giá trên giao diện. Backend chỉ hỗ trợ 1 API kiểm tra tương thích AI (Phase 4).
+> **Ghi chú kiến trúc:** Module Build PC **không lưu trữ cấu hình vào database** — trạng thái chọn linh kiện được quản lý tại Frontend (Zustand state). Backend đóng vai trò **tầng trung gian (middleware)** cho tính năng kiểm tra tương thích AI: nhận request từ Frontend, xây dựng prompt từ thông số kỹ thuật sản phẩm, gọi LLM API và trả kết quả phân tích. Việc đặt LLM API key tại Backend đảm bảo **không lộ credentials ra phía Client**.
 
 | Method | Endpoint | Mô tả | Actor |
 |:-------|:---------|:------|:------|
-| POST | `/products/check-compatibility` | Kiểm tra tương thích AI (LLM) — nhận list product IDs, gọi LLM, trả kết quả | Customer |
+| POST | `/products/check-compatibility` | Kiểm tra tương thích AI — Backend nhận danh sách product IDs, truy vấn thông số kỹ thuật, xây dựng prompt, gọi LLM API, trả kết quả phân tích | Customer |
 
-> Các thao tác khác (chọn linh kiện, tính giá, xuất báo giá PDF, thêm vào giỏ hàng) được xử lý hoàn toàn trên **Frontend** (Zustand state + PDF export lib). Khi người dùng muốn đặt hàng từ Build PC, frontend gọi API tạo đơn hàng tiêu chuẩn (`POST /orders`).
+> Các thao tác UI (chọn linh kiện, tính tổng giá, xuất báo giá PDF) được xử lý tại Frontend (Zustand state + PDF export lib). Backend không persist cấu hình Build PC mà chỉ cung cấp dữ liệu sản phẩm (qua API Product Catalog) và xử lý logic AI (qua endpoint trên). Khi người dùng muốn đặt hàng từ Build PC, Frontend gọi API tạo đơn hàng tiêu chuẩn (`POST /orders`).
 
 #### 4.2.6. Module Kho hàng (M06 - Inventory)
 
@@ -759,7 +760,16 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 | GET | `/admin/returns` | Quản lý đổi trả | Admin/Sales |
 | PATCH | `/admin/returns/{id}` | Duyệt/từ chối đổi trả | Admin/Sales |
 
-#### 4.2.10. Module Quản trị (M10 - Admin)
+#### 4.2.10. Module Thông báo (M10 - Notification)
+
+| Method | Endpoint | Mô tả | Actor |
+|:-------|:---------|:------|:------|
+| GET | `/notifications` | Danh sách thông báo của user | Customer |
+| PATCH | `/notifications/{id}/read` | Đánh dấu đã đọc | Customer |
+| PATCH | `/notifications/read-all` | Đánh dấu tất cả đã đọc | Customer |
+| GET | `/notifications/unread-count` | Đếm thông báo chưa đọc | Customer |
+
+#### 4.2.11. Module Quản trị (M11 - Admin)
 
 | Method | Endpoint | Mô tả | Actor |
 |:-------|:---------|:------|:------|
@@ -780,7 +790,6 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 
 | Hệ thống bên ngoài | Giao thức | Mục đích | Ghi chú |
 |:--------------------|:----------|:---------|:--------|
-| VNPay | HTTPS / Redirect | Thanh toán trực tuyến | Sử dụng VNPay SDK, callback URL |
 | MoMo | HTTPS / Redirect | Thanh toán trực tuyến | Sử dụng MoMo SDK, IPN callback |
 | LLM API | HTTPS / REST | Đánh giá tương thích linh kiện PC | Gửi thông số kỹ thuật dạng prompt; không cố định nhà cung cấp (OpenAI, Google Gemini, Anthropic, self-hosted, ...) — thiết kế qua abstraction layer để dễ thay đổi |
 | Email Service | SMTP | Gửi email xác nhận đơn, thông báo | Có thể dùng SendGrid, SES |
@@ -824,7 +833,7 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 5. Trừ kho: `Inventory.quantity -= qty`, tạo Inventory\_Log (type=SELL).
 6. Nếu có Coupon: tạo Coupon\_Usage, tăng Coupon.used\_count.
 7. Xóa Cart\_Item đã thanh toán.
-8. Nếu online payment (VNPay/MoMo): redirect sang cổng → callback cập nhật Payment.status + transaction\_id.
+8. Nếu online payment (MoMo): redirect sang cổng → callback cập nhật Payment.status + transaction\_id.
 9. Gửi email xác nhận.
 
 **State Machine — Trạng thái đơn hàng:**
@@ -843,14 +852,19 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 
 ### 5.4. BuildPCService — Xây dựng cấu hình PC
 
-**Trách nhiệm:** Hiển thị slot linh kiện, tính tổng giá, xuất báo giá PDF, kiểm tra tương thích AI.
+**Trách nhiệm:** Cung cấp dữ liệu linh kiện theo từng slot (Category), xử lý logic kiểm tra tương thích AI qua LLM, hỗ trợ thêm cấu hình vào giỏ hàng.
 
-**Quy tắc quan trọng:**
+**Đặc điểm kiến trúc:**
+
+- **Không persist cấu hình trong database** — trạng thái Build PC (danh sách linh kiện đã chọn, tổng giá) được quản lý hoàn toàn tại Frontend thông qua Zustand state management.
+- **Backend đóng vai trò tầng trung gian (Backend-as-Proxy)** cho tính năng AI: nhận danh sách `product_id` từ Frontend → truy vấn `Product_Attribute` (thông số kỹ thuật) từ Database → xây dựng prompt → gọi LLM API → trả kết quả phân tích cho Frontend. Thiết kế này đảm bảo **API key của LLM provider không bị lộ ra phía Client**, đồng thời cho phép Backend kiểm soát nội dung prompt và format kết quả trả về.
+
+**Quy tắc nghiệp vụ:**
 
 - **Không cần đăng nhập:** Chọn linh kiện, xem tổng giá, xuất báo giá PDF.
 - **Cần đăng nhập:** Kiểm tra tương thích AI, thêm vào giỏ hàng, tạo đơn hàng.
 - **Khi chưa đăng nhập nhấn nút cần đăng nhập:** Lưu cấu hình vào Session (Redis) → Redirect đăng nhập → Sau đăng nhập, khôi phục cấu hình từ Session.
-- **AI Compatibility Check:** Gửi thông số kỹ thuật (Attribute\_Value) của các linh kiện đã chọn tới LLM API → Nhận phân tích + gợi ý thay thế → Trả cho user.
+- **AI Compatibility Check:** Backend truy vấn `Product_Attribute` của các linh kiện → xây dựng structured prompt từ thông số kỹ thuật → gọi LLM API (qua abstraction layer, không phụ thuộc nhà cung cấp cụ thể) → parse kết quả → trả `{compatible, analysis, suggestions[]}` cho Frontend.
 - **Thêm vào giỏ:** Mỗi linh kiện trong cấu hình → tạo 1 Cart\_Item riêng lẻ trong Cart.
 
 ### 5.5. InventoryService — Quản lý kho
@@ -968,8 +982,8 @@ Ma trận dưới đây liên kết từ **Yêu cầu người dùng (UR)** tron
 |:------------|:-------------|:-------|:---------|:---------------|
 | UR-AUTH-01 | Đăng ký & Đăng nhập | M01 | UC-CUS-04, UC-CUS-05, UC-CUS-06 | Account, User, Token, Cart |
 | UR-AUTH-02 | Phân quyền RBAC | M01 | — | Role, Permission, Role\_Permission |
-| UR-PROF-01 | Quản lý thông tin cá nhân | M10 | UC-CUS-14 | User, Account |
-| UR-ADDR-01 | Quản lý địa chỉ | M10 | UC-CUS-12 | Address |
+| UR-PROF-01 | Quản lý thông tin cá nhân | M11 | UC-CUS-14 | User, Account |
+| UR-ADDR-01 | Quản lý địa chỉ | M11 | UC-CUS-12 | Address |
 | UR-CAT-01 | Quản lý danh mục | M02 | UC-AD-01 | Category, Attribute, Attribute\_Value |
 | UR-PROD-01 | Quản lý sản phẩm | M02 | UC-AD-02 | Product, Product\_Attribute, Product\_Image, Inventory |
 | UR-BRAND-01 | Quản lý thương hiệu | M02 | UC-AD-02 | Brand |
@@ -988,11 +1002,11 @@ Ma trận dưới đây liên kết từ **Yêu cầu người dùng (UR)** tron
 | UR-REV-01 | Đánh giá sản phẩm | M08 | UC-CUS-07 | Review, Review\_Image |
 | UR-BLD-01 | Build PC | M05 | UC-CUS-08 | Product, Cart, Cart\_Item, Order, Order\_Detail |
 | UR-AI-01 | Đánh giá tương thích LLM | M05 | UC-CUS-08 | Product\_Attribute (external: LLM API) |
-| UR-USR-01 | Quản lý tài khoản | M10 | UC-AD-06 | Account, User, Role, Permission |
+| UR-USR-01 | Quản lý tài khoản | M11 | UC-AD-06 | Account, User, Role, Permission |
 | UR-WARPOL-01 | Chính sách bảo hành | M09 | UC-AD-09 | Warranty\_Policy |
 | UR-WAR-01 | Bảo hành | M09 | UC-CUS-10, UC-AD-09 | Warranty\_Ticket |
 | UR-RET-01 | Đổi trả & Hoàn tiền | M09 | UC-CUS-11, UC-AD-10 | Return, Payment, Inventory\_Log |
-| UR-AD-05 | Thống kê doanh thu | M10 | UC-AD-05 | Order, Order\_Detail, Product, Category |
+| UR-AD-05 | Thống kê doanh thu | M11 | UC-AD-05 | Order, Order\_Detail, Product, Category |
 
 ---
 
@@ -1052,7 +1066,7 @@ sequenceDiagram
     participant BE as Spring Boot
     participant DB as PostgreSQL
     participant Cache as Redis
-    participant Pay as VNPay/MoMo
+    participant Pay as MoMo
     participant Email as Email Service
 
     Customer->>FE: Nhấn "Đặt hàng"
@@ -1092,7 +1106,7 @@ sequenceDiagram
 
         BE->>DB: DELETE Cart_Item (đã đặt)
 
-        alt Thanh toán Online (VNPay/MoMo)
+        alt Thanh toán Online (MoMo)
             BE->>Pay: Tạo payment URL
             Pay-->>BE: Payment URL
             BE-->>FE: 200 {orderId, paymentUrl}
@@ -1471,9 +1485,7 @@ classDiagram
     class PaymentMethod {
         <<enumeration>>
         COD
-        VNPAY
         MOMO
-        BANK_TRANSFER
     }
 
     class PaymentStatus {
@@ -1485,7 +1497,7 @@ classDiagram
     }
 
     Order "1" --> "*" OrderDetail
-    Order "1" --> "1" Payment
+    Order "1" --> "*" Payment
     Order "1" --> "1" Shipping
     Order "1" --> "*" OrderStatusHistory
     OrderDetail --> Product
@@ -1664,7 +1676,7 @@ classDiagram
 ```json
 {
   "addressId": 3,
-  "paymentMethod": "VNPAY",
+  "paymentMethod": "MOMO",
   "couponCode": "SALE2026",
   "note": "Giao giờ hành chính"
 }
@@ -1681,8 +1693,8 @@ classDiagram
     "discountAmount": 500000,
     "shippingFee": 30000,
     "totalAmount": 25500000,
-    "paymentMethod": "VNPAY",
-    "paymentUrl": "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=...",
+    "paymentMethod": "MOMO",
+    "paymentUrl": "https://test-payment.momo.vn/v2/gateway/api/create?orderId=...",
     "status": "PENDING"
   }
 }
@@ -1757,7 +1769,7 @@ classDiagram
 | Product.condition | `NEW`, `BOX`, `TRAY`, `SECOND_HAND` |
 | Product.status | `ACTIVE`, `INACTIVE`, `DISCONTINUED` |
 | Order.status | `PENDING`, `DELIVERING`, `COMPLETED`, `CANCELLED` |
-| Payment.method | `COD`, `VNPAY`, `MOMO`, `BANK_TRANSFER` |
+| Payment.method | `COD`, `MOMO` |
 | Payment.status | `PENDING`, `SUCCESS`, `FAILED`, `REFUNDED` |
 | Shipping.status | `WAITING_PICKUP`, `IN_TRANSIT`, `DELIVERED`, `FAILED` |
 | Inventory\_Log.type | `IMPORT`, `SELL`, `RETURN`, `ADJUSTMENT` |
@@ -1791,7 +1803,7 @@ classDiagram
 | Monitoring | Prometheus + Grafana |
 | Logging | ELK Stack (Elasticsearch, Logstash, Kibana) |
 | Email | SMTP (SendGrid / AWS SES) |
-| Payment Gateway | VNPay SDK, MoMo SDK |
+| Payment Gateway | MoMo SDK |
 | AI Integration | LLM API (provider-agnostic: OpenAI, Google Gemini, Anthropic, self-hosted, ...) |
 
 ---

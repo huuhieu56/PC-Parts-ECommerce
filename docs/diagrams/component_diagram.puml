@@ -35,12 +35,12 @@ package "<<subsystem>> PC Parts E-Commerce Backend" {
     }
 
     package "Administration Layer" {
-        [M10: Admin & Report] as M10
+        [M10: Notification] as M10
+        [M11: Admin & Report] as M11
     }
 }
 
 package "<<subsystem>> External Services" #FFF3E0 {
-    [VNPay Gateway] as VNPay
     [MoMo Gateway] as MoMo
     [LLM API] as LLM
     [Email Service] as SMTP
@@ -66,7 +66,7 @@ interface "IPayment" as IPay
 interface "ICompatibility" as ICompat
 interface "INotification" as INotif
 
-VNPay -up- IPay
+MoMo -up- IPay
 LLM -up- ICompat
 SMTP -up- INotif
 
@@ -77,6 +77,9 @@ M05 ..> IAuth : <<use>>
 M08 ..> IAuth : <<use>>
 M09 ..> IAuth : <<use>>
 M10 ..> IAuth : <<use>>
+M11 ..> IAuth : <<use>>
+
+M10 ..> INotif : <<use>>
 
 ' === Dependencies on IProductCatalog ===
 M03 ..> IProd : <<use>>
@@ -95,7 +98,6 @@ M09 ..> IInv : <<use>>
 ' === External Dependencies ===
 M04 ..> IPay : <<use>>
 M04 ..> INotif : <<use>>
-MoMo ..> IPay
 M05 ..> ICompat : <<use>>
 
 @enduml

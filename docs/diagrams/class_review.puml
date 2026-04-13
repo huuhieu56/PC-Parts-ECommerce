@@ -1,0 +1,27 @@
+@startuml class_review
+title Hình 3.7 — Class Diagram — Module Review
+
+class Review {
+    - id : Long
+    - user : User
+    - product : Product
+    - order : Order
+    - rating : Integer
+    - content : String
+    - images : List<ReviewImage>
+    - createdAt : LocalDateTime
+    + addImage(imageUrl) : ReviewImage
+    + update(rating, content) : void
+}
+
+class ReviewImage {
+    - id : Long
+    - review : Review
+    - imageUrl : String
+}
+
+Review "1" --> "*" ReviewImage : has images
+Review --> User
+Review --> Product
+Review --> Order
+@enduml

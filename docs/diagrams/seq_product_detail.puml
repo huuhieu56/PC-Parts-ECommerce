@@ -1,5 +1,5 @@
 @startuml seq_product_detail
-title Hình 3.11 — Sequence Diagram — Xem chi tiết sản phẩm
+title Hình 3.17 — Sequence Diagram — Xem chi tiết sản phẩm
 
 actor User
 participant "Next.js\n(Frontend)" as FE

@@ -1,5 +1,5 @@
 @startuml seq_admin_users
-title Hình 3.26 — Sequence Diagram — Admin quản lý người dùng
+title Hình 3.32 — Sequence Diagram — Admin quản lý người dùng
 
 actor Admin
 participant "Next.js\n(Admin CMS)" as FE

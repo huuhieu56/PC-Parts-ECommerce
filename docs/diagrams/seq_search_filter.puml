@@ -1,5 +1,5 @@
 @startuml seq_search_filter
-title Hình 3.10 — Sequence Diagram — Duyệt, Tìm kiếm & Lọc sản phẩm
+title Hình 3.16 — Sequence Diagram — Duyệt, Tìm kiếm & Lọc sản phẩm
 
 actor User
 participant "Next.js\n(Frontend)" as FE

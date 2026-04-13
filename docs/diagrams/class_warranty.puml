@@ -1,0 +1,78 @@
+@startuml class_warranty
+title Hình 3.8 — Class Diagram — Module Warranty & Return
+
+class WarrantyPolicy {
+    - id : Long
+    - category : Category
+    - product : Product
+    - durationMonths : Integer
+    - conditions : String
+    - description : String
+    + isWithinWarranty(purchaseDate) : Boolean
+}
+
+class WarrantyTicket {
+    - id : Long
+    - user : User
+    - product : Product
+    - order : Order
+    - serialNumber : String
+    - issueDescription : String
+    - status : WarrantyStatus
+    - resolution : String
+    - resolvedAt : LocalDateTime
+    - createdAt : LocalDateTime
+    - updatedAt : LocalDateTime
+    + updateStatus(newStatus) : void
+    + resolve(resolution) : void
+}
+
+class ReturnRequest {
+    - id : Long
+    - user : User
+    - order : Order
+    - orderDetail : OrderDetail
+    - type : ReturnType
+    - reason : String
+    - status : ReturnStatus
+    - refundAmount : BigDecimal
+    - resolvedAt : LocalDateTime
+    - createdAt : LocalDateTime
+    - updatedAt : LocalDateTime
+    + approve() : void
+    + reject(reason) : void
+}
+
+enum WarrantyStatus {
+    RECEIVED
+    PROCESSING
+    REPAIRED
+    REPLACED
+    RETURNED
+    REJECTED
+}
+
+enum ReturnType {
+    REFUND
+    EXCHANGE
+}
+
+enum ReturnStatus {
+    PENDING_APPROVAL
+    APPROVED
+    REJECTED
+    COMPLETED
+}
+
+WarrantyPolicy "1" --> "*" WarrantyTicket : governs
+WarrantyTicket --> WarrantyStatus
+WarrantyTicket --> User
+WarrantyTicket --> Product
+WarrantyTicket --> Order
+
+ReturnRequest --> ReturnType
+ReturnRequest --> ReturnStatus
+ReturnRequest --> User
+ReturnRequest --> Order
+ReturnRequest --> OrderDetail
+@enduml
