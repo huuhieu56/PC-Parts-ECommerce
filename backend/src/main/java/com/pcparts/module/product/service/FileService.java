@@ -25,7 +25,11 @@ public class FileService {
     private String bucket;
 
     @Value("${minio.endpoint}")
-    private String endpoint;
+    private String endpoint;       
+
+    @Value("${minio.public-url:${minio.endpoint}}")
+    private String publicUrl;     
+
 
     /**
      * Initialize MinIO bucket with public read policy on startup.
@@ -67,7 +71,7 @@ public class FileService {
                             .build()
             );
 
-            return endpoint + "/" + bucket + "/" + objectName;
+            return publicUrl + "/" + bucket + "/" + objectName;
         } catch (Exception e) {
             log.error("Failed to upload file: {}", e.getMessage());
             throw new BusinessException("Upload file thất bại: " + e.getMessage());
@@ -81,7 +85,7 @@ public class FileService {
      */
     public void deleteFile(String fileUrl) {
         try {
-            String objectName = fileUrl.replace(endpoint + "/" + bucket + "/", "");
+            String objectName = fileUrl.replace(publicUrl + "/" + bucket + "/", "");
             minioClient.removeObject(
                     RemoveObjectArgs.builder()
                             .bucket(bucket)

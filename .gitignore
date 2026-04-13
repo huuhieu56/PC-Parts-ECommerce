@@ -56,3 +56,4 @@ Thumbs.db
 
 # Data
 data/
+.env.prod
