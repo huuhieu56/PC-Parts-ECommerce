@@ -137,6 +137,7 @@ jobs:
             docker load -i images/pcparts-frontend.tar.gz
 
             echo "=== Starting services ==="
+            export MINIO_PUBLIC_URL="${{ secrets.NEXT_PUBLIC_MINIO_URL }}"
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
             echo "=== Cleaning up tar files ==="
@@ -150,3 +151,4 @@ jobs:
             docker compose -f docker-compose.prod.yml ps
 
             echo "=== Deploy completed successfully ==="
+
