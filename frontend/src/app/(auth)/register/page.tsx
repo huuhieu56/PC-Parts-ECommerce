@@ -6,6 +6,8 @@ import { useState } from "react";
 import { Cpu, Eye, EyeOff } from "lucide-react";
 import api from "@/lib/api";
 
+const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
 export default function RegisterPage() {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
@@ -24,6 +26,10 @@ export default function RegisterPage() {
 
     if (!fullName || !email || !phone || !password || !confirmPassword) {
       setError("Vui lòng điền đầy đủ thông tin.");
+      return;
+    }
+    if (!EMAIL_REGEX.test(email)) {
+      setError("Email không hợp lệ.");
       return;
     }
     if (password.length < 8) {

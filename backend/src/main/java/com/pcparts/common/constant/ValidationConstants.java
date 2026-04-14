@@ -23,6 +23,15 @@ public final class ValidationConstants {
     public static final String VIETNAM_PHONE_MESSAGE = "Số điện thoại không hợp lệ. Vui lòng nhập SĐT Việt Nam (VD: 0987654321)";
 
     /**
+     * Strict email regex requiring a top-level domain.
+     * Example valid: user@example.com
+     * Example invalid: user@gmail
+     */
+    public static final String EMAIL_REGEX = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+
+    public static final String EMAIL_MESSAGE = "Email không hợp lệ";
+
+    /**
      * Currently supported shipping province.
      */
     public static final String SUPPORTED_PROVINCE = "Hà Nội";
