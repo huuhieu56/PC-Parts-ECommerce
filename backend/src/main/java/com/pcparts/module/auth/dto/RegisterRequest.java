@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import static com.pcparts.common.constant.ValidationConstants.EMAIL_MESSAGE;
+import static com.pcparts.common.constant.ValidationConstants.EMAIL_REGEX;
 import static com.pcparts.common.constant.ValidationConstants.VIETNAM_PHONE_MESSAGE;
 import static com.pcparts.common.constant.ValidationConstants.VIETNAM_PHONE_REGEX;
 
@@ -24,6 +26,7 @@ public class RegisterRequest {
 
     @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không hợp lệ")
+    @Pattern(regexp = EMAIL_REGEX, message = EMAIL_MESSAGE)
     private String email;
 
     @NotBlank(message = "Số điện thoại không được để trống")
