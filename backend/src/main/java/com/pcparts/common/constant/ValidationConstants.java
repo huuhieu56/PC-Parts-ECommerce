@@ -32,6 +32,18 @@ public final class ValidationConstants {
     public static final String EMAIL_MESSAGE = "Email không hợp lệ";
 
     /**
+     * Strong password regex policy:
+     * - At least 8 characters
+     * - At least one uppercase letter
+     * - At least one lowercase letter
+     * - At least one digit
+     */
+    public static final String PASSWORD_REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$";
+
+    public static final String PASSWORD_MESSAGE =
+            "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số";
+
+    /**
      * Currently supported shipping province.
      */
     public static final String SUPPORTED_PROVINCE = "Hà Nội";

@@ -1,11 +1,13 @@
 package com.pcparts.module.auth.service;
 
+import com.pcparts.common.exception.BusinessException;
 import com.pcparts.common.exception.ResourceNotFoundException;
 import com.pcparts.module.auth.dto.UserProfileDto;
 import com.pcparts.module.auth.entity.Account;
 import com.pcparts.module.auth.entity.Permission;
 import com.pcparts.module.auth.entity.UserProfile;
 import com.pcparts.module.auth.repository.AccountRepository;
+import com.pcparts.module.auth.repository.TokenRepository;
 import com.pcparts.module.auth.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,7 +15,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.pcparts.common.constant.ValidationConstants.PASSWORD_MESSAGE;
+import static com.pcparts.common.constant.ValidationConstants.PASSWORD_REGEX;
 
 /**
  * Service for user profile and password management.
@@ -22,8 +28,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserService {
 
+    private static final Pattern STRONG_PASSWORD_PATTERN =
+            Pattern.compile(PASSWORD_REGEX);
+
     private final AccountRepository accountRepository;
     private final UserProfileRepository userProfileRepository;
+    private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
 
     /**
@@ -65,15 +75,32 @@ public class UserService {
      * Changes user's password.
      */
     @Transactional
-    public void changePassword(String email, String currentPassword, String newPassword) {
+    public void changePassword(String email, String currentPassword, String newPassword, String confirmPassword) {
         Account account = getAccountByEmail(email);
 
         if (!passwordEncoder.matches(currentPassword, account.getPasswordHash())) {
-            throw new com.pcparts.common.exception.BusinessException("Mật khẩu hiện tại không chính xác");
+            throw new BusinessException("Mật khẩu hiện tại không chính xác");
+        }
+
+        if (newPassword == null || confirmPassword == null || !newPassword.equals(confirmPassword)) {
+            throw new BusinessException("Mật khẩu xác nhận không khớp");
+        }
+
+        if (passwordEncoder.matches(newPassword, account.getPasswordHash())) {
+            throw new BusinessException("Mật khẩu mới phải khác mật khẩu cũ");
+        }
+
+        if (!isStrongPassword(newPassword)) {
+            throw new BusinessException(PASSWORD_MESSAGE);
         }
 
         account.setPasswordHash(passwordEncoder.encode(newPassword));
         accountRepository.save(account);
+        tokenRepository.deleteByAccountIdAndTokenType(account.getId(), "REFRESH");
+    }
+
+    private boolean isStrongPassword(String password) {
+        return password != null && STRONG_PASSWORD_PATTERN.matcher(password).matches();
     }
 
     private Account getAccountByEmail(String email) {

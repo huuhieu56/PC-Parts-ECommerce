@@ -1,14 +1,14 @@
 package com.pcparts.module.auth.controller;
 
 import com.pcparts.common.dto.ApiResponse;
+import com.pcparts.module.auth.dto.ChangePasswordRequest;
 import com.pcparts.module.auth.dto.UserProfileDto;
 import com.pcparts.module.auth.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 /**
  * REST Controller for user profile endpoints.
@@ -47,11 +47,12 @@ public class UserController {
     @PutMapping("/password")
     public ResponseEntity<ApiResponse<Void>> changePassword(
             Authentication authentication,
-            @RequestBody Map<String, String> request) {
+            @Valid @RequestBody ChangePasswordRequest request) {
         userService.changePassword(
                 authentication.getName(),
-                request.get("currentPassword"),
-                request.get("newPassword")
+                request.getCurrentPassword(),
+                request.getNewPassword(),
+                request.getConfirmPassword()
         );
         return ResponseEntity.ok(ApiResponse.success("Đổi mật khẩu thành công", null));
     }

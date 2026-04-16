@@ -5,6 +5,8 @@ import { ChevronRight, User, MapPin, Lock, Plus, Trash2, Edit2, Save, X } from "
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
 
+const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
 interface UserProfile {
   id: number;
   fullName: string;
@@ -67,16 +69,45 @@ export default function ProfilePage() {
   };
 
   const changePassword = async () => {
+    if (!pwForm.currentPassword || !pwForm.newPassword || !pwForm.confirmPassword) {
+      setMsg({ type: "error", text: "Vui lòng nhập đầy đủ thông tin." });
+      setTimeout(() => setMsg(null), 3000);
+      return;
+    }
+
     if (pwForm.newPassword !== pwForm.confirmPassword) {
       setMsg({ type: "error", text: "Mật khẩu xác nhận không khớp." });
       setTimeout(() => setMsg(null), 3000);
       return;
     }
+
+    if (pwForm.currentPassword === pwForm.newPassword) {
+      setMsg({ type: "error", text: "Mật khẩu mới phải khác mật khẩu cũ." });
+      setTimeout(() => setMsg(null), 3000);
+      return;
+    }
+
+    if (!STRONG_PASSWORD_REGEX.test(pwForm.newPassword)) {
+      setMsg({ type: "error", text: "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số." });
+      setTimeout(() => setMsg(null), 3000);
+      return;
+    }
+
     try {
-      await api.put("/users/change-password", { currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword });
+      await api.put("/users/password", {
+        currentPassword: pwForm.currentPassword,
+        newPassword: pwForm.newPassword,
+        confirmPassword: pwForm.confirmPassword,
+      });
       setPwForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
       setMsg({ type: "success", text: "Đổi mật khẩu thành công!" });
-    } catch { setMsg({ type: "error", text: "Đổi mật khẩu thất bại. Kiểm tra lại mật khẩu hiện tại." }); }
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } };
+      setMsg({
+        type: "error",
+        text: axiosError.response?.data?.message || "Đổi mật khẩu thất bại. Vui lòng thử lại.",
+      });
+    }
     setTimeout(() => setMsg(null), 3000);
   };
 
@@ -199,9 +230,9 @@ export default function ProfilePage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Họ và tên</label>
+                    <label htmlFor="profile-full-name" className="block text-sm font-medium text-gray-700 mb-1">Họ và tên</label>
                     {editMode ? (
-                      <input value={editForm.fullName} onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+                      <input id="profile-full-name" value={editForm.fullName} onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                     ) : <p className="text-sm text-gray-900 py-2">{profile?.fullName || "—"}</p>}
                   </div>
@@ -210,23 +241,23 @@ export default function ProfilePage() {
                     <p className="text-sm text-gray-900 py-2">{profile?.email || "—"}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
+                    <label htmlFor="profile-phone" className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
                     {editMode ? (
-                      <input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                      <input id="profile-phone" value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                     ) : <p className="text-sm text-gray-900 py-2">{profile?.phone || "—"}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Ngày sinh</label>
+                    <label htmlFor="profile-date-of-birth" className="block text-sm font-medium text-gray-700 mb-1">Ngày sinh</label>
                     {editMode ? (
-                      <input type="date" value={editForm.dateOfBirth} onChange={(e) => setEditForm({ ...editForm, dateOfBirth: e.target.value })}
+                      <input id="profile-date-of-birth" type="date" value={editForm.dateOfBirth} onChange={(e) => setEditForm({ ...editForm, dateOfBirth: e.target.value })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                     ) : <p className="text-sm text-gray-900 py-2">{profile?.dateOfBirth || "—"}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Giới tính</label>
+                    <label htmlFor="profile-gender" className="block text-sm font-medium text-gray-700 mb-1">Giới tính</label>
                     {editMode ? (
-                      <select value={editForm.gender} onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
+                      <select id="profile-gender" value={editForm.gender} onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Chọn</option>
                         <option value="MALE">Nam</option>
@@ -294,7 +325,7 @@ export default function ProfilePage() {
                             {!addr.isDefault && (
                               <button onClick={() => setDefault(addr.id)} className="text-xs text-blue-600 hover:text-blue-700 px-2 py-1">Đặt mặc định</button>
                             )}
-                            <button onClick={() => deleteAddress(addr.id)} className="text-gray-400 hover:text-red-500 p-1"><Trash2 className="w-4 h-4" /></button>
+                            <button onClick={() => deleteAddress(addr.id)} aria-label="Xóa địa chỉ" className="text-gray-400 hover:text-red-500 p-1"><Trash2 className="w-4 h-4" /></button>
                           </div>
                         </div>
                       </div>
@@ -309,18 +340,19 @@ export default function ProfilePage() {
                 <h2 className="text-lg font-bold text-gray-900 mb-6">Đổi mật khẩu</h2>
                 <div className="max-w-md space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu hiện tại</label>
-                    <input type="password" value={pwForm.currentPassword} onChange={(e) => setPwForm({ ...pwForm, currentPassword: e.target.value })}
+                    <label htmlFor="current-password" className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu hiện tại</label>
+                    <input id="current-password" type="password" value={pwForm.currentPassword} onChange={(e) => setPwForm({ ...pwForm, currentPassword: e.target.value })}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới</label>
-                    <input type="password" value={pwForm.newPassword} onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
+                    <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới</label>
+                    <input id="new-password" type="password" value={pwForm.newPassword} onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                    <p className="text-xs text-gray-500 mt-1">Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và số.</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu mới</label>
-                    <input type="password" value={pwForm.confirmPassword} onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
+                    <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu mới</label>
+                    <input id="confirm-password" type="password" value={pwForm.confirmPassword} onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                   </div>
                   <button onClick={changePassword} className="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">Đổi mật khẩu</button>

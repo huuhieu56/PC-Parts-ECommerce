@@ -57,4 +57,37 @@ class RegisterRequestValidationTest {
         assertThat(violations)
                 .noneMatch(v -> "email".equals(v.getPropertyPath().toString()));
     }
+
+    @Test
+    @DisplayName("RegisterRequest - should fail when password is weak")
+    void shouldFailWhenPasswordIsWeak() {
+        RegisterRequest request = new RegisterRequest(
+                "Nguyen Van A",
+                "nhh1@gmail.com",
+                "0901234567",
+                "password123"
+        );
+
+        Set<ConstraintViolation<RegisterRequest>> violations = validator.validate(request);
+
+        assertThat(violations)
+                .anyMatch(v -> "password".equals(v.getPropertyPath().toString())
+                        && v.getMessage().contains("bao gồm chữ hoa, chữ thường và số"));
+    }
+
+    @Test
+    @DisplayName("RegisterRequest - should pass when password is strong")
+    void shouldPassWhenPasswordIsStrong() {
+        RegisterRequest request = new RegisterRequest(
+                "Nguyen Van A",
+                "nhh1@gmail.com",
+                "0901234567",
+                "Password123"
+        );
+
+        Set<ConstraintViolation<RegisterRequest>> violations = validator.validate(request);
+
+        assertThat(violations)
+                .noneMatch(v -> "password".equals(v.getPropertyPath().toString()));
+    }
 }
