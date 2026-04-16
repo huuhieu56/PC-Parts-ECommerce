@@ -289,7 +289,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Người dùng nhấn "Đăng ký", hệ thống hiển thị form: Họ tên, Email, SĐT, Mật khẩu, Xác nhận mật khẩu
 
-\-        Hệ thống kiểm tra tính hợp lệ (định dạng email, độ dài mật khẩu, mật khẩu khớp)
+\-        Hệ thống kiểm tra tính hợp lệ (định dạng email, mật khẩu đủ độ mạnh: ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số, mật khẩu khớp)
 
 \-        Hệ thống kiểm tra bảng Account xem Email đã tồn tại chưa, kiểm tra bảng User xem SĐT đã tồn tại chưa
 
@@ -304,6 +304,8 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 \-        Email/SĐT sai định dạng → Báo lỗi
 
 \-        Mật khẩu xác nhận không khớp → Báo lỗi
+
+\-        Mật khẩu không đủ độ mạnh → Báo lỗi "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số"
 
 \-        Email hoặc SĐT đã tồn tại → Báo lỗi "Email/SĐT đã được sử dụng"
 

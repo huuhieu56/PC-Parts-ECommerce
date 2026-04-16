@@ -7,6 +7,7 @@ import { Cpu, Eye, EyeOff } from "lucide-react";
 import api from "@/lib/api";
 
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -32,8 +33,8 @@ export default function RegisterPage() {
       setError("Email không hợp lệ.");
       return;
     }
-    if (password.length < 8) {
-      setError("Mật khẩu phải có ít nhất 8 ký tự.");
+    if (!STRONG_PASSWORD_REGEX.test(password)) {
+      setError("Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số.");
       return;
     }
     if (password !== confirmPassword) {
@@ -80,11 +81,12 @@ export default function RegisterPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
               <div className="relative">
-                <input type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Tối thiểu 8 ký tự" required className="w-full h-10 px-3 pr-10 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                <input type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và số" required className="w-full h-10 px-3 pr-10 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              <p className="mt-1 text-xs text-gray-500">Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số.</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu</label>

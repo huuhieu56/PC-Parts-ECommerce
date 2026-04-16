@@ -900,6 +900,7 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 |:-----------|:---------|
 | Giao thức | HTTPS (TLS 1.3) cho mọi kết nối |
 | Mã hóa mật khẩu | BCrypt (cost factor ≥ 12) |
+| Chính sách mật khẩu | Tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường và số |
 | Token xác thực | JWT (Access Token: 15 phút, Refresh Token: 30 ngày lưu DB) |
 | Truyền token | Header `Authorization: Bearer <token>` |
 | Refresh flow | Client dùng Refresh Token để lấy Access Token mới khi hết hạn |
