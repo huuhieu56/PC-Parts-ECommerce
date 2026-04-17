@@ -285,7 +285,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Người dùng chưa có tài khoản (chưa đăng nhập).
 
-5\.    Luồng chính:
+5\.    Trigger: Người dùng nhấn nút "Đăng ký" trên trang chủ hoặc trang đăng nhập.
+
+6\.    Luồng chính:
 
 \-        Người dùng nhấn "Đăng ký", hệ thống hiển thị form: Họ tên, Email, SĐT, Mật khẩu, Xác nhận mật khẩu
 
@@ -297,7 +299,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Hiển thị "Đăng ký thành công" và chuyển hướng trang đăng nhập
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Trường bắt buộc để trống → Báo lỗi cụ thể
 
@@ -307,7 +309,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Email hoặc SĐT đã tồn tại → Báo lỗi "Email/SĐT đã được sử dụng"
 
-7\.    Hậu điều kiện:
+8\.    Hậu điều kiện:
 
 \-        Account mới (Role \= Customer) và User/Profile được tạo trong CSDL
 
@@ -321,7 +323,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Người dùng đã có tài khoản (đã đăng ký).
 
-5\.    Luồng chính:
+5\.    Trigger: Người dùng nhấn nút "Đăng nhập" trên giao diện hệ thống.
+
+6\.    Luồng chính:
 
 \-        Người dùng nhập Email và Mật khẩu, nhấn "Đăng nhập"
 
@@ -335,7 +339,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Chuyển hướng theo Role (Customer/Admin/Sales/Warehouse)
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Email không tồn tại hoặc Mật khẩu sai → "Email hoặc mật khẩu không đúng"
 
@@ -343,7 +347,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Trường bắt buộc để trống → Báo lỗi
 
-7\.    Hậu điều kiện:
+8\.    Hậu điều kiện:
 
 \-        Token/Session mới được tạo trong CSDL
 
@@ -361,7 +365,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Người dùng đang đăng nhập (có Token/Session hợp lệ).
 
-5\.    Luồng chính:
+5\.    Trigger: Người dùng nhấn nút "Đăng xuất" trên giao diện hệ thống.
+
+6\.    Luồng chính:
 
 \-        Người dùng nhấn "Đăng xuất"
 
@@ -371,11 +377,11 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Chuyển hướng về trang chủ (giao diện Guest)
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Token đã hết hạn → Tự động chuyển về trang đăng nhập kèm thông báo
 
-7\.    Hậu điều kiện:
+8\.    Hậu điều kiện:
 
 \-        Token/Session bị xóa, giỏ hàng Session bị xóa, Cart database vẫn được lưu
 
@@ -389,7 +395,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Customer đã đăng nhập (có Token/Session hợp lệ).
 
-5\.    Luồng chính:
+5\.    Trigger: Customer truy cập "Tài khoản của tôi" và chọn "Đổi mật khẩu".
+
+6\.    Luồng chính:
 
 \-        Customer truy cập "Tài khoản của tôi" → "Đổi mật khẩu"
 
@@ -401,7 +409,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Nếu đúng: cập nhật password\_hash mới
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Mật khẩu hiện tại không đúng → Báo lỗi "Mật khẩu hiện tại không chính xác"
 
@@ -411,7 +419,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Mật khẩu mới không đủ độ mạnh → Báo lỗi
 
-7\.    Hậu điều kiện: Account.password\_hash được cập nhật
+8\.    Hậu điều kiện: Account.password\_hash được cập nhật
    **4.5. Quên / Thiết lập lại mật khẩu**
 
 1\.    Mã UC, tên UC: UC-CUS-15: Quên / Thiết lập lại mật khẩu
@@ -426,7 +434,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Người dùng chưa đăng nhập
 
-5\.    Luồng chính:
+5\.    Trigger: Người dùng nhấn liên kết "Quên mật khẩu" trên trang đăng nhập.
+
+6\.    Luồng chính:
 
 \-        Người dùng nhấn "Quên mật khẩu" trên trang đăng nhập
 
@@ -446,7 +456,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Hệ thống cập nhật Account.password\_hash, xóa Reset Password Token, xóa toàn bộ Token/Session cũ (buộc đăng nhập lại với mật khẩu mới)
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Email không tồn tại → Hệ thống vẫn hiển thị thông báo "Nếu email tồn tại, bạn sẽ nhận được liên kết đặt lại mật khẩu" (tránh lộ thông tin)
 
@@ -456,7 +466,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Mật khẩu mới không đủ độ mạnh → Báo lỗi "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số"
 
-7\.    Hậu điều kiện:
+8\.    Hậu điều kiện:
 
 \-        Account.password\_hash được cập nhật. Reset Password Token bị xóa. Toàn bộ Token/Session cũ bị xóa
    **4.6. Quản lý thông tin cá nhân**
@@ -469,7 +479,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Customer đã đăng nhập.
 
-5\.    Luồng chính:
+5\.    Trigger: Customer truy cập "Tài khoản của tôi" → "Thông tin cá nhân".
+
+6\.    Luồng chính:
 
 \-        Customer truy cập "Tài khoản của tôi" → "Thông tin cá nhân"
 
@@ -477,11 +489,11 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Customer sửa thông tin, nhấn "Cập nhật". Hệ thống lưu vào bảng User
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Dữ liệu không hợp lệ → Báo lỗi cụ thể
 
-7\.    Hậu điều kiện: User/Profile được cập nhật
+8\.    Hậu điều kiện: User/Profile được cập nhật
 
    **4.7. Tìm kiếm và lọc sản phẩm**
 
@@ -493,7 +505,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Không yêu cầu đăng nhập, chỉ cần truy cập trang web.
 
-5\.    Luồng chính:
+5\.    Trigger: Người dùng chọn danh mục từ menu điều hướng hoặc nhập từ khóa vào thanh tìm kiếm.
+
+6\.    Luồng chính:
 
 \-        Người dùng lựa chọn 1 danh mục (Category) từ menu điều hướng
 
@@ -505,13 +519,13 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Hệ thống hiển thị kết quả lên giao diện kèm thông tin: tên, ảnh chính (Product\_Image), giá bán, Brand, tình trạng hàng (Condition)
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Nếu không có kết quả nào khớp với bộ lọc → Hệ thống hiển thị thông báo "Không tìm thấy sản phẩm phù hợp" và gợi ý khách hàng xóa bớt bộ lọc
 
 \-        Nếu không kết nối được với cơ sở dữ liệu → Hệ thống hiển thị thông báo lỗi "Không kết nối được với máy chủ"
 
-7\.    Hậu điều kiện:
+8\.    Hậu điều kiện:
 
 \-        Hệ thống hiển thị danh sách sản phẩm khớp với điều kiện tìm kiếm/lọc của người dùng trên giao diện
 
@@ -525,7 +539,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Người dùng đang truy cập hệ thống.
 
-5\.    Luồng chính:
+5\.    Trigger: Người dùng nhấn "Thêm vào giỏ" trên trang sản phẩm hoặc truy cập trang giỏ hàng.
+
+6\.    Luồng chính:
 
 \-        Thêm sản phẩm: Người dùng nhấn "Thêm vào giỏ" trên trang sản phẩm. Hệ thống kiểm tra Inventory.quantity, nếu đủ hàng thì thêm Cart\_Item vào Cart (database) hoặc Session
 
@@ -539,7 +555,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Đăng xuất: Xóa giỏ Session, giữ nguyên Cart database
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Giỏ hàng trống → Ẩn nút Thanh toán
 
@@ -547,7 +563,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Merge cộng dồn vượt Inventory → Giới hạn và thông báo
 
-7\.    Hậu điều kiện:
+8\.    Hậu điều kiện:
 
 \-        Cart\_Item được thêm/sửa/xóa trong CSDL hoặc Session. Tổng tiền được tính lại
 
@@ -565,7 +581,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Giỏ hàng (Cart) không trống (phải có ít nhất 1 Cart\_Item)
 
-5\.    Luồng chính:
+5\.    Trigger: Customer nhấn nút "Thanh toán" từ trang giỏ hàng.
+
+6\.    Luồng chính:
 
 \-        Customer nhấn nút "Thanh toán" từ trang giỏ hàng
 
@@ -601,7 +619,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Hệ thống gửi email xác nhận đơn hàng
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Mã Coupon không hợp lệ → Hệ thống báo lỗi cụ thể và giữ nguyên giá gốc
 
@@ -609,7 +627,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Thanh toán trực tuyến thất bại (Payment.status \= Failed) → Hệ thống giữ Order, cho phép tạo Payment mới hoặc chuyển COD
 
-7\.    Hậu điều kiện:
+8\.    Hậu điều kiện:
 
 \-        Order, Order\_Detail, Payment, Shipping, Order\_Status\_History được tạo trong CSDL
 
@@ -629,7 +647,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Customer đã đăng nhập.
 
-5\.    Luồng chính:
+5\.    Trigger: Customer truy cập "Tài khoản của tôi" → "Sổ địa chỉ" hoặc thêm địa chỉ mới khi Checkout.
+
+6\.    Luồng chính:
 
 \-        Customer truy cập "Tài khoản của tôi" → "Sổ địa chỉ"
 
@@ -643,13 +663,13 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Đặt mặc định: Customer nhấn "Sử dụng làm mặc định" → hệ thống cập nhật is\_default
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Thiếu trường bắt buộc → Báo lỗi cụ thể
 
 \-        Xóa Address duy nhất (mặc định) → Cảnh báo "Bạn cần tạo địa chỉ mới trước khi xóa"
 
-7\.    Hậu điều kiện: Address được tạo/sửa/xóa trong CSDL
+8\.    Hậu điều kiện: Address được tạo/sửa/xóa trong CSDL
 
    **4.11. Xem lịch sử đơn hàng và theo dõi vận chuyển**
 
@@ -661,7 +681,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Customer đã đăng nhập.
 
-5\.    Luồng chính:
+5\.    Trigger: Customer truy cập mục "Lịch sử đơn hàng" trong trang tài khoản.
+
+6\.    Luồng chính:
 
 \-        Customer truy cập "Lịch sử đơn hàng"
 
@@ -673,11 +695,11 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Hệ thống hiển thị Order\_Status\_History: danh sách các lần đổi trạng thái (thời gian, trạng thái cũ → mới)
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Không có đơn hàng nào → Hiển thị "Bạn chưa có đơn hàng nào"
 
-7\.    Hậu điều kiện: Không thay đổi CSDL. Chỉ hiển thị thông tin
+8\.    Hậu điều kiện: Không thay đổi CSDL. Chỉ hiển thị thông tin
 
    **4.12. Yêu cầu đổi trả**
 
@@ -695,7 +717,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Thời gian yêu cầu nằm trong thời hạn đổi trả cho phép (theo chính sách cửa hàng)
 
-5\.    Luồng chính:
+5\.    Trigger: Customer nhấn "Yêu cầu đổi trả" trên trang chi tiết đơn hàng đã hoàn thành.
+
+6\.    Luồng chính:
 
 \-        Customer truy cập "Lịch sử đơn hàng", chọn Order → chọn sản phẩm cần đổi trả → nhấn "Yêu cầu đổi trả"
 
@@ -705,13 +729,13 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Hệ thống tạo Return/Refund (trạng thái "Chờ duyệt") gắn với Order\_Detail
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Quá thời hạn đổi trả → Báo "Đã quá thời hạn đổi trả cho đơn hàng này"
 
 \-        Thiếu lý do → Báo lỗi "Vui lòng nhập lý do đổi trả"
 
-7\.    Hậu điều kiện:
+8\.    Hậu điều kiện:
 
 \-        Return/Refund được tạo trong CSDL với trạng thái "Chờ duyệt"
 
@@ -729,7 +753,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Customer có Order ở trạng thái "Hoàn thành" chứa Product cần bảo hành
 
-5\.    Luồng chính:
+5\.    Trigger: Customer nhấn "Yêu cầu bảo hành" trên trang chi tiết đơn hàng.
+
+6\.    Luồng chính:
 
 \-        Customer truy cập "Lịch sử đơn hàng", chọn Order → chọn Product cần bảo hành → nhấn "Yêu cầu bảo hành"
 
@@ -741,7 +767,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Hệ thống tạo Warranty\_Ticket (trạng thái "Tiếp nhận")
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Sản phẩm hết hạn bảo hành → Báo "Sản phẩm đã hết hạn bảo hành"
 
@@ -749,7 +775,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Thiếu Số Serial → Báo lỗi "Vui lòng nhập Số Serial"
 
-7\.    Hậu điều kiện:
+8\.    Hậu điều kiện:
 
 \-        Warranty\_Ticket được tạo trong CSDL với trạng thái "Tiếp nhận"
 
@@ -767,7 +793,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Customer có ít nhất một Order chứa Product này ở trạng thái "Hoàn thành"
 
-5\.    Luồng chính:
+5\.    Trigger: Customer nhấn "Viết đánh giá" trên trang chi tiết sản phẩm đã mua.
+
+6\.    Luồng chính:
 
 \-        Customer truy cập trang chi tiết sản phẩm, nhấn "Viết đánh giá"
 
@@ -781,7 +809,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Đánh giá hiển thị ngay trên trang chi tiết sản phẩm
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Chưa mua sản phẩm → Ẩn nút "Viết đánh giá" hoặc báo "Bạn cần mua sản phẩm này để đánh giá"
 
@@ -793,7 +821,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Vượt số lượng ảnh (tối đa 5 ảnh) → Báo lỗi "Tối đa 5 ảnh"
 
-7\.    Hậu điều kiện:
+8\.    Hậu điều kiện:
 
 \-        Review và Review\_Image được tạo trong CSDL
 
@@ -807,7 +835,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Customer đã đăng nhập.
 
-5\.    Luồng chính:
+5\.    Trigger: Customer nhấn biểu tượng "Yêu thích" trên sản phẩm hoặc truy cập trang "Danh sách yêu thích".
+
+6\.    Luồng chính:
 
 \-        Customer nhấn biểu tượng "Yêu thích" (trái tim) trên trang sản phẩm hoặc danh sách sản phẩm
 
@@ -821,11 +851,11 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Customer có thể nhấn "Thêm vào giỏ" trực tiếp từ Wishlist
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Sản phẩm đã bị ngừng kinh doanh (status \= Discontinued) → Gắn nhãn "Ngừng kinh doanh" trong Wishlist
 
-7\.    Hậu điều kiện:
+8\.    Hậu điều kiện:
 
 \-        Wishlist entry được tạo hoặc xóa trong CSDL
 
@@ -845,7 +875,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Hệ thống có sản phẩm thuộc các Category linh kiện PC
 
-5\.    Luồng chính:
+5\.    Trigger: Người dùng truy cập trang "Build PC" từ menu điều hướng.
+
+6\.    Luồng chính:
 
 \-        Người dùng truy cập trang "Build PC"
 
@@ -861,7 +893,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Người dùng nhấn "Thêm vào giỏ hàng" hoặc "Tạo đơn hàng" → Hệ thống kiểm tra đăng nhập. Nếu chưa đăng nhập → chuyển hướng trang đăng nhập (lưu tạm cấu hình vào Session). Sau khi đăng nhập → thêm tất cả linh kiện vào Cart dưới dạng Cart\\\_Item riêng lẻ
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Chưa chọn đủ linh kiện tối thiểu (CPU, Mainboard) → Báo "Vui lòng chọn ít nhất CPU và Mainboard"
 
@@ -871,7 +903,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-	Chưa đăng nhập khi nhấn "Kiểm tra AI" / "Thêm vào giỏ hàng" / "Tạo đơn hàng" → Yêu cầu đăng nhập, lưu cấu hình vào Session
 
-7\.    Hậu điều kiện:
+8\.    Hậu điều kiện:
 
 - Nếu xuất báo giá: file PDF được tạo (không thay đổi CSDL  
 - Nếu thêm vào giỏ: linh kiện được thêm vào Cart dưới dạng Cart\\\_Item riêng lẻ (yêu cầu đã đăng nhập)
@@ -892,7 +924,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Customer có ít nhất một Order trong hệ thống
 
-5\.    Luồng chính:
+5\.    Trigger: Admin/Sales cập nhật trạng thái đơn hàng (Order.status thay đổi).
+
+6\.    Luồng chính:
 
 \-        Khi Admin/Sales cập nhật Order.status (VD: Chờ xử lý → Đang xử lý → Đang giao → Hoàn thành), hệ thống tự động tạo bản ghi Notification cho Customer
 
@@ -904,13 +938,13 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Customer nhấn vào thông báo → xem chi tiết và chuyển hướng đến trang chi tiết đơn hàng. Hệ thống cập nhật Notification.is\_read = true
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Gửi email thất bại → Hệ thống ghi log lỗi, thông báo in-app vẫn được tạo bình thường
 
 \-        Customer không có thông báo nào → Hiển thị "Bạn chưa có thông báo nào"
 
-7\.    Hậu điều kiện: Notification được tạo trong CSDL. Email thông báo được gửi đến Customer
+8\.    Hậu điều kiện: Notification được tạo trong CSDL. Email thông báo được gửi đến Customer
 
    **4.18. (Admin) Quản lý danh mục và thuộc tính**
 
@@ -922,7 +956,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Đăng nhập với Role Admin, Token/Session hợp lệ.
 
-5\.    Luồng chính:
+5\.    Trigger: Admin truy cập mục "Quản lý danh mục" trên trang quản trị.
+
+6\.    Luồng chính:
 
 \-        Admin truy cập "Quản lý danh mục", nhấn "Thêm mới"
 
@@ -934,13 +970,13 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Sửa/Xóa: Admin chọn Category → "Sửa" hoặc "Xóa"
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Tên trùng → Báo lỗi "Danh mục đã tồn tại"
 
 \-        Xóa Category đang có Product → Báo lỗi "Không thể xóa danh mục đang chứa sản phẩm"
 
-7\.    Hậu điều kiện: Category, Attribute, Attribute\_Value được tạo/sửa/xóa trong CSDL
+8\.    Hậu điều kiện: Category, Attribute, Attribute\_Value được tạo/sửa/xóa trong CSDL
 
    **4.19. (Admin) Quản lý sản phẩm**
 
@@ -952,7 +988,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Đăng nhập với Role Admin, Token/Session hợp lệ.
 
-5\.    Luồng chính:
+5\.    Trigger: Admin truy cập mục "Quản lý sản phẩm" trên trang quản trị.
+
+6\.    Luồng chính:
 
    Thêm mới Product:
 
@@ -976,7 +1014,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Khi thêm Product, chọn Brand từ danh sách. Nếu chưa có → tạo Brand mới ngay tại form
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Thiếu trường bắt buộc (Tên, SKU, Category) → Báo lỗi
 
@@ -988,7 +1026,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Xóa Brand đang có Product → Báo lỗi "Không thể xóa thương hiệu đang có sản phẩm"
 
-7\.    Hậu điều kiện: Product, Product\_Attribute, Product\_Image, Inventory, Brand được tạo/sửa/xóa
+8\.    Hậu điều kiện: Product, Product\_Attribute, Product\_Image, Inventory, Brand được tạo/sửa/xóa
 
 ![Hình UC.3 — Use Case Diagram — Quản lý Sản phẩm & Danh mục (Admin)](diagrams/images/uc_admin_product.png)
 
@@ -1002,7 +1040,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
 
-5\.    Luồng chính:
+5\.    Trigger: Admin/Sales truy cập mục "Quản lý đơn hàng" trên bảng điều khiển hoặc hệ thống nhận đơn hàng mới.
+
+6\.    Luồng chính:
 
 \-        Admin/Sales truy cập "Quản lý đơn hàng", lọc theo trạng thái, ngày, mã đơn
 
@@ -1022,13 +1062,13 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Gửi email thông báo cho Customer
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Chuyển trạng thái không hợp lệ (VD: "Hoàn thành" → "Đang giao") → Chặn
 
 \-        Hủy đơn → tạo Inventory\_Log (Hoàn trả) để hoàn kho, cập nhật Inventory.quantity. Nếu có Coupon → giảm used\_count, xóa Coupon\_Usage
 
-7\.    Hậu điều kiện: Order.status cập nhật, Order\_Status\_History ghi nhận, email gửi. Nếu hủy: kho hoàn, Coupon phục hồi
+8\.    Hậu điều kiện: Order.status cập nhật, Order\_Status\_History ghi nhận, email gửi. Nếu hủy: kho hoàn, Coupon phục hồi
 
 ![Hình UC.4 — Use Case Diagram — Quản lý Đơn hàng & Vận chuyển (Admin/Sales)](diagrams/images/uc_admin_order.png)
 
@@ -1042,7 +1082,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Warehouse.
 
-5\.    Luồng chính:
+5\.    Trigger: Admin/Warehouse truy cập mục "Quản lý kho hàng" hoặc hệ thống cảnh báo tồn kho thấp.
+
+6\.    Luồng chính:
 
    Xem tồn kho: Hiển thị danh sách Product kèm Inventory.quantity, low\_stock\_threshold, Supplier chính. Cảnh báo khi quantity \<= low\_stock\_threshold
 
@@ -1056,7 +1098,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Gắn Supplier chính vào Inventory của từng Product
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Số lượng nhập \<= 0 → Báo lỗi
 
@@ -1064,7 +1106,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Xóa Supplier đang được gắn vào Inventory → Báo lỗi "Không thể xóa nhà cung cấp đang được sử dụng"
 
-7\.    Hậu điều kiện: Inventory.quantity cập nhật, Inventory\_Log ghi nhận biến động, Supplier được tạo/sửa/xóa
+8\.    Hậu điều kiện: Inventory.quantity cập nhật, Inventory\_Log ghi nhận biến động, Supplier được tạo/sửa/xóa
 
 ![Hình UC.5 — Use Case Diagram — Quản lý Kho hàng (Admin/Warehouse)](diagrams/images/uc_admin_inventory.png)
 
@@ -1078,7 +1120,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales. Order đang ở trạng thái "Đang giao" hoặc "Chờ xử lý".
 
-5\.    Luồng chính:
+5\.    Trigger: Admin/Sales cần cập nhật thông tin vận chuyển cho đơn hàng.
+
+6\.    Luồng chính:
 
 \-        Admin/Sales truy cập Shipping của một Order
 
@@ -1090,13 +1134,13 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Khi Shipping chuyển "Đã giao" → hệ thống tự động chuyển Order.status \= "Hoàn thành" và ghi Order\_Status\_History
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Shipping thất bại → Admin/Sales chọn giao lại hoặc hủy đơn
 
 \-        Mã vận đơn để trống khi chuyển "Đang vận chuyển" → Báo lỗi
 
-7\.    Hậu điều kiện: Shipping cập nhật. Nếu giao thành công: Order chuyển "Hoàn thành"
+8\.    Hậu điều kiện: Shipping cập nhật. Nếu giao thành công: Order chuyển "Hoàn thành"
 
    **4.23. (Admin/Sales) Xử lý bảo hành**
 
@@ -1108,7 +1152,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
 
-5\.    Luồng chính:
+5\.    Trigger: Admin/Sales truy cập "Quản lý bảo hành" hoặc nhận phiếu bảo hành mới từ Customer.
+
+6\.    Luồng chính:
 
    Quản lý chính sách bảo hành (Warranty\_Policy):
 
@@ -1128,7 +1174,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Nhập kết quả xử lý (resolution) và ngày hoàn tất (resolved\_at)
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Phiếu đã ở trạng thái "Trả khách" → Không cho phép cập nhật thêm
 
@@ -1136,7 +1182,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Xóa Warranty\_Policy đang có Warranty\_Ticket liên quan → Chặn xóa
 
-7\.    Hậu điều kiện: Warranty\_Policy được tạo/sửa/xóa. Warranty\_Ticket.status và resolution cập nhật trong CSDL
+8\.    Hậu điều kiện: Warranty\_Policy được tạo/sửa/xóa. Warranty\_Ticket.status và resolution cập nhật trong CSDL
 
    **4.24. (Admin/Sales) Xử lý đổi trả**
 
@@ -1148,7 +1194,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
 
-5\.    Luồng chính:
+5\.    Trigger: Admin/Sales truy cập "Quản lý đổi trả" hoặc nhận yêu cầu đổi trả mới từ Customer.
+
+6\.    Luồng chính:
 
 \-        Truy cập "Quản lý đổi trả", xem danh sách Return/Refund (lọc theo trạng thái, loại)
 
@@ -1164,13 +1212,13 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Cập nhật Return.status và resolved\_at
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Từ chối không nhập lý do → Báo lỗi
 
 \-        Sản phẩm thay thế hết hàng (khi đổi hàng) → Báo "Sản phẩm thay thế hiện hết hàng"
 
-7\.    Hậu điều kiện: Return/Refund cập nhật. Nếu duyệt: kho hoàn, Payment Refunded hoặc Order mới được tạo
+8\.    Hậu điều kiện: Return/Refund cập nhật. Nếu duyệt: kho hoàn, Payment Refunded hoặc Order mới được tạo
 
    **4.25. (Admin) Quản lý tài khoản**
 
@@ -1182,7 +1230,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Đăng nhập với Role Admin.
 
-5\.    Luồng chính:
+5\.    Trigger: Admin truy cập mục "Quản lý tài khoản" trên trang quản trị.
+
+6\.    Luồng chính:
 
    Xem danh sách: Hiển thị Account \+ User (họ tên, email, SĐT, Role, trạng thái). Tìm kiếm/lọc theo Role
 
@@ -1192,13 +1242,13 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
    Gán Role/Permission: Chọn tài khoản → đổi Role hoặc gán Permission cụ thể qua Role\_Permission
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Khóa chính mình → Chặn
 
 \-        Email trùng → Báo lỗi "Email đã tồn tại"
 
-7\.    Hậu điều kiện: Account/User cập nhật. Nếu khóa: Token/Session bị xóa
+8\.    Hậu điều kiện: Account/User cập nhật. Nếu khóa: Token/Session bị xóa
 
    **4.26. (Admin/Sales) Quản lý mã giảm giá**
 
@@ -1210,7 +1260,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
 
-5\.    Luồng chính:
+5\.    Trigger: Admin/Sales truy cập mục "Quản lý mã giảm giá" trên trang quản trị.
+
+6\.    Luồng chính:
 
 \-        Truy cập "Quản lý mã giảm giá", nhấn "Tạo mới"
 
@@ -1220,7 +1272,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Sửa/Xóa: Chọn Coupon → "Sửa" hoặc "Xóa" (có xác nhận)
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Code trùng → Báo lỗi "Mã giảm giá đã tồn tại"
 
@@ -1230,7 +1282,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Xóa Coupon đang hiệu lực → Cảnh báo "Mã đang hoạt động. Xóa sẽ ngừng áp dụng"
 
-7\.    Hậu điều kiện: Coupon được tạo/sửa/xóa trong CSDL
+8\.    Hậu điều kiện: Coupon được tạo/sửa/xóa trong CSDL
 
    **4.27. (Admin/Sales) Thống kê doanh thu**
 
@@ -1242,7 +1294,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
 
-5\.    Luồng chính:
+5\.    Trigger: Admin/Sales truy cập mục "Thống kê doanh thu" trên bảng điều khiển.
+
+6\.    Luồng chính:
 
 \-        Truy cập "Thống kê doanh thu", chọn bộ lọc (thời gian, Category, trạng thái Order)
 
@@ -1250,13 +1304,13 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Hiển thị: Tổng doanh thu, Số đơn hàng, Số sản phẩm bán, Top bán chạy, Doanh thu theo Category
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Khoảng thời gian không hợp lệ → Báo lỗi
 
 \-        Không có dữ liệu → Hiển thị thông báo
 
-7\.    Hậu điều kiện: Báo cáo hiển thị trên giao diện. Không thay đổi CSDL
+8\.    Hậu điều kiện: Báo cáo hiển thị trên giao diện. Không thay đổi CSDL
 
    **4.28. (Admin) Quản lý banner / slider trang chủ**
 
@@ -1268,7 +1322,9 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 4\.    Tiền điều kiện: Đăng nhập với Role Admin, Token/Session hợp lệ.
 
-5\.    Luồng chính:
+5\.    Trigger: Admin truy cập "Quản lý nội dung" → "Banner / Slider" trên trang quản trị.
+
+6\.    Luồng chính:
 
 \-        Admin truy cập "Quản lý nội dung" → "Banner / Slider"
 
@@ -1292,7 +1348,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Admin kéo thả để thay đổi thứ tự hiển thị các banner
 
-6\.    Luồng ngoại lệ:
+7\.    Luồng ngoại lệ:
 
 \-        Hình ảnh sai định dạng (chỉ chấp nhận JPG, PNG, WEBP) → Báo lỗi
 
@@ -1302,7 +1358,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 
 \-        Ngày kết thúc trước ngày bắt đầu → Báo lỗi "Ngày kết thúc phải sau ngày bắt đầu"
 
-7\.    Hậu điều kiện: Banner được tạo/sửa/xóa trong CSDL. Hình ảnh được lưu trữ trên MinIO
+8\.    Hậu điều kiện: Banner được tạo/sửa/xóa trong CSDL. Hình ảnh được lưu trữ trên MinIO
 
 ![Hình UC.6 — Use Case Diagram — Quản lý Hệ thống (Admin/Sales)](diagrams/images/uc_admin_system.png)
 
