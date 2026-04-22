@@ -1,6 +1,18 @@
 import axios from "axios";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
+const AUTH_ENDPOINTS = [
+  "/auth/login",
+  "/auth/register",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+  "/auth/refresh-token",
+];
+
+const isAuthEndpoint = (url?: string): boolean => {
+  if (!url) return false;
+  return AUTH_ENDPOINTS.some((endpoint) => url.includes(endpoint));
+};
 
 /** Flag to prevent multiple logout attempts */
 let isLoggingOut = false;
@@ -52,7 +64,7 @@ api.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("accessToken");
-      if (token) {
+      if (token && !isAuthEndpoint(config.url)) {
         config.headers.Authorization = `Bearer ${token}`;
       }
     }
@@ -72,6 +84,12 @@ api.interceptors.response.use(
 
     // Handle 401 Unauthorized or 403 Forbidden (token expired/invalid)
     if (status === 401 || status === 403) {
+      // Auth endpoints should return their own errors (e.g. wrong password on login)
+      // without being transformed into session-expired redirects.
+      if (isAuthEndpoint(originalRequest?.url)) {
+        return Promise.reject(error);
+      }
+
       // If already retried, force logout (this throws and stops execution)
       if (originalRequest?._retry) {
         forceLogout(); // This throws, so no code after this runs

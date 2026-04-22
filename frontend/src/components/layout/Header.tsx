@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Cpu, ShoppingCart, Heart, User, Menu, LogOut, Package, Settings, Search, Phone, MapPin, Tag, Monitor } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
@@ -25,6 +26,7 @@ const navLinks = [
 ];
 
 export function Header() {
+  const router = useRouter();
   const { user, isAuthenticated, clearAuth } = useAuthStore();
   const { totalItems } = useCartStore();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -82,6 +84,12 @@ export function Header() {
     if (searchQuery.trim()) {
       window.location.href = `/products?keyword=${encodeURIComponent(searchQuery.trim())}`;
     }
+  };
+
+  const handleLogout = () => {
+    clearAuth();
+    setMobileOpen(false);
+    router.push("/");
   };
 
   return (
@@ -202,7 +210,7 @@ export function Header() {
                   )}
                   <DropdownMenuSeparator className="bg-gray-200" />
                   <DropdownMenuItem
-                    onClick={clearAuth}
+                    onClick={handleLogout}
                     className="text-red-600 cursor-pointer hover:bg-red-50"
                   >
                     <LogOut className="mr-2 h-4 w-4" />Đăng xuất
@@ -248,7 +256,7 @@ export function Header() {
                     <Link href="/orders" onClick={() => setMobileOpen(false)} className="text-gray-700 hover:text-blue-600 py-2 flex items-center gap-2">
                       <Package className="w-5 h-5" />Đơn hàng
                     </Link>
-                    <button onClick={() => { clearAuth(); setMobileOpen(false); }} className="text-red-600 hover:text-red-500 py-2 flex items-center gap-2 text-left">
+                    <button onClick={handleLogout} className="text-red-600 hover:text-red-500 py-2 flex items-center gap-2 text-left">
                       <LogOut className="w-5 h-5" />Đăng xuất
                     </button>
                   </>

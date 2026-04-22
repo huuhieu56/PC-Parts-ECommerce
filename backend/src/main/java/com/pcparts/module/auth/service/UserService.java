@@ -38,20 +38,24 @@ public class UserService {
 
     /**
      * Gets current user's profile.
+     *
+     * @param accountId the account ID from auth.getName()
      */
     @Transactional(readOnly = true)
-    public UserProfileDto getProfile(String email) {
-        Account account = getAccountByEmail(email);
+    public UserProfileDto getProfile(String accountId) {
+        Account account = getAccountById(accountId);
         UserProfile profile = getProfileByAccountId(account.getId());
         return toDto(account, profile);
     }
 
     /**
      * Updates current user's profile.
+     *
+     * @param accountId the account ID from auth.getName()
      */
     @Transactional
-    public UserProfileDto updateProfile(String email, UserProfileDto dto) {
-        Account account = getAccountByEmail(email);
+    public UserProfileDto updateProfile(String accountId, UserProfileDto dto) {
+        Account account = getAccountById(accountId);
         UserProfile profile = getProfileByAccountId(account.getId());
 
         if (dto.getFullName() != null) {
@@ -73,10 +77,12 @@ public class UserService {
 
     /**
      * Changes user's password.
+     *
+     * @param accountId the account ID from auth.getName()
      */
     @Transactional
-    public void changePassword(String email, String currentPassword, String newPassword, String confirmPassword) {
-        Account account = getAccountByEmail(email);
+    public void changePassword(String accountId, String currentPassword, String newPassword, String confirmPassword) {
+        Account account = getAccountById(accountId);
 
         if (!passwordEncoder.matches(currentPassword, account.getPasswordHash())) {
             throw new BusinessException("Mật khẩu hiện tại không chính xác");
@@ -103,9 +109,10 @@ public class UserService {
         return password != null && STRONG_PASSWORD_PATTERN.matcher(password).matches();
     }
 
-    private Account getAccountByEmail(String email) {
-        return accountRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "email", email));
+    private Account getAccountById(String accountId) {
+        Long id = Long.parseLong(accountId);
+        return accountRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "id", id));
     }
 
     private UserProfile getProfileByAccountId(Long accountId) {

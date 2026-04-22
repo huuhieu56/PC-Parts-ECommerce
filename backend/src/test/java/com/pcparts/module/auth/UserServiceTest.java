@@ -53,10 +53,10 @@ class UserServiceTest {
     @Test
     @DisplayName("Get profile — success")
     void getProfile_success() {
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
 
-        UserProfileDto result = userService.getProfile("test@test.com");
+        UserProfileDto result = userService.getProfile("1");
 
         assertThat(result.getFullName()).isEqualTo("Nguyễn Văn A");
         assertThat(result.getEmail()).isEqualTo("test@test.com");
@@ -66,9 +66,9 @@ class UserServiceTest {
     @Test
     @DisplayName("Get profile — account not found throws")
     void getProfile_accountNotFound() {
-        when(accountRepository.findByEmail("notfound@test.com")).thenReturn(Optional.empty());
+        when(accountRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.getProfile("notfound@test.com"))
+        assertThatThrownBy(() -> userService.getProfile("999"))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
@@ -78,11 +78,11 @@ class UserServiceTest {
     void updateProfile_success() {
         UserProfileDto dto = UserProfileDto.builder().fullName("Nguyễn Văn B")
                 .dateOfBirth(LocalDate.of(1995, 5, 15)).gender("FEMALE").avatarUrl("https://cdn/new.jpg").build();
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
         when(userProfileRepository.save(any(UserProfile.class))).thenReturn(testProfile);
 
-        userService.updateProfile("test@test.com", dto);
+        userService.updateProfile("1", dto);
 
         assertThat(testProfile.getFullName()).isEqualTo("Nguyễn Văn B");
         assertThat(testProfile.getGender()).isEqualTo("FEMALE");
@@ -93,11 +93,11 @@ class UserServiceTest {
     @DisplayName("Update profile — partial update (null fields unchanged)")
     void updateProfile_partial() {
         UserProfileDto dto = UserProfileDto.builder().fullName("Partial Update").build();
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
         when(userProfileRepository.save(any(UserProfile.class))).thenReturn(testProfile);
 
-        userService.updateProfile("test@test.com", dto);
+        userService.updateProfile("1", dto);
 
         assertThat(testProfile.getFullName()).isEqualTo("Partial Update");
         assertThat(testProfile.getGender()).isEqualTo("MALE"); // unchanged
@@ -107,13 +107,13 @@ class UserServiceTest {
     @Test
     @DisplayName("Change password — success")
     void changePassword_success() {
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(passwordEncoder.matches("OldPass123", "hashed_pwd")).thenReturn(true);
         when(passwordEncoder.matches("NewPass456", "hashed_pwd")).thenReturn(false);
         when(passwordEncoder.encode("NewPass456")).thenReturn("new_hashed");
         when(accountRepository.save(any(Account.class))).thenReturn(testAccount);
 
-        userService.changePassword("test@test.com", "OldPass123", "NewPass456", "NewPass456");
+        userService.changePassword("1", "OldPass123", "NewPass456", "NewPass456");
 
         assertThat(testAccount.getPasswordHash()).isEqualTo("new_hashed");
         verify(accountRepository).save(testAccount);
@@ -123,10 +123,10 @@ class UserServiceTest {
     @Test
     @DisplayName("Change password — wrong current password throws")
     void changePassword_wrongCurrent() {
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(passwordEncoder.matches("Wrong", "hashed_pwd")).thenReturn(false);
 
-        assertThatThrownBy(() -> userService.changePassword("test@test.com", "Wrong", "NewPass456", "NewPass456"))
+        assertThatThrownBy(() -> userService.changePassword("1", "Wrong", "NewPass456", "NewPass456"))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("không chính xác");
 
@@ -136,10 +136,10 @@ class UserServiceTest {
     @Test
     @DisplayName("Change password — confirm password mismatch throws")
     void changePassword_confirmMismatch() {
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(passwordEncoder.matches("OldPass123", "hashed_pwd")).thenReturn(true);
 
-        assertThatThrownBy(() -> userService.changePassword("test@test.com", "OldPass123", "NewPass456", "AnotherPass456"))
+        assertThatThrownBy(() -> userService.changePassword("1", "OldPass123", "NewPass456", "AnotherPass456"))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("xác nhận không khớp");
 
@@ -149,10 +149,10 @@ class UserServiceTest {
     @Test
     @DisplayName("Change password — new password same as current throws")
     void changePassword_sameAsCurrent() {
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(passwordEncoder.matches("OldPass123", "hashed_pwd")).thenReturn(true);
 
-        assertThatThrownBy(() -> userService.changePassword("test@test.com", "OldPass123", "OldPass123", "OldPass123"))
+        assertThatThrownBy(() -> userService.changePassword("1", "OldPass123", "OldPass123", "OldPass123"))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("phải khác mật khẩu cũ");
 
@@ -162,11 +162,11 @@ class UserServiceTest {
     @Test
     @DisplayName("Change password — weak new password throws")
     void changePassword_weakNewPassword() {
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(passwordEncoder.matches("OldPass123", "hashed_pwd")).thenReturn(true);
         when(passwordEncoder.matches("weakpass", "hashed_pwd")).thenReturn(false);
 
-        assertThatThrownBy(() -> userService.changePassword("test@test.com", "OldPass123", "weakpass", "weakpass"))
+        assertThatThrownBy(() -> userService.changePassword("1", "OldPass123", "weakpass", "weakpass"))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("ít nhất 8 ký tự");
 
@@ -176,9 +176,9 @@ class UserServiceTest {
     @Test
     @DisplayName("Change password — account not found throws")
     void changePassword_accountNotFound() {
-        when(accountRepository.findByEmail("gone@test.com")).thenReturn(Optional.empty());
+        when(accountRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.changePassword("gone@test.com", "Any", "Any", "Any"))
+        assertThatThrownBy(() -> userService.changePassword("999", "Any", "Any", "Any"))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 }
