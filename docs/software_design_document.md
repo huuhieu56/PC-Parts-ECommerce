@@ -807,6 +807,8 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 - **Đăng ký:** Validate input → Kiểm tra trùng email/SĐT → Hash password (BCrypt) → Tạo Account (Role=Customer) + User → Trả 201 Created.
 - **Đăng nhập:** Validate email/password → Kiểm tra is\_active → Sinh Access Token (JWT, 15 phút) + Refresh Token (30 ngày, lưu DB) → Merge giỏ hàng Session vào Cart DB → Trả token.
 - **Đăng xuất:** Xóa Refresh Token trong DB → Xóa giỏ hàng Session (Redis) → Client xóa Access Token. *(Lưu ý: Cart DB được giữ nguyên cho lần đăng nhập sau, chỉ xóa giỏ tạm Session — xem thêm CartService mục 5.2)*
+- **Quên mật khẩu:** Nhận email → luôn trả response trung tính để tránh lộ thông tin account → nếu email tồn tại thì tạo token `RESET_PASSWORD` có thời hạn, lưu DB và gửi email chứa link reset.
+- **Thiết lập lại mật khẩu:** Validate reset token còn hiệu lực → validate mật khẩu mới theo policy → cập nhật `Account.password_hash` → xóa reset token và thu hồi toàn bộ token/session cũ để buộc đăng nhập lại.
 - **Authorization:** Middleware/Filter kiểm tra JWT → Trích xuất Role → Kiểm tra Permission qua Role\_Permission → Cho phép hoặc từ chối (403).
 
 ### 5.2. CartService — Giỏ hàng
@@ -972,6 +974,11 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 | Monitoring | Health check endpoint, metrics (Prometheus + Grafana) |
 | Testing | Unit Test coverage ≥ 70%, Integration Test cho các flow chính |
 | CI/CD | Tự động build, test, deploy qua pipeline (GitHub Actions / GitLab CI) |
+
+**Test trace bắt buộc cho Auth (M01):**
+- Bộ test matrix tổng hợp: `docs/design.md` (mục 3.4.1).
+- Bộ test spec chi tiết cho UC-CUS-15: `docs/test.md`.
+- Các kịch bản `forgot-password`/`reset-password` phải bao phủ đầy đủ: email không tồn tại (response trung tính), token hết hạn/không hợp lệ, mật khẩu yếu, confirm password không khớp, và thu hồi token/session cũ sau reset thành công.
 
 ---
 
