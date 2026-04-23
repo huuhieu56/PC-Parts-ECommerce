@@ -983,7 +983,8 @@ Ma trận dưới đây liên kết từ **Yêu cầu người dùng (UR)** tron
 |:------------|:-------------|:-------|:---------|:---------------|
 | UR-AUTH-01 | Đăng ký & Đăng nhập | M01 | UC-CUS-04, UC-CUS-05, UC-CUS-06 | Account, User, Token, Cart |
 | UR-AUTH-02 | Phân quyền RBAC | M01 | — | Role, Permission, Role\_Permission |
-| UR-PROF-01 | Quản lý thông tin cá nhân | M11 | UC-CUS-14 | User, Account |
+| UR-AUTH-03 | Quên / Thiết lập lại mật khẩu | M01 | UC-CUS-15 | Account, Token, Email Queue |
+| UR-PROF-01 | Quản lý thông tin cá nhân | M11 | UC-CUS-14, UC-CUS-16 | User, Account |
 | UR-ADDR-01 | Quản lý địa chỉ | M11 | UC-CUS-12 | Address |
 | UR-CAT-01 | Quản lý danh mục | M02 | UC-AD-01 | Category, Attribute, Attribute\_Value |
 | UR-PROD-01 | Quản lý sản phẩm | M02 | UC-AD-02 | Product, Product\_Attribute, Product\_Image, Inventory |
@@ -1564,6 +1565,117 @@ classDiagram
     "cartMerged": true,
     "cartItemCount": 3
   }
+}
+```
+
+#### POST `/api/auth/refresh-token`
+
+**Request Body:**
+```json
+{
+  "refreshToken": "eyJhbGciOi..."
+}
+```
+
+**Response 200:**
+```json
+{
+  "status": 200,
+  "data": {
+    "accessToken": "eyJhbGciOi...",
+    "expiresIn": 900
+  }
+}
+```
+
+**Response 401 (token hết hạn/không hợp lệ):**
+```json
+{
+  "status": 401,
+  "error": "UNAUTHORIZED",
+  "message": "Refresh token không hợp lệ hoặc đã hết hạn"
+}
+```
+
+#### POST `/api/auth/logout`
+
+**Request Body:**
+```json
+{
+  "refreshToken": "eyJhbGciOi..."
+}
+```
+
+**Response 200:**
+```json
+{
+  "status": 200,
+  "message": "Đăng xuất thành công"
+}
+```
+
+#### POST `/api/auth/forgot-password`
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Response 200 (trả về giống nhau cho mọi trường hợp email):**
+```json
+{
+  "status": 200,
+  "message": "Nếu email tồn tại, liên kết đặt lại mật khẩu đã được gửi"
+}
+```
+
+> Ghi chú bảo mật: luôn trả cùng một thông điệp để tránh lộ thông tin email có tồn tại trong hệ thống.
+
+#### POST `/api/auth/reset-password`
+
+**Request Body:**
+```json
+{
+  "token": "9c73c8dc-2ab1-4ca8-bd7d-8d31d6c4f9ba",
+  "newPassword": "NewStrongP@ss123",
+  "confirmPassword": "NewStrongP@ss123"
+}
+```
+
+**Response 200:**
+```json
+{
+  "status": 200,
+  "message": "Đặt lại mật khẩu thành công"
+}
+```
+
+**Response 400 (token hết hạn/không hợp lệ):**
+```json
+{
+  "status": 400,
+  "error": "BAD_REQUEST",
+  "message": "Liên kết đã hết hạn. Vui lòng yêu cầu lại"
+}
+```
+
+**Response 400 (mật khẩu xác nhận không khớp):**
+```json
+{
+  "status": 400,
+  "error": "BAD_REQUEST",
+  "message": "Mật khẩu xác nhận không khớp"
+}
+```
+
+**Response 400 (mật khẩu yếu):**
+```json
+{
+  "status": 400,
+  "error": "BAD_REQUEST",
+  "message": "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số"
 }
 ```
 

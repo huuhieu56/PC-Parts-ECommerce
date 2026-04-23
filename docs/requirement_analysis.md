@@ -1368,6 +1368,7 @@ Hệ thống cần lưu trữ và xử lý 32 thực thể (Entities) chính, đ
 | :---- | :---- | :---- | :---- | :---- |
 | UR-AUTH-01 | Xác thực & Phân quyền | Đăng ký & Đăng nhập | Tạo Account \+ User/Profile. Đăng nhập sinh Token/Session. Merge giỏ hàng Session vào Cart. | Cao |
 | UR-AUTH-02 | Xác thực & Phân quyền | Phân quyền (RBAC) | Phân quyền dựa trên Role \+ Permission qua Role\_Permission. | Cao |
+| UR-AUTH-03 | Xác thực & Phân quyền | Quên / Thiết lập lại mật khẩu | Tạo reset token (Token.type=RESET\_PASSWORD), gửi email reset, cập nhật Account.password\_hash, xóa reset token và toàn bộ Token/Session cũ. | Cao |
 | UR-PROF-01 | Quản lý Người dùng | Quản lý thông tin cá nhân | Customer sửa User/Profile (họ tên, SĐT, ảnh, ngày sinh) và đổi mật khẩu (Account.password\_hash). | Trung bình |
 | UR-ADDR-01 | Quản lý Người dùng | Quản lý địa chỉ | Customer CRUD nhiều Address. Gợi ý Address mặc định khi Checkout. | Trung bình |
 | UR-CAT-01 | Quản lý Sản phẩm | Quản lý danh mục | Admin CRUD Category phân cấp, định nghĩa Attribute \+ Attribute\_Value. | Cao |
