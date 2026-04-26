@@ -84,7 +84,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">💳 Thanh toán</h2>
           <div className="text-sm space-y-1 text-gray-600">
-            <p>Phương thức: <span className="text-gray-900 font-medium">{(order.paymentMethod as string) === "COD" ? "Thanh toán khi nhận hàng (COD)" : (order.paymentMethod as string) === "VNPAY" ? "VNPay" : (order.paymentMethod as string) === "MOMO" ? "MoMo" : (order.paymentMethod as string) || "COD"}</span></p>
+            <p>Phương thức: <span className="text-gray-900 font-medium">{(order.paymentMethod as string) === "COD" ? "Thanh toán khi nhận hàng (COD)" : (order.paymentMethod as string) === "MOMO" ? "MoMo" : (order.paymentMethod as string) || "COD"}</span></p>
             <p>Trạng thái: <span className={`font-medium ${(order.paymentStatus as string) === "PAID" ? "text-green-600" : "text-amber-600"}`}>{(order.paymentStatus as string) === "PAID" ? "Đã thanh toán" : "Chưa thanh toán"}</span></p>
             {(order.note as string) && <p>Ghi chú: <span className="text-gray-900">{order.note as string}</span></p>}
             <p>Ngày đặt: <span className="text-gray-900 font-medium">{order.createdAt ? new Date(order.createdAt as string).toLocaleString("vi-VN") : "—"}</span></p>

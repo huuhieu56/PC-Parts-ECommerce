@@ -285,6 +285,8 @@ graph TD
     OrderSuccess["Đơn hàng thành công"]
     Auth["Đăng nhập /auth/login"]
     Register["Đăng ký /auth/register"]
+    ForgotPassword["Quên mật khẩu /auth/forgot-password"]
+    ResetPassword["Đặt lại mật khẩu /auth/reset-password?token=..."]
     Profile["Profile /profile"]
     Orders["Đơn hàng /orders"]
     OrderDetail["Chi tiết ĐH /orders/[id]"]
@@ -303,6 +305,9 @@ graph TD
     Home --> BuildPC
     Home --> Auth
     Auth --> Register
+    Auth --> ForgotPassword
+    ForgotPassword --> ResetPassword
+    ResetPassword --> Auth
 ```
 
 ---
@@ -669,6 +674,87 @@ graph TD
 └────────────────────────────────────────────────────────────┘
 ```
 
+### 4.7. Quên / Thiết lập lại mật khẩu
+
+#### 4.7.1. Quên mật khẩu (`/auth/forgot-password`)
+
+```
+┌────────────────────────────────────────────────────────────┐
+│ [HEADER LIGHT]                                             │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
+│                    QUÊN MẬT KHẨU                           │
+│         Nhập email để nhận liên kết đặt lại mật khẩu      │
+│                                                            │
+│  Email                                                     │
+│  [ user@example.com____________________________ ]          │
+│                                                            │
+│  [ GỬI LIÊN KẾT ĐẶT LẠI ] (btn primary)                    │
+│                                                            │
+│  < Quay lại đăng nhập                                      │
+│                                                            │
+└────────────────────────────────────────────────────────────┘
+```
+
+**Form fields:**
+- Email (required, validate định dạng email).
+
+**API mapping:**
+- Submit gọi `POST /auth/forgot-password`.
+- Luôn hiển thị message trung tính: **"Nếu email tồn tại, liên kết đặt lại mật khẩu đã được gửi"**.
+
+#### 4.7.2. Thiết lập lại mật khẩu (`/auth/reset-password?token=...`)
+
+```
+┌────────────────────────────────────────────────────────────┐
+│ [HEADER LIGHT]                                             │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
+│                  THIẾT LẬP LẠI MẬT KHẨU                    │
+│                                                            │
+│  Mật khẩu mới                                              │
+│  [ ******************** ] [👁]                             │
+│                                                            │
+│  Xác nhận mật khẩu mới                                     │
+│  [ ******************** ] [👁]                             │
+│                                                            │
+│  Rule: >= 8 ký tự, gồm chữ hoa, chữ thường và số          │
+│                                                            │
+│  [ ĐẶT LẠI MẬT KHẨU ] (btn primary)                        │
+│                                                            │
+└────────────────────────────────────────────────────────────┘
+```
+
+**Form fields:**
+- `newPassword` (required, kiểm tra độ mạnh).
+- `confirmPassword` (required, phải khớp `newPassword`).
+
+**API mapping:**
+- Submit gọi `POST /auth/reset-password` với `{token, newPassword, confirmPassword}`.
+
+#### 4.7.3. Message & State Rules (UC-CUS-15)
+
+| Tình huống | Hiển thị UI |
+|:-----------|:------------|
+| Forgot password submit thành công hoặc email không tồn tại | Toast/inline success: "Nếu email tồn tại, liên kết đặt lại mật khẩu đã được gửi" |
+| Token reset hết hạn/không hợp lệ | Inline error/banner: "Liên kết đã hết hạn. Vui lòng yêu cầu lại" + CTA "Gửi lại liên kết" |
+| Confirm password không khớp | Inline error dưới field: "Mật khẩu xác nhận không khớp" |
+| Mật khẩu yếu | Inline error: "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số" |
+| Reset thành công | Success message: "Đặt lại mật khẩu thành công" + redirect về `/auth/login` |
+
+**Loading states:**
+- Trong lúc submit: disable button + spinner.
+- Không cho submit lặp khi request đang pending.
+
+#### 4.7.4. Responsive behavior
+
+| Thành phần | Mobile (<640px) | Desktop (>=1024px) |
+|:-----------|:----------------|:-------------------|
+| Auth card | Full width, padding 16px | Max-width 480px, căn giữa |
+| Inputs | 100% width | 100% width |
+| CTA button | Full width | Full width |
+| Error/success message | Inline, font size 14px | Inline, font size 14px |
+
 ---
 
 ## 5. Wireframes mô tả — Admin/CMS
@@ -779,6 +865,7 @@ graph TD
 | **Product Detail** | Image trên, info dưới (stack) | Image trái, info phải (side-by-side) |
 | **Filter** | Sheet (slide from left) | Sidebar cố định bên trái |
 | **Cart** | Full page | Sidebar preview + full page |
+| **Auth Forms** | Single-column card, full-width button | Centered card (max 480px) |
 | **Build PC** | Scroll vertical | Table layout |
 | **Admin Sidebar** | Hidden (hamburger toggle) | Cố định bên trái (collapsible) |
 

@@ -807,6 +807,8 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 - **Đăng ký:** Validate input → Kiểm tra trùng email/SĐT → Hash password (BCrypt) → Tạo Account (Role=Customer) + User → Trả 201 Created.
 - **Đăng nhập:** Validate email/password → Kiểm tra is\_active → Sinh Access Token (JWT, 15 phút) + Refresh Token (30 ngày, lưu DB) → Merge giỏ hàng Session vào Cart DB → Trả token.
 - **Đăng xuất:** Xóa Refresh Token trong DB → Xóa giỏ hàng Session (Redis) → Client xóa Access Token. *(Lưu ý: Cart DB được giữ nguyên cho lần đăng nhập sau, chỉ xóa giỏ tạm Session — xem thêm CartService mục 5.2)*
+- **Quên mật khẩu:** Nhận email → luôn trả response trung tính để tránh lộ thông tin account → nếu email tồn tại thì tạo token `RESET_PASSWORD` có thời hạn, lưu DB và gửi email chứa link reset.
+- **Thiết lập lại mật khẩu:** Validate reset token còn hiệu lực → validate mật khẩu mới theo policy → cập nhật `Account.password_hash` → xóa reset token và thu hồi toàn bộ token/session cũ để buộc đăng nhập lại.
 - **Authorization:** Middleware/Filter kiểm tra JWT → Trích xuất Role → Kiểm tra Permission qua Role\_Permission → Cho phép hoặc từ chối (403).
 
 ### 5.2. CartService — Giỏ hàng
@@ -973,6 +975,11 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 | Testing | Unit Test coverage ≥ 70%, Integration Test cho các flow chính |
 | CI/CD | Tự động build, test, deploy qua pipeline (GitHub Actions / GitLab CI) |
 
+**Test trace bắt buộc cho Auth (M01):**
+- Bộ test matrix tổng hợp: `docs/design.md` (mục 3.4.1).
+- Bộ test spec chi tiết cho UC-CUS-15: `docs/test.md`.
+- Các kịch bản `forgot-password`/`reset-password` phải bao phủ đầy đủ: email không tồn tại (response trung tính), token hết hạn/không hợp lệ, mật khẩu yếu, confirm password không khớp, và thu hồi token/session cũ sau reset thành công.
+
 ---
 
 ## 8. Ma trận truy xuất yêu cầu (Requirements Traceability Matrix)
@@ -983,7 +990,8 @@ Ma trận dưới đây liên kết từ **Yêu cầu người dùng (UR)** tron
 |:------------|:-------------|:-------|:---------|:---------------|
 | UR-AUTH-01 | Đăng ký & Đăng nhập | M01 | UC-CUS-04, UC-CUS-05, UC-CUS-06 | Account, User, Token, Cart |
 | UR-AUTH-02 | Phân quyền RBAC | M01 | — | Role, Permission, Role\_Permission |
-| UR-PROF-01 | Quản lý thông tin cá nhân | M11 | UC-CUS-14 | User, Account |
+| UR-AUTH-03 | Quên / Thiết lập lại mật khẩu | M01 | UC-CUS-15 | Account, Token, Email Queue |
+| UR-PROF-01 | Quản lý thông tin cá nhân | M11 | UC-CUS-14, UC-CUS-16 | User, Account |
 | UR-ADDR-01 | Quản lý địa chỉ | M11 | UC-CUS-12 | Address |
 | UR-CAT-01 | Quản lý danh mục | M02 | UC-AD-01 | Category, Attribute, Attribute\_Value |
 | UR-PROD-01 | Quản lý sản phẩm | M02 | UC-AD-02 | Product, Product\_Attribute, Product\_Image, Inventory |
@@ -1564,6 +1572,117 @@ classDiagram
     "cartMerged": true,
     "cartItemCount": 3
   }
+}
+```
+
+#### POST `/api/auth/refresh-token`
+
+**Request Body:**
+```json
+{
+  "refreshToken": "eyJhbGciOi..."
+}
+```
+
+**Response 200:**
+```json
+{
+  "status": 200,
+  "data": {
+    "accessToken": "eyJhbGciOi...",
+    "expiresIn": 900
+  }
+}
+```
+
+**Response 401 (token hết hạn/không hợp lệ):**
+```json
+{
+  "status": 401,
+  "error": "UNAUTHORIZED",
+  "message": "Refresh token không hợp lệ hoặc đã hết hạn"
+}
+```
+
+#### POST `/api/auth/logout`
+
+**Request Body:**
+```json
+{
+  "refreshToken": "eyJhbGciOi..."
+}
+```
+
+**Response 200:**
+```json
+{
+  "status": 200,
+  "message": "Đăng xuất thành công"
+}
+```
+
+#### POST `/api/auth/forgot-password`
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Response 200 (trả về giống nhau cho mọi trường hợp email):**
+```json
+{
+  "status": 200,
+  "message": "Nếu email tồn tại, liên kết đặt lại mật khẩu đã được gửi"
+}
+```
+
+> Ghi chú bảo mật: luôn trả cùng một thông điệp để tránh lộ thông tin email có tồn tại trong hệ thống.
+
+#### POST `/api/auth/reset-password`
+
+**Request Body:**
+```json
+{
+  "token": "9c73c8dc-2ab1-4ca8-bd7d-8d31d6c4f9ba",
+  "newPassword": "NewStrongP@ss123",
+  "confirmPassword": "NewStrongP@ss123"
+}
+```
+
+**Response 200:**
+```json
+{
+  "status": 200,
+  "message": "Đặt lại mật khẩu thành công"
+}
+```
+
+**Response 400 (token hết hạn/không hợp lệ):**
+```json
+{
+  "status": 400,
+  "error": "BAD_REQUEST",
+  "message": "Liên kết đã hết hạn. Vui lòng yêu cầu lại"
+}
+```
+
+**Response 400 (mật khẩu xác nhận không khớp):**
+```json
+{
+  "status": 400,
+  "error": "BAD_REQUEST",
+  "message": "Mật khẩu xác nhận không khớp"
+}
+```
+
+**Response 400 (mật khẩu yếu):**
+```json
+{
+  "status": 400,
+  "error": "BAD_REQUEST",
+  "message": "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số"
 }
 ```
 

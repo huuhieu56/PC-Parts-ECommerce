@@ -68,7 +68,6 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-4 text-xs text-slate-500">
               <span>Thanh toán:</span>
-              <span className="bg-slate-700 px-2 py-1 rounded text-slate-300">VNPay</span>
               <span className="bg-slate-700 px-2 py-1 rounded text-slate-300">MoMo</span>
               <span className="bg-slate-700 px-2 py-1 rounded text-slate-300">COD</span>
             </div>
