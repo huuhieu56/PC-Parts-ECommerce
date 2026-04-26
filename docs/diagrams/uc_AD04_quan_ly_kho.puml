@@ -1,0 +1,40 @@
+@startuml UC-AD-04 Quản lý kho hàng
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-AD-04: Quản lý kho hàng
+
+actor "Quản trị viên\n(Admin)" as Admin
+actor "Nhân viên kho\n(Warehouse)" as Warehouse
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Quản lý kho hàng" as UC_INV
+  usecase "Xem tồn kho\n(Inventory, cảnh báo\nlow_stock)" as UC_VIEW
+  usecase "Nhập hàng\n(tăng quantity,\ntạo Inventory_Log)" as UC_IMPORT
+  usecase "Kiểm kê / Điều chỉnh\n(Inventory_Log: Điều chỉnh)" as UC_ADJUST
+  usecase "Quản lý Supplier\n(CRUD)" as UC_SUPPLIER
+  usecase "Gắn Supplier chính\nvào Inventory" as UC_ASSIGN
+  usecase "Số lượng nhập <= 0\n→ Báo lỗi" as UC_ERR_QTY
+  usecase "Điều chỉnh âm\ndẫn đến tồn kho < 0\n→ Cảnh báo" as UC_ERR_NEG
+  usecase "Xóa Supplier đang\nđược sử dụng → Chặn" as UC_ERR_SUP
+}
+
+Admin --> UC_INV
+Warehouse --> UC_INV
+
+UC_INV ..> UC_VIEW : <<include>>
+UC_INV ..> UC_IMPORT : <<include>>
+UC_INV ..> UC_ADJUST : <<include>>
+UC_INV ..> UC_SUPPLIER : <<include>>
+UC_INV ..> UC_ASSIGN : <<include>>
+UC_IMPORT ..> UC_ERR_QTY : <<extend>>
+UC_ADJUST ..> UC_ERR_NEG : <<extend>>
+UC_SUPPLIER ..> UC_ERR_SUP : <<extend>>
+
+@enduml

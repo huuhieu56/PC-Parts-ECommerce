@@ -1,0 +1,48 @@
+@startuml UC-CUS-02 Tạo đơn hàng và thanh toán
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-CUS-02: Tạo đơn hàng và thanh toán
+
+actor "Khách hàng\n(Customer)" as Customer
+actor "Cổng thanh toán\n(VNPay/MoMo)" as PayGW
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Tạo đơn hàng\nvà thanh toán" as UC_CHECKOUT
+  usecase "Hiển thị trang Checkout" as UC_DISPLAY
+  usecase "Chọn Address giao hàng" as UC_ADDRESS
+  usecase "Nhập mã Coupon" as UC_COUPON
+  usecase "Chọn phương thức\nthanh toán" as UC_PAY
+  usecase "Kiểm tra tồn kho" as UC_STOCK
+  usecase "Tạo Order + Payment\n+ Shipping" as UC_CREATE
+  usecase "Trừ kho Inventory" as UC_DEDUCT
+  usecase "Gửi email xác nhận" as UC_EMAIL
+  usecase "Thanh toán online" as UC_ONLINE
+  usecase "Coupon không hợp lệ" as UC_ERR_C
+  usecase "Tồn kho không đủ" as UC_ERR_S
+  usecase "Thanh toán thất bại" as UC_ERR_P
+}
+
+Customer --> UC_CHECKOUT
+UC_ONLINE --> PayGW
+
+UC_CHECKOUT ..> UC_DISPLAY : <<include>>
+UC_CHECKOUT ..> UC_ADDRESS : <<include>>
+UC_CHECKOUT ..> UC_COUPON : <<include>>
+UC_CHECKOUT ..> UC_PAY : <<include>>
+UC_CHECKOUT ..> UC_STOCK : <<include>>
+UC_CHECKOUT ..> UC_CREATE : <<include>>
+UC_CHECKOUT ..> UC_DEDUCT : <<include>>
+UC_CHECKOUT ..> UC_EMAIL : <<include>>
+UC_PAY ..> UC_ONLINE : <<extend>>
+UC_COUPON ..> UC_ERR_C : <<extend>>
+UC_STOCK ..> UC_ERR_S : <<extend>>
+UC_ONLINE ..> UC_ERR_P : <<extend>>
+
+@enduml

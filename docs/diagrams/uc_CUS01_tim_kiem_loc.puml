@@ -1,0 +1,41 @@
+@startuml UC-CUS-01 Tìm kiếm và lọc sản phẩm
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-CUS-01: Tìm kiếm và lọc sản phẩm
+
+actor "Khách vãng lai\n(Guest)" as Guest
+actor "Khách hàng\n(Customer)" as Customer
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Tìm kiếm và lọc\nsản phẩm" as UC_SEARCH
+
+  usecase "Chọn danh mục (Category)\ntừ menu điều hướng" as UC_SELECT_CAT
+  usecase "Hiển thị bộ lọc động\ntheo Attribute của Category" as UC_DYNAMIC_FILTER
+  usecase "Chọn tiêu chí lọc\n(Attribute_Value, Brand)\nvà/hoặc từ khóa" as UC_CRITERIA
+  usecase "Truy xuất Product,\nProduct_Attribute,\nkiểm tra Inventory" as UC_QUERY
+  usecase "Hiển thị kết quả\n(tên, ảnh, giá, Brand,\nCondition, tình trạng)" as UC_RESULT
+
+  usecase "Thông báo\nkhông tìm thấy sản phẩm\n+ gợi ý xóa bộ lọc" as UC_ERR_EMPTY
+  usecase "Thông báo lỗi\nkhông kết nối được\nmáy chủ" as UC_ERR_DB
+}
+
+Guest --> UC_SEARCH
+Customer --> UC_SEARCH
+
+UC_SEARCH ..> UC_SELECT_CAT : <<include>>
+UC_SEARCH ..> UC_DYNAMIC_FILTER : <<include>>
+UC_SEARCH ..> UC_CRITERIA : <<include>>
+UC_SEARCH ..> UC_QUERY : <<include>>
+UC_SEARCH ..> UC_RESULT : <<include>>
+
+UC_QUERY ..> UC_ERR_EMPTY : <<extend>>\n[không có kết quả]
+UC_QUERY ..> UC_ERR_DB : <<extend>>\n[lỗi kết nối]
+
+@enduml

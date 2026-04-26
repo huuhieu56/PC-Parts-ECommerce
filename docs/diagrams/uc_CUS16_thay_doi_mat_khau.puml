@@ -1,0 +1,39 @@
+@startuml UC-CUS-16 Thay đổi mật khẩu
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-CUS-16: Thay đổi mật khẩu
+
+actor "Khách hàng\n(Customer)" as Customer
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Thay đổi mật khẩu" as UC_CHANGE_PW
+
+  usecase "Hiển thị form\n(MK hiện tại, MK mới,\nXác nhận MK mới)" as UC_FORM
+  usecase "Kiểm tra MK hiện tại\nkhớp password_hash" as UC_VERIFY
+  usecase "Cập nhật\npassword_hash mới" as UC_UPDATE
+
+  usecase "Báo lỗi\nMK hiện tại không đúng" as UC_ERR_WRONG
+  usecase "Báo lỗi\nMK xác nhận không khớp" as UC_ERR_MATCH
+  usecase "Báo lỗi\nMK mới trùng MK cũ" as UC_ERR_SAME
+  usecase "Báo lỗi\nMK không đủ độ mạnh" as UC_ERR_WEAK
+}
+
+Customer --> UC_CHANGE_PW
+
+UC_CHANGE_PW ..> UC_FORM : <<include>>
+UC_CHANGE_PW ..> UC_VERIFY : <<include>>
+UC_CHANGE_PW ..> UC_UPDATE : <<include>>
+
+UC_VERIFY ..> UC_ERR_WRONG : <<extend>>\n[MK sai]
+UC_CHANGE_PW ..> UC_ERR_MATCH : <<extend>>\n[không khớp]
+UC_CHANGE_PW ..> UC_ERR_SAME : <<extend>>\n[trùng MK cũ]
+UC_CHANGE_PW ..> UC_ERR_WEAK : <<extend>>\n[yếu]
+
+@enduml

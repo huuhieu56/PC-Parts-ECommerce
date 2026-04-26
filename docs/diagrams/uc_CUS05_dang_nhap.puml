@@ -1,0 +1,43 @@
+@startuml UC-CUS-05 Đăng nhập
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-CUS-05: Đăng nhập
+
+actor "Khách vãng lai\n(Guest)" as Guest
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Đăng nhập" as UC_LOGIN
+
+  usecase "Nhập Email\nvà Mật khẩu" as UC_INPUT
+  usecase "Kiểm tra Email tồn tại\nvà password_hash khớp" as UC_AUTH
+  usecase "Kiểm tra tài khoản\nis_active = true" as UC_CHECK_ACTIVE
+  usecase "Sinh Token/Session\n(lưu vào DB)" as UC_TOKEN
+  usecase "Merge giỏ hàng Session\nvào Cart database" as UC_MERGE
+  usecase "Chuyển hướng theo Role\n(Customer/Admin/Sales/Warehouse)" as UC_REDIRECT
+
+  usecase "Báo lỗi\nEmail hoặc MK không đúng" as UC_ERR_AUTH
+  usecase "Báo lỗi\nTài khoản đã bị khóa" as UC_ERR_LOCKED
+  usecase "Báo lỗi\ntrường bắt buộc để trống" as UC_ERR_EMPTY
+}
+
+Guest --> UC_LOGIN
+
+UC_LOGIN ..> UC_INPUT : <<include>>
+UC_LOGIN ..> UC_AUTH : <<include>>
+UC_LOGIN ..> UC_CHECK_ACTIVE : <<include>>
+UC_LOGIN ..> UC_TOKEN : <<include>>
+UC_LOGIN ..> UC_MERGE : <<include>>
+UC_LOGIN ..> UC_REDIRECT : <<include>>
+
+UC_AUTH ..> UC_ERR_AUTH : <<extend>>\n[sai thông tin]
+UC_CHECK_ACTIVE ..> UC_ERR_LOCKED : <<extend>>\n[is_active = false]
+UC_INPUT ..> UC_ERR_EMPTY : <<extend>>\n[trường trống]
+
+@enduml

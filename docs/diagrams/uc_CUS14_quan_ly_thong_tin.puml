@@ -1,0 +1,33 @@
+@startuml UC-CUS-14 Quản lý thông tin cá nhân
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-CUS-14: Quản lý thông tin cá nhân
+
+actor "Khách hàng\n(Customer)" as Customer
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Quản lý thông tin\ncá nhân" as UC_PROFILE
+
+  usecase "Hiển thị form\nvới dữ liệu hiện tại\n(Họ tên, Ảnh, Ngày sinh,\nGiới tính)" as UC_FORM
+  usecase "Sửa thông tin\nvà nhấn Cập nhật" as UC_EDIT
+  usecase "Lưu vào bảng User" as UC_SAVE
+
+  usecase "Báo lỗi\ndữ liệu không hợp lệ" as UC_ERR_INVALID
+}
+
+Customer --> UC_PROFILE
+
+UC_PROFILE ..> UC_FORM : <<include>>
+UC_PROFILE ..> UC_EDIT : <<include>>
+UC_PROFILE ..> UC_SAVE : <<include>>
+
+UC_EDIT ..> UC_ERR_INVALID : <<extend>>\n[dữ liệu sai]
+
+@enduml
