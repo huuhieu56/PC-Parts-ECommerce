@@ -1,0 +1,38 @@
+@startuml UC-CUS-07 Đánh giá sản phẩm
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-CUS-07: Đánh giá sản phẩm
+
+actor "Khách hàng\n(Customer)" as Customer
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Đánh giá sản phẩm" as UC_REVIEW
+  usecase "Kiểm tra Order\nhoàn thành chứa Product" as UC_CHECK
+  usecase "Hiển thị form\n(sao, bình luận, ảnh)" as UC_FORM
+  usecase "Tạo Review\n+ Review_Image" as UC_CREATE
+  usecase "Hiển thị đánh giá\ntrên trang sản phẩm" as UC_SHOW
+  usecase "Chưa mua sản phẩm\n→ Ẩn/Báo lỗi" as UC_ERR_NOT_BUY
+  usecase "Chưa chọn số sao" as UC_ERR_STAR
+  usecase "Ảnh sai định dạng\nhoặc quá dung lượng" as UC_ERR_IMG
+  usecase "Vượt số lượng ảnh\n(tối đa 5)" as UC_ERR_MAX_IMG
+}
+
+Customer --> UC_REVIEW
+
+UC_REVIEW ..> UC_CHECK : <<include>>
+UC_REVIEW ..> UC_FORM : <<include>>
+UC_REVIEW ..> UC_CREATE : <<include>>
+UC_REVIEW ..> UC_SHOW : <<include>>
+UC_CHECK ..> UC_ERR_NOT_BUY : <<extend>>
+UC_FORM ..> UC_ERR_STAR : <<extend>>
+UC_FORM ..> UC_ERR_IMG : <<extend>>
+UC_FORM ..> UC_ERR_MAX_IMG : <<extend>>
+
+@enduml

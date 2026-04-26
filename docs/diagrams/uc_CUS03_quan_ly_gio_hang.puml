@@ -1,0 +1,45 @@
+@startuml UC-CUS-03 Quản lý giỏ hàng
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-CUS-03: Quản lý giỏ hàng
+
+actor "Khách vãng lai\n(Guest)" as Guest
+actor "Khách hàng\n(Customer)" as Customer
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Quản lý giỏ hàng" as UC_CART
+
+  usecase "Thêm sản phẩm\nvào giỏ hàng\n(kiểm tra Inventory)" as UC_ADD
+  usecase "Xem giỏ hàng\n(tên, ảnh, giá, số lượng,\nCondition, tổng tiền)" as UC_VIEW
+  usecase "Sửa số lượng\n(kiểm tra Inventory,\ntính lại tổng)" as UC_EDIT
+  usecase "Xóa sản phẩm\nkhỏi giỏ hàng" as UC_DELETE
+  usecase "Merge giỏ hàng Session\nvào Cart database\n(khi đăng nhập)" as UC_MERGE
+  usecase "Xóa giỏ Session\n(khi đăng xuất)" as UC_CLEAR
+
+  usecase "Giỏ hàng trống\n→ Ẩn nút Thanh toán" as UC_ERR_EMPTY
+  usecase "Số lượng vượt\nInventory.quantity\n→ Giới hạn tối đa" as UC_ERR_STOCK
+  usecase "Merge cộng dồn\nvượt Inventory\n→ Giới hạn + thông báo" as UC_ERR_MERGE
+}
+
+Guest --> UC_CART
+Customer --> UC_CART
+
+UC_CART ..> UC_ADD : <<include>>
+UC_CART ..> UC_VIEW : <<include>>
+UC_CART ..> UC_EDIT : <<include>>
+UC_CART ..> UC_DELETE : <<include>>
+UC_CART ..> UC_MERGE : <<include>>
+UC_CART ..> UC_CLEAR : <<include>>
+
+UC_CART ..> UC_ERR_EMPTY : <<extend>>\n[giỏ trống]
+UC_EDIT ..> UC_ERR_STOCK : <<extend>>\n[vượt tồn kho]
+UC_MERGE ..> UC_ERR_MERGE : <<extend>>\n[merge vượt]
+
+@enduml

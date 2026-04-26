@@ -1,0 +1,28 @@
+@startuml UC-AD-05 Thống kê doanh thu
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+
+title UC-AD-05: Thống kê doanh thu
+
+actor "Admin" as Admin
+actor "Sales" as Sales
+
+rectangle "Hệ thống" {
+  usecase "Thống kê doanh thu" as UC_STAT
+  usecase "Chọn bộ lọc\n(thời gian, Category)" as UC_FILTER
+  usecase "Tổng hợp dữ liệu" as UC_QUERY
+  usecase "Hiển thị báo cáo\n(doanh thu, top bán chạy)" as UC_REPORT
+  usecase "Thời gian không hợp lệ" as UC_ERR_DATE
+  usecase "Không có dữ liệu" as UC_ERR_EMPTY
+}
+
+Admin --> UC_STAT
+Sales --> UC_STAT
+UC_STAT ..> UC_FILTER : <<include>>
+UC_STAT ..> UC_QUERY : <<include>>
+UC_STAT ..> UC_REPORT : <<include>>
+UC_FILTER ..> UC_ERR_DATE : <<extend>>
+UC_QUERY ..> UC_ERR_EMPTY : <<extend>>
+
+@enduml

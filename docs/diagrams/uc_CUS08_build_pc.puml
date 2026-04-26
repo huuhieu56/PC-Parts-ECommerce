@@ -1,0 +1,48 @@
+@startuml UC-CUS-08 Build PC
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-CUS-08: Xây dựng cấu hình PC (Build PC)
+
+actor "Khách vãng lai\n(Guest)" as Guest
+actor "Khách hàng\n(Customer)" as Customer
+actor "API LLM\n(AI)" as LLM
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Xây dựng cấu hình\nPC (Build PC)" as UC_BUILD
+  usecase "Hiển thị các slot\n(CPU, Main, RAM, VGA,\nPSU, Case, SSD, Tản nhiệt)" as UC_SLOTS
+  usecase "Chọn linh kiện\nvà cập nhật tổng giá" as UC_SELECT
+  usecase "Xuất báo giá PDF\n(không cần đăng nhập)" as UC_EXPORT
+  usecase "Kiểm tra tương thích AI\n(yêu cầu đăng nhập)" as UC_AI
+  usecase "Thêm vào giỏ hàng\n(yêu cầu đăng nhập)" as UC_ADD_CART
+  usecase "Tạo đơn hàng\n(yêu cầu đăng nhập)" as UC_ORDER
+  usecase "Yêu cầu đăng nhập\n(lưu cấu hình Session)" as UC_REQUIRE_LOGIN
+  usecase "Chưa chọn đủ linh kiện\ntối thiểu (CPU, Main)" as UC_ERR_MIN
+  usecase "API LLM lỗi\n→ Thông báo tạm" as UC_ERR_LLM
+  usecase "Linh kiện hết hàng\n→ Yêu cầu thay thế" as UC_ERR_STOCK
+}
+
+Guest --> UC_BUILD
+Customer --> UC_BUILD
+UC_AI --> LLM
+
+UC_BUILD ..> UC_SLOTS : <<include>>
+UC_BUILD ..> UC_SELECT : <<include>>
+UC_BUILD ..> UC_EXPORT : <<include>>
+UC_BUILD ..> UC_AI : <<extend>>
+UC_BUILD ..> UC_ADD_CART : <<extend>>
+UC_BUILD ..> UC_ORDER : <<extend>>
+UC_AI ..> UC_REQUIRE_LOGIN : <<extend>>
+UC_ADD_CART ..> UC_REQUIRE_LOGIN : <<extend>>
+UC_ORDER ..> UC_REQUIRE_LOGIN : <<extend>>
+UC_SELECT ..> UC_ERR_MIN : <<extend>>
+UC_AI ..> UC_ERR_LLM : <<extend>>
+UC_SELECT ..> UC_ERR_STOCK : <<extend>>
+
+@enduml

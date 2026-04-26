@@ -1,0 +1,45 @@
+@startuml UC-CUS-15 Quên / Thiết lập lại mật khẩu
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-CUS-15: Quên / Thiết lập lại mật khẩu
+
+actor "Khách vãng lai (Guest)\n/ Khách hàng (Customer)" as User
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Quên / Thiết lập lại\nmật khẩu" as UC_FORGOT
+
+  usecase "Hiển thị form\nnhập Email" as UC_EMAIL_FORM
+  usecase "Kiểm tra Email\ntồn tại trong Account" as UC_CHECK
+  usecase "Tạo Reset Password Token\nvà gửi email liên kết" as UC_SEND
+  usecase "Xác minh Token\ncòn hiệu lực" as UC_VERIFY_TOKEN
+  usecase "Hiển thị form\nMK mới + Xác nhận" as UC_PW_FORM
+  usecase "Cập nhật password_hash\nXóa Token/Session cũ" as UC_RESET
+
+  usecase "Thông báo chung\n(tránh lộ thông tin)" as UC_ERR_GENERIC
+  usecase "Báo lỗi\nliên kết đã hết hạn" as UC_ERR_EXPIRED
+  usecase "Báo lỗi\nMK xác nhận không khớp" as UC_ERR_MATCH
+  usecase "Báo lỗi\nMK không đủ độ mạnh" as UC_ERR_WEAK
+}
+
+User --> UC_FORGOT
+
+UC_FORGOT ..> UC_EMAIL_FORM : <<include>>
+UC_FORGOT ..> UC_CHECK : <<include>>
+UC_FORGOT ..> UC_SEND : <<include>>
+UC_FORGOT ..> UC_VERIFY_TOKEN : <<include>>
+UC_FORGOT ..> UC_PW_FORM : <<include>>
+UC_FORGOT ..> UC_RESET : <<include>>
+
+UC_CHECK ..> UC_ERR_GENERIC : <<extend>>\n[email không tồn tại]
+UC_VERIFY_TOKEN ..> UC_ERR_EXPIRED : <<extend>>\n[token hết hạn]
+UC_RESET ..> UC_ERR_MATCH : <<extend>>\n[MK không khớp]
+UC_RESET ..> UC_ERR_WEAK : <<extend>>\n[MK yếu]
+
+@enduml

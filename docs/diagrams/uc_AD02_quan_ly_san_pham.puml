@@ -1,0 +1,46 @@
+@startuml UC-AD-02 Quản lý sản phẩm
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-AD-02: Quản lý sản phẩm
+
+actor "Quản trị viên\n(Admin)" as Admin
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Quản lý sản phẩm" as UC_PROD
+  usecase "Thêm Product\n(tên, SKU, giá, mô tả,\nCategory, Brand, Condition)" as UC_ADD
+  usecase "Gán Product_Attribute\n(Attribute_Value)" as UC_ATTR
+  usecase "Upload Product_Image\n(đánh dấu ảnh chính)" as UC_IMG
+  usecase "Tạo Inventory\n(quantity = 0)" as UC_INV
+  usecase "Sửa Product" as UC_EDIT
+  usecase "Xóa Product\n(kiểm tra Order)" as UC_DEL
+  usecase "Quản lý Brand\n(CRUD)" as UC_BRAND
+  usecase "Thiếu trường bắt buộc" as UC_ERR_EMPTY
+  usecase "SKU trùng" as UC_ERR_SKU
+  usecase "Ảnh sai định dạng\nhoặc quá dung lượng" as UC_ERR_IMG
+  usecase "Product có Order\nchưa hoàn thành\n→ Chặn xóa" as UC_ERR_ORDER
+  usecase "Brand đang có Product\n→ Chặn xóa" as UC_ERR_BRAND
+}
+
+Admin --> UC_PROD
+
+UC_PROD ..> UC_ADD : <<include>>
+UC_PROD ..> UC_ATTR : <<include>>
+UC_PROD ..> UC_IMG : <<include>>
+UC_PROD ..> UC_INV : <<include>>
+UC_PROD ..> UC_EDIT : <<include>>
+UC_PROD ..> UC_DEL : <<include>>
+UC_PROD ..> UC_BRAND : <<include>>
+UC_ADD ..> UC_ERR_EMPTY : <<extend>>
+UC_ADD ..> UC_ERR_SKU : <<extend>>
+UC_IMG ..> UC_ERR_IMG : <<extend>>
+UC_DEL ..> UC_ERR_ORDER : <<extend>>
+UC_BRAND ..> UC_ERR_BRAND : <<extend>>
+
+@enduml

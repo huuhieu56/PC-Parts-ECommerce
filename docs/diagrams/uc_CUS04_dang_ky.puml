@@ -1,0 +1,43 @@
+@startuml UC-CUS-04 Đăng ký
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-CUS-04: Đăng ký
+
+actor "Khách vãng lai\n(Guest)" as Guest
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Đăng ký tài khoản" as UC_REGISTER
+
+  usecase "Nhập thông tin đăng ký\n(Họ tên, Email, SĐT,\nMật khẩu, Xác nhận MK)" as UC_INPUT
+  usecase "Kiểm tra tính hợp lệ\n(Email, MK, SĐT)" as UC_VALIDATE
+  usecase "Kiểm tra Email/SĐT\nđã tồn tại" as UC_CHECK_EXIST
+  usecase "Tạo Account + User/Profile\n(Role = Customer)" as UC_CREATE
+  usecase "Hiển thị thông báo\nđăng ký thành công" as UC_SUCCESS
+
+  usecase "Báo lỗi trường bắt buộc\nđể trống" as UC_ERR_EMPTY
+  usecase "Báo lỗi Email/SĐT\nsai định dạng" as UC_ERR_FORMAT
+  usecase "Báo lỗi MK xác nhận\nkhông khớp" as UC_ERR_MATCH
+  usecase "Báo lỗi Email/SĐT\nđã được sử dụng" as UC_ERR_EXIST
+}
+
+Guest --> UC_REGISTER
+
+UC_REGISTER ..> UC_INPUT : <<include>>
+UC_REGISTER ..> UC_VALIDATE : <<include>>
+UC_REGISTER ..> UC_CHECK_EXIST : <<include>>
+UC_REGISTER ..> UC_CREATE : <<include>>
+UC_REGISTER ..> UC_SUCCESS : <<include>>
+
+UC_VALIDATE ..> UC_ERR_EMPTY : <<extend>>\n[trường trống]
+UC_VALIDATE ..> UC_ERR_FORMAT : <<extend>>\n[sai định dạng]
+UC_VALIDATE ..> UC_ERR_MATCH : <<extend>>\n[MK không khớp]
+UC_CHECK_EXIST ..> UC_ERR_EXIST : <<extend>>\n[đã tồn tại]
+
+@enduml

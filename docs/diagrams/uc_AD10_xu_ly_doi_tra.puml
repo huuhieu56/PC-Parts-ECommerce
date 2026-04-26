@@ -1,0 +1,40 @@
+@startuml UC-AD-10 Xử lý đổi trả
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-AD-10: Xử lý đổi trả
+
+actor "Quản trị viên\n(Admin)" as Admin
+actor "Nhân viên bán hàng\n(Sales)" as Sales
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Xử lý đổi trả" as UC_RET
+  usecase "Xem danh sách\nReturn/Refund\n(lọc trạng thái, loại)" as UC_LIST
+  usecase "Xem chi tiết\n(User, Order, Order_Detail,\nlý do, loại)" as UC_DETAIL
+  usecase "Duyệt + Hoàn tiền\n(refund_amount, Payment\nRefunded, hoàn kho)" as UC_REFUND
+  usecase "Duyệt + Đổi hàng\n(hoàn kho cũ,\ntạo Order mới)" as UC_EXCHANGE
+  usecase "Từ chối\n(nhập lý do)" as UC_REJECT
+  usecase "Cập nhật Return.status\nvà resolved_at" as UC_UPDATE
+  usecase "Từ chối không nhập\nlý do → Báo lỗi" as UC_ERR_REASON
+  usecase "SP thay thế hết hàng\n→ Báo lỗi" as UC_ERR_STOCK
+}
+
+Admin --> UC_RET
+Sales --> UC_RET
+
+UC_RET ..> UC_LIST : <<include>>
+UC_RET ..> UC_DETAIL : <<include>>
+UC_RET ..> UC_UPDATE : <<include>>
+UC_RET ..> UC_REFUND : <<extend>>
+UC_RET ..> UC_EXCHANGE : <<extend>>
+UC_RET ..> UC_REJECT : <<extend>>
+UC_REJECT ..> UC_ERR_REASON : <<extend>>
+UC_EXCHANGE ..> UC_ERR_STOCK : <<extend>>
+
+@enduml

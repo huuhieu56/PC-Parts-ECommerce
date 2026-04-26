@@ -1,0 +1,36 @@
+@startuml UC-CUS-10 Yêu cầu bảo hành
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-CUS-10: Yêu cầu bảo hành
+
+actor "Khách hàng\n(Customer)" as Customer
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Yêu cầu bảo hành" as UC_WARRANTY
+  usecase "Chọn Order + Product\ncần bảo hành" as UC_SELECT
+  usecase "Kiểm tra Warranty_Policy\n(thời hạn còn hiệu lực)" as UC_CHECK
+  usecase "Nhập Số Serial\nvà mô tả lỗi" as UC_INPUT
+  usecase "Tạo Warranty_Ticket\n(trạng thái Tiếp nhận)" as UC_CREATE
+  usecase "Hết hạn bảo hành\n→ Báo lỗi" as UC_ERR_EXPIRED
+  usecase "Không có\nWarranty_Policy" as UC_ERR_NO_POLICY
+  usecase "Thiếu Số Serial\n→ Báo lỗi" as UC_ERR_SERIAL
+}
+
+Customer --> UC_WARRANTY
+
+UC_WARRANTY ..> UC_SELECT : <<include>>
+UC_WARRANTY ..> UC_CHECK : <<include>>
+UC_WARRANTY ..> UC_INPUT : <<include>>
+UC_WARRANTY ..> UC_CREATE : <<include>>
+UC_CHECK ..> UC_ERR_EXPIRED : <<extend>>
+UC_CHECK ..> UC_ERR_NO_POLICY : <<extend>>
+UC_INPUT ..> UC_ERR_SERIAL : <<extend>>
+
+@enduml

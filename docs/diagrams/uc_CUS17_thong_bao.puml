@@ -1,0 +1,38 @@
+@startuml UC-CUS-17 Nhận thông báo trạng thái đơn hàng
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-CUS-17: Nhận thông báo trạng thái đơn hàng
+
+actor "Khách hàng\n(Customer)" as Customer
+actor "Admin / Sales" as Staff
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Nhận thông báo\ntrạng thái đơn hàng" as UC_NOTIFY
+  usecase "Tạo Notification\nkhi Order.status thay đổi" as UC_CREATE
+  usecase "Gửi email thông báo\n(mã đơn, trạng thái mới)" as UC_EMAIL
+  usecase "Tạo thông báo in-app\n(is_read = false)" as UC_INAPP
+  usecase "Hiển thị badge\nsố thông báo chưa đọc" as UC_BADGE
+  usecase "Xem chi tiết thông báo\n→ chuyển trang đơn hàng\n(is_read = true)" as UC_READ
+  usecase "Email thất bại\n→ Log lỗi, in-app vẫn tạo" as UC_ERR_EMAIL
+  usecase "Không có thông báo\n→ Hiển thị trống" as UC_ERR_EMPTY
+}
+
+Customer --> UC_NOTIFY
+Staff --> UC_CREATE : cập nhật\nOrder.status
+
+UC_NOTIFY ..> UC_CREATE : <<include>>
+UC_NOTIFY ..> UC_EMAIL : <<include>>
+UC_NOTIFY ..> UC_INAPP : <<include>>
+UC_NOTIFY ..> UC_BADGE : <<include>>
+UC_NOTIFY ..> UC_READ : <<include>>
+UC_EMAIL ..> UC_ERR_EMAIL : <<extend>>
+UC_NOTIFY ..> UC_ERR_EMPTY : <<extend>>
+
+@enduml

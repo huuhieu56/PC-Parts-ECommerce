@@ -1,0 +1,33 @@
+@startuml UC-CUS-06 Đăng xuất
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-CUS-06: Đăng xuất
+
+actor "Customer / Admin\n/ Sales / Warehouse" as User
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Đăng xuất" as UC_LOGOUT
+
+  usecase "Xóa Token/Session\ntrong CSDL" as UC_DEL_TOKEN
+  usecase "Xóa giỏ hàng Session\ntrên trình duyệt" as UC_DEL_CART
+  usecase "Chuyển hướng\nvề trang chủ (Guest)" as UC_REDIRECT
+
+  usecase "Token đã hết hạn\n→ Tự động chuyển\ntrang đăng nhập" as UC_ERR_EXPIRED
+}
+
+User --> UC_LOGOUT
+
+UC_LOGOUT ..> UC_DEL_TOKEN : <<include>>
+UC_LOGOUT ..> UC_DEL_CART : <<include>>
+UC_LOGOUT ..> UC_REDIRECT : <<include>>
+
+UC_LOGOUT ..> UC_ERR_EXPIRED : <<extend>>\n[token hết hạn]
+
+@enduml
