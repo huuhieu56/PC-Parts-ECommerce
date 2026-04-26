@@ -274,10 +274,11 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 - Quản lý kho (Inventory, Inventory\_Log): nhập hàng, kiểm kê, ghi nhận biến động  
 - Xem tồn kho thực tế theo Product
 
-![Hình UC.1 — Use Case Diagram — Tổng quan hệ thống](diagrams/images/uc_overview.png)
 **4\. Đặc tả Use Case**
 
    **4.1. Đăng ký**
+
+![UC-CUS-04 — Đăng ký](diagrams/images/uc_CUS04_dang_ky.png)
 
 1\.    Mã UC, tên UC: UC-CUS-04: Đăng ký
 
@@ -316,6 +317,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 \-        Account mới (Role \= Customer) và User/Profile được tạo trong CSDL
 
    **4.2. Đăng nhập**
+
+![UC-CUS-05 — Đăng nhập](diagrams/images/uc_CUS05_dang_nhap.png)
 
 1\.    Mã UC, tên UC: UC-CUS-05: Đăng nhập
 
@@ -359,6 +362,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 
    **4.3. Đăng xuất**
 
+![UC-CUS-06 — Đăng xuất](diagrams/images/uc_CUS06_dang_xuat.png)
+
 1\.    Mã UC, tên UC: UC-CUS-06: Đăng xuất
 
 2\.    Actor: Customer / Admin / Sales / Warehouse
@@ -388,6 +393,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 \-        Token/Session bị xóa, giỏ hàng Session bị xóa, Cart database vẫn được lưu
 
    **4.4. Thay đổi mật khẩu**
+
+![UC-CUS-16 — Thay đổi mật khẩu](diagrams/images/uc_CUS16_thay_doi_mat_khau.png)
 
 1\.    Mã UC, tên UC: UC-CUS-16: Thay đổi mật khẩu
 
@@ -423,6 +430,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 
 8\.    Hậu điều kiện: Account.password\_hash được cập nhật
    **4.5. Quên / Thiết lập lại mật khẩu**
+
+![UC-CUS-15 — Quên / Thiết lập lại mật khẩu](diagrams/images/uc_CUS15_quen_mat_khau.png)
 
 1\.    Mã UC, tên UC: UC-CUS-15: Quên / Thiết lập lại mật khẩu
 
@@ -473,6 +482,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 \-        Account.password\_hash được cập nhật. Reset Password Token bị xóa. Toàn bộ Token/Session cũ bị xóa
    **4.6. Quản lý thông tin cá nhân**
 
+![UC-CUS-14 — Quản lý thông tin cá nhân](diagrams/images/uc_CUS14_quan_ly_thong_tin.png)
+
 1\.    Mã UC, tên UC: UC-CUS-14: Quản lý thông tin cá nhân
 
 2\.    Actor: Khách hàng – Customer
@@ -498,6 +509,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 8\.    Hậu điều kiện: User/Profile được cập nhật
 
    **4.7. Tìm kiếm và lọc sản phẩm**
+
+![UC-CUS-01 — Tìm kiếm và lọc sản phẩm](diagrams/images/uc_CUS01_tim_kiem_loc.png)
 
 1\.    Mã UC, tên UC: UC-CUS-01: Tìm kiếm và lọc sản phẩm
 
@@ -532,6 +545,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 \-        Hệ thống hiển thị danh sách sản phẩm khớp với điều kiện tìm kiếm/lọc của người dùng trên giao diện
 
    **4.8. Quản lý giỏ hàng**
+
+![UC-CUS-03 — Quản lý giỏ hàng](diagrams/images/uc_CUS03_quan_ly_gio_hang.png)
 
 1\.    Mã UC, tên UC: UC-CUS-03: Quản lý giỏ hàng
 
@@ -570,6 +585,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 \-        Cart\_Item được thêm/sửa/xóa trong CSDL hoặc Session. Tổng tiền được tính lại
 
    **4.9. Tạo đơn hàng và thanh toán**
+
+![UC-CUS-02 — Tạo đơn hàng và thanh toán](diagrams/images/uc_CUS02_tao_don_hang.png)
 
 1\.    Mã UC, tên UC: UC-CUS-02: Tạo đơn hàng và thanh toán
 
@@ -641,6 +658,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 
    **4.10. Quản lý địa chỉ giao hàng**
 
+![UC-CUS-12 — Quản lý địa chỉ giao hàng](diagrams/images/uc_CUS12_quan_ly_dia_chi.png)
+
 1\.    Mã UC, tên UC: UC-CUS-12: Quản lý địa chỉ giao hàng
 
 2\.    Actor: Khách hàng – Customer
@@ -675,6 +694,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 
    **4.11. Xem lịch sử đơn hàng và theo dõi vận chuyển**
 
+![UC-CUS-13 — Xem lịch sử đơn hàng và theo dõi vận chuyển](diagrams/images/uc_CUS13_lich_su_don_hang.png)
+
 1\.    Mã UC, tên UC: UC-CUS-13: Xem lịch sử đơn hàng và theo dõi vận chuyển
 
 2\.    Actor: Khách hàng – Customer
@@ -704,6 +725,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 8\.    Hậu điều kiện: Không thay đổi CSDL. Chỉ hiển thị thông tin
 
    **4.12. Yêu cầu đổi trả**
+
+![UC-CUS-11 — Yêu cầu đổi trả](diagrams/images/uc_CUS11_yeu_cau_doi_tra.png)
 
 1\.    Mã UC, tên UC: UC-CUS-11: Yêu cầu đổi trả
 
@@ -742,6 +765,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 \-        Return/Refund được tạo trong CSDL với trạng thái "Chờ duyệt"
 
 **4.13. Yêu cầu bảo hành**
+
+![UC-CUS-10 — Yêu cầu bảo hành](diagrams/images/uc_CUS10_yeu_cau_bao_hanh.png)
 
 1\.    Mã UC, tên UC: UC-CUS-10: Yêu cầu bảo hành
 
@@ -782,6 +807,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 \-        Warranty\_Ticket được tạo trong CSDL với trạng thái "Tiếp nhận"
 
    **4.14. Đánh giá sản phẩm**
+
+![UC-CUS-07 — Đánh giá sản phẩm](diagrams/images/uc_CUS07_danh_gia_san_pham.png)
 
 1\.    Mã UC, tên UC: UC-CUS-07: Đánh giá sản phẩm
 
@@ -829,6 +856,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 
    **4.15. Quản lý danh sách yêu thích**
 
+![UC-CUS-09 — Quản lý danh sách yêu thích](diagrams/images/uc_CUS09_wishlist.png)
+
 1\.    Mã UC, tên UC: UC-CUS-09: Quản lý danh sách yêu thích
 
 2\.    Actor: Khách hàng – Customer
@@ -862,6 +891,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 \-        Wishlist entry được tạo hoặc xóa trong CSDL
 
    **4.16. Xây dựng cấu hình PC (Build PC)**
+
+![UC-CUS-08 — Xây dựng cấu hình PC](diagrams/images/uc_CUS08_build_pc.png)
 
 1\.    Mã UC, tên UC: UC-CUS-08: Xây dựng cấu hình PC (Build PC)
 
@@ -910,9 +941,9 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 - Nếu xuất báo giá: file PDF được tạo (không thay đổi CSDL  
 - Nếu thêm vào giỏ: linh kiện được thêm vào Cart dưới dạng Cart\\\_Item riêng lẻ (yêu cầu đã đăng nhập)
 
-![Hình UC.2 — Use Case Diagram — Khách vãng lai & Khách hàng](diagrams/images/uc_customer.png)
-
    **4.17. Nhận thông báo trạng thái đơn hàng**
+
+![UC-CUS-17 — Nhận thông báo trạng thái đơn hàng](diagrams/images/uc_CUS17_thong_bao.png)
 
 1\.    Mã UC, tên UC: UC-CUS-17: Nhận thông báo trạng thái đơn hàng
 
@@ -949,6 +980,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 8\.    Hậu điều kiện: Notification được tạo trong CSDL. Email thông báo được gửi đến Customer
 
    **4.18. Hủy đơn hàng (Customer)**
+
+![UC-CUS-18 — Hủy đơn hàng (Customer)](diagrams/images/uc_CUS18_huy_don_hang.png)
 
 1\.    Mã UC, tên UC: UC-CUS-18: Hủy đơn hàng
 
@@ -1002,6 +1035,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 
    **4.19. (Admin) Quản lý danh mục và thuộc tính**
 
+![UC-AD-01 — Quản lý danh mục và thuộc tính](diagrams/images/uc_AD01_quan_ly_danh_muc.png)
+
 1\.    Mã UC, tên UC: UC-AD-01: Quản lý danh mục và thuộc tính
 
 2\.    Actor: Admin
@@ -1033,6 +1068,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 8\.    Hậu điều kiện: Category, Attribute, Attribute\_Value được tạo/sửa/xóa trong CSDL
 
    **4.19. (Admin) Quản lý sản phẩm**
+
+![UC-AD-02 — Quản lý sản phẩm](diagrams/images/uc_AD02_quan_ly_san_pham.png)
 
 1\.    Mã UC, tên UC: UC-AD-02: Quản lý sản phẩm
 
@@ -1078,13 +1115,13 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 
 \-        Xóa Product có Order chưa hoàn thành → Chặn xóa
 
-\-        Xóa Brand đang có Product → Báo lỗi "Không thể xóa thương hiệu đang có sản phẩm"
+-        Xóa Brand đang có Product → Báo lỗi "Không thể xóa thương hiệu đang có sản phẩm"
 
 8\.    Hậu điều kiện: Product, Product\_Attribute, Product\_Image, Inventory, Brand được tạo/sửa/xóa
 
-![Hình UC.3 — Use Case Diagram — Quản lý Sản phẩm & Danh mục (Admin)](diagrams/images/uc_admin_product.png)
-
    **4.20. (Admin/Sales) Quản lý đơn hàng**
+
+![UC-AD-03 — Quản lý đơn hàng](diagrams/images/uc_AD03_quan_ly_don_hang.png)
 
 1\.    Mã UC, tên UC: UC-AD-03: Quản lý đơn hàng
 
@@ -1118,15 +1155,15 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 
 7\.    Luồng ngoại lệ:
 
-\-        Chuyển trạng thái không hợp lệ (VD: "Hoàn thành" → "Đang giao") → Chặn
+-        Chuyển trạng thái không hợp lệ (VD: "Hoàn thành" → "Đang giao") → Chặn
 
-\-        Hủy đơn → tạo Inventory\_Log (Hoàn trả) để hoàn kho, cập nhật Inventory.quantity. Nếu có Coupon → giảm used\_count, xóa Coupon\_Usage
+-        Hủy đơn → tạo Inventory\_Log (Hoàn trả) để hoàn kho, cập nhật Inventory.quantity. Nếu có Coupon → giảm used\_count, xóa Coupon\_Usage
 
 8\.    Hậu điều kiện: Order.status cập nhật, Order\_Status\_History ghi nhận, email gửi. Nếu hủy: kho hoàn, Coupon phục hồi
 
-![Hình UC.4 — Use Case Diagram — Quản lý Đơn hàng & Vận chuyển (Admin/Sales)](diagrams/images/uc_admin_order.png)
-
    **4.21. (Admin/Warehouse) Quản lý kho hàng**
+
+![UC-AD-04 — Quản lý kho hàng](diagrams/images/uc_AD04_quan_ly_kho.png)
 
 1\.    Mã UC, tên UC: UC-AD-04: Quản lý kho hàng
 
@@ -1156,15 +1193,15 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 
 \-        Số lượng nhập \<= 0 → Báo lỗi
 
-\-        Điều chỉnh âm dẫn đến tồn kho \< 0 → Cảnh báo và yêu cầu xác nhận
+-        Điều chỉnh âm dẫn đến tồn kho \< 0 → Cảnh báo và yêu cầu xác nhận
 
-\-        Xóa Supplier đang được gắn vào Inventory → Báo lỗi "Không thể xóa nhà cung cấp đang được sử dụng"
+-        Xóa Supplier đang được gắn vào Inventory → Báo lỗi "Không thể xóa nhà cung cấp đang được sử dụng"
 
 8\.    Hậu điều kiện: Inventory.quantity cập nhật, Inventory\_Log ghi nhận biến động, Supplier được tạo/sửa/xóa
 
-![Hình UC.5 — Use Case Diagram — Quản lý Kho hàng (Admin/Warehouse)](diagrams/images/uc_admin_inventory.png)
-
    **4.22. (Admin/Sales) Quản lý vận chuyển**
+
+![UC-AD-08 — Quản lý vận chuyển](diagrams/images/uc_AD08_quan_ly_van_chuyen.png)
 
 1\.    Mã UC, tên UC: UC-AD-08: Quản lý vận chuyển
 
@@ -1197,6 +1234,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 8\.    Hậu điều kiện: Shipping cập nhật. Nếu giao thành công: Order chuyển "Hoàn thành"
 
    **4.23. (Admin/Sales) Xử lý bảo hành**
+
+![UC-AD-09 — Xử lý bảo hành](diagrams/images/uc_AD09_xu_ly_bao_hanh.png)
 
 1\.    Mã UC, tên UC: UC-AD-09: Xử lý bảo hành
 
@@ -1240,6 +1279,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 
    **4.24. (Admin/Sales) Xử lý đổi trả**
 
+![UC-AD-10 — Xử lý đổi trả](diagrams/images/uc_AD10_xu_ly_doi_tra.png)
+
 1\.    Mã UC, tên UC: UC-AD-10: Xử lý đổi trả
 
 2\.    Actor: Admin / Sales
@@ -1276,6 +1317,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 
    **4.25. (Admin) Quản lý tài khoản**
 
+![UC-AD-06 — Quản lý tài khoản](diagrams/images/uc_AD06_quan_ly_tai_khoan.png)
+
 1\.    Mã UC, tên UC: UC-AD-06: Quản lý tài khoản
 
 2\.    Actor: Admin
@@ -1305,6 +1348,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 8\.    Hậu điều kiện: Account/User cập nhật. Nếu khóa: Token/Session bị xóa
 
    **4.26. (Admin/Sales) Quản lý mã giảm giá**
+
+![UC-AD-07 — Quản lý mã giảm giá](diagrams/images/uc_AD07_quan_ly_coupon.png)
 
 1\.    Mã UC, tên UC: UC-AD-07: Quản lý mã giảm giá
 
@@ -1340,6 +1385,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 
    **4.27. (Admin/Sales) Thống kê doanh thu**
 
+![UC-AD-05 — Thống kê doanh thu](diagrams/images/uc_AD05_thong_ke_doanh_thu.png)
+
 1\.    Mã UC, tên UC: UC-AD-05: Thống kê doanh thu
 
 2\.    Actor: Admin / Sales
@@ -1367,6 +1414,8 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 8\.    Hậu điều kiện: Báo cáo hiển thị trên giao diện. Không thay đổi CSDL
 
    **4.28. (Admin) Quản lý banner / slider trang chủ**
+
+![UC-AD-11 — Quản lý banner / slider trang chủ](diagrams/images/uc_AD11_quan_ly_banner.png)
 
 1\.    Mã UC, tên UC: UC-AD-11: Quản lý banner / slider trang chủ
 
@@ -1410,11 +1459,9 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 
 \-        Thiếu trường bắt buộc (tiêu đề, hình ảnh) → Báo lỗi cụ thể
 
-\-        Ngày kết thúc trước ngày bắt đầu → Báo lỗi "Ngày kết thúc phải sau ngày bắt đầu"
+-        Ngày kết thúc trước ngày bắt đầu → Báo lỗi "Ngày kết thúc phải sau ngày bắt đầu"
 
 8\.    Hậu điều kiện: Banner được tạo/sửa/xóa trong CSDL. Hình ảnh được lưu trữ trên MinIO
-
-![Hình UC.6 — Use Case Diagram — Quản lý Hệ thống (Admin/Sales)](diagrams/images/uc_admin_system.png)
 
 **5\. Bảng yêu cầu người dùng**
 

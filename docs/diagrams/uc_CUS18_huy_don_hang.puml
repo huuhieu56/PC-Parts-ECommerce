@@ -1,0 +1,40 @@
+@startuml UC-CUS-18 Huy don hang
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-CUS-18: Huy don hang (Customer)
+
+actor "Khach hang\n(Customer)" as Customer
+
+rectangle "He thong PC Parts E-Commerce" {
+  usecase "Huy don hang" as UC_CANCEL_ORDER
+  usecase "Xem chi tiet don hang\ntrang thai PENDING" as UC_VIEW_PENDING
+  usecase "Xac nhan huy don" as UC_CONFIRM
+  usecase "Cap nhat Order.status\n= CANCELLED" as UC_UPDATE_STATUS
+  usecase "Ghi Order_Status_History\n(PENDING -> CANCELLED)" as UC_HISTORY
+  usecase "Hoan kho moi Order_Detail\n+ tao Inventory_Log" as UC_RESTOCK
+  usecase "Phuc hoi Coupon\n(giam used_count, xoa Coupon_Usage)" as UC_RESTORE_COUPON
+  usecase "Cap nhat Payment = REFUNDED\n(neu da thanh toan online)" as UC_REFUND
+  usecase "Tao thong bao\n' Don hang da duoc huy '" as UC_NOTIFY
+  usecase "Don khong phai PENDING\n-> Chan huy" as UC_ERR_NOT_PENDING
+}
+
+Customer --> UC_CANCEL_ORDER
+
+UC_CANCEL_ORDER ..> UC_VIEW_PENDING : <<include>>
+UC_CANCEL_ORDER ..> UC_CONFIRM : <<include>>
+UC_CANCEL_ORDER ..> UC_UPDATE_STATUS : <<include>>
+UC_CANCEL_ORDER ..> UC_HISTORY : <<include>>
+UC_CANCEL_ORDER ..> UC_RESTOCK : <<include>>
+UC_CANCEL_ORDER ..> UC_NOTIFY : <<include>>
+UC_CANCEL_ORDER ..> UC_RESTORE_COUPON : <<extend>>
+UC_CANCEL_ORDER ..> UC_REFUND : <<extend>>
+UC_CANCEL_ORDER ..> UC_ERR_NOT_PENDING : <<extend>>
+
+@enduml
