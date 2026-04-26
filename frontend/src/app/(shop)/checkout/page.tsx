@@ -158,7 +158,7 @@ export default function CheckoutPage() {
       // Clear cart after successful order
       await clearCart();
 
-      // If VNPay/MoMo, redirect to payment URL if provided
+      // If MoMo, redirect to payment URL if provided
       if (order.paymentUrl) {
         window.location.href = order.paymentUrl;
         return;
@@ -241,7 +241,6 @@ export default function CheckoutPage() {
               <div className="space-y-2">
                 {[
                   { value: "COD", label: "Thanh toán khi nhận hàng (COD)", desc: "Thanh toán bằng tiền mặt khi nhận hàng", emoji: "📦" },
-                  { value: "VNPAY", label: "VNPay", desc: "Thanh toán qua ví VNPay, ATM, Visa/Master", emoji: "💳" },
                   { value: "MOMO", label: "MoMo", desc: "Thanh toán qua ví MoMo", emoji: "📱" },
                 ].map(pm => (
                   <label key={pm.value} onClick={() => setPaymentMethod(pm.value)}

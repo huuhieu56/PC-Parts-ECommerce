@@ -14,7 +14,7 @@
 - Backend: Spring Boot (Java) + PostgreSQL + Redis
 - Auth: Spring Security + JWT
 - File Storage: MinIO
-- Payment: VNPay SDK, MoMo SDK
+- Payment: MoMo SDK
 - CI/CD: GitHub Actions + Docker + Docker Compose + Nginx
 - Monitoring: Prometheus + Grafana + ELK Stack
 
@@ -146,7 +146,7 @@ Script gọi REST API để đăng ký tài khoản, sau đó update role và th
 **Đặc điểm nổi bật:**
 - Tính năng **Build PC** cho phép người dùng tự ráp cấu hình, tính giá, xuất báo giá — **không cần đăng nhập**. Chỉ yêu cầu đăng nhập khi kiểm tra tương thích AI hoặc đặt hàng.
 - Tích hợp **LLM (AI)** để kiểm tra tương thích linh kiện (provider-agnostic qua abstraction layer).
-- Thanh toán qua **VNPay, MoMo, COD**.
+- Thanh toán qua **MoMo, COD**.
 - Quản lý kho với **audit trail** đầy đủ qua `Inventory_Log`.
 - 5 vai trò người dùng: Guest, Customer, Admin, Sales Staff, Warehouse Staff.
 
@@ -157,12 +157,12 @@ Script gọi REST API để đăng ký tài khoản, sau đó update role và th
 | **M01 – Auth & RBAC** | Đăng ký, đăng nhập, JWT + Refresh Token, phân quyền theo vai trò |
 | **M02 – Product Catalog** | CRUD sản phẩm, danh mục, thuộc tính động (EAV), tìm kiếm/lọc, SEO |
 | **M03 – Shopping** | Giỏ hàng (merge guest→customer khi đăng nhập), Wishlist |
-| **M04 – Order & Payment** | Tạo đơn, thanh toán VNPay/MoMo/COD, theo dõi trạng thái đơn hàng |
+| **M04 – Order & Payment** | Tạo đơn, thanh toán MoMo/COD, theo dõi trạng thái đơn hàng |
 | **M05 – Build PC** | Chọn linh kiện, tính giá, kiểm tra tương thích AI, xuất báo giá |
 | **M06 – Inventory** | Quản lý tồn kho, audit log cho mọi biến động kho |
 | **M07 – Coupon** | Tạo/quản lý mã giảm giá, áp dụng cho đơn hàng |
-| **M08 – Warranty & Returns** | Yêu cầu bảo hành/đổi trả, theo dõi trạng thái |
-| **M09 – Review & Rating** | Đánh giá sản phẩm, duyệt đánh giá (admin) |
+| **M08 – Review & Rating** | Đánh giá sản phẩm, duyệt đánh giá (admin) |
+| **M09 – Warranty & Returns** | Yêu cầu bảo hành/đổi trả, theo dõi trạng thái |
 | **M10 – Notification** | Thông báo email/in-app về đơn hàng, khuyến mãi |
 | **M11 – Dashboard & Analytics** | Thống kê doanh thu, sản phẩm bán chạy, báo cáo cho Admin |
 
@@ -179,13 +179,13 @@ Script gọi REST API để đăng ký tài khoản, sau đó update role và th
 6. **M06 – Inventory**: Quản lý tồn kho, audit log
 
 #### Phase 3 — Transactions
-7. **M04 – Order & Payment**: Luồng đặt hàng, tích hợp VNPay/MoMo, COD
+7. **M04 – Order & Payment**: Luồng đặt hàng, tích hợp MoMo, COD
 8. **M07 – Coupon**: Mã giảm giá, validation, áp dụng cho đơn hàng
 
 #### Phase 4 — Advanced Features
 9. **M05 – Build PC**: Chọn linh kiện, tính tương thích, tích hợp LLM, xuất báo giá
-10. **M08 – Warranty & Returns**: Yêu cầu bảo hành/đổi trả
-11. **M09 – Review & Rating**: Đánh giá, duyệt đánh giá
+10. **M08 – Review & Rating**: Đánh giá, duyệt đánh giá
+11. **M09 – Warranty & Returns**: Yêu cầu bảo hành/đổi trả
 
 #### Phase 5 — Polish & Operations
 12. **M10 – Notification**: Email/in-app notification
