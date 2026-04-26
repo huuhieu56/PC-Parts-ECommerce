@@ -167,7 +167,7 @@ export interface CreateOrderRequest {
   addressId: number;
   note?: string;
   couponCode?: string;
-  paymentMethod: "COD" | "VNPAY" | "MOMO";
+  paymentMethod: "COD" | "MOMO";
 }
 
 // --- Coupon ---

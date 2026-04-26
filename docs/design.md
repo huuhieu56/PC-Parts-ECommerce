@@ -597,6 +597,7 @@ enum ProductCondition {
 enum ProductStatus {
     ACTIVE
     INACTIVE
+    DISCONTINUED
 }
 
 Category "1" --> "*" Category : parent
@@ -1181,7 +1182,7 @@ Notification --> NotificationType
 
 ### 3.3 Sơ đồ quan hệ thực thể (ERD)
 
-Hệ thống quản lý **33 thực thể** chính, được chia thành 5 nhóm nghiệp vụ.
+Hệ thống quản lý **35 thực thể** chính, được chia thành 7 nhóm nghiệp vụ.
 
 #### 3.3.1 ERD — Nhóm Phân quyền (Auth & User)
 
