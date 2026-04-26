@@ -1,0 +1,40 @@
+@startuml UC-AD-11 Quản lý banner slider
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-AD-11: Quản lý banner / slider trang chủ
+
+actor "Quản trị viên\n(Admin)" as Admin
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Quản lý banner\n/ slider trang chủ" as UC_BANNER
+  usecase "Xem danh sách banner\n(tiêu đề, trạng thái,\nthứ tự, ngày)" as UC_LIST
+  usecase "Thêm banner mới\n(tiêu đề, ảnh MinIO,\nURL, thứ tự, ngày)" as UC_ADD
+  usecase "Sửa banner" as UC_EDIT
+  usecase "Xóa banner\n(có xác nhận)" as UC_DEL
+  usecase "Sắp xếp thứ tự\n(kéo thả)" as UC_SORT
+  usecase "Ảnh sai định dạng\n(JPG/PNG/WEBP)" as UC_ERR_FORMAT
+  usecase "Ảnh quá 5MB" as UC_ERR_SIZE
+  usecase "Thiếu trường bắt buộc" as UC_ERR_EMPTY
+  usecase "Ngày kết thúc trước\nngày bắt đầu" as UC_ERR_DATE
+}
+
+Admin --> UC_BANNER
+
+UC_BANNER ..> UC_LIST : <<include>>
+UC_BANNER ..> UC_ADD : <<include>>
+UC_BANNER ..> UC_EDIT : <<include>>
+UC_BANNER ..> UC_DEL : <<include>>
+UC_BANNER ..> UC_SORT : <<include>>
+UC_ADD ..> UC_ERR_FORMAT : <<extend>>
+UC_ADD ..> UC_ERR_SIZE : <<extend>>
+UC_ADD ..> UC_ERR_EMPTY : <<extend>>
+UC_ADD ..> UC_ERR_DATE : <<extend>>
+
+@enduml

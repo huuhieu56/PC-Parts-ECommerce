@@ -1,0 +1,34 @@
+@startuml UC-AD-06 Quản lý tài khoản
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-AD-06: Quản lý tài khoản
+
+actor "Quản trị viên\n(Admin)" as Admin
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Quản lý tài khoản" as UC_ACC
+  usecase "Xem danh sách Account\n+ User (tìm kiếm,\nlọc theo Role)" as UC_LIST
+  usecase "Tạo tài khoản nội bộ\n(nhập thông tin,\nchọn Role Sales/Warehouse)" as UC_CREATE
+  usecase "Khóa / Mở khóa\n(is_active, xóa\nToken/Session)" as UC_LOCK
+  usecase "Gán Role / Permission\n(qua Role_Permission)" as UC_ROLE
+  usecase "Khóa chính mình\n→ Chặn" as UC_ERR_SELF
+  usecase "Email trùng\n→ Báo lỗi" as UC_ERR_DUP
+}
+
+Admin --> UC_ACC
+
+UC_ACC ..> UC_LIST : <<include>>
+UC_ACC ..> UC_CREATE : <<include>>
+UC_ACC ..> UC_LOCK : <<include>>
+UC_ACC ..> UC_ROLE : <<include>>
+UC_LOCK ..> UC_ERR_SELF : <<extend>>
+UC_CREATE ..> UC_ERR_DUP : <<extend>>
+
+@enduml

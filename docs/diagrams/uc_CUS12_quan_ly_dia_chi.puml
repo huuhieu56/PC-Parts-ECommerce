@@ -1,0 +1,36 @@
+@startuml UC-CUS-12 Quản lý địa chỉ giao hàng
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-CUS-12: Quản lý địa chỉ giao hàng
+
+actor "Khách hàng\n(Customer)" as Customer
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Quản lý địa chỉ\ngiao hàng" as UC_ADDR
+  usecase "Hiển thị danh sách\nAddress" as UC_LIST
+  usecase "Thêm địa chỉ mới" as UC_ADD
+  usecase "Sửa địa chỉ" as UC_EDIT
+  usecase "Xóa địa chỉ" as UC_DEL
+  usecase "Đặt làm mặc định\n(is_default)" as UC_DEFAULT
+  usecase "Thiếu trường bắt buộc" as UC_ERR_EMPTY
+  usecase "Xóa địa chỉ mặc định\nduy nhất → Cảnh báo" as UC_ERR_LAST
+}
+
+Customer --> UC_ADDR
+
+UC_ADDR ..> UC_LIST : <<include>>
+UC_ADDR ..> UC_ADD : <<include>>
+UC_ADDR ..> UC_EDIT : <<include>>
+UC_ADDR ..> UC_DEL : <<include>>
+UC_ADDR ..> UC_DEFAULT : <<include>>
+UC_ADD ..> UC_ERR_EMPTY : <<extend>>
+UC_DEL ..> UC_ERR_LAST : <<extend>>
+
+@enduml

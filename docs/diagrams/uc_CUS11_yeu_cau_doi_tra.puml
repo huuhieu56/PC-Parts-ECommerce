@@ -1,0 +1,34 @@
+@startuml UC-CUS-11 Yêu cầu đổi trả
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-CUS-11: Yêu cầu đổi trả
+
+actor "Khách hàng\n(Customer)" as Customer
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Yêu cầu đổi trả" as UC_RETURN
+  usecase "Chọn Order hoàn thành\nvà sản phẩm cần đổi trả" as UC_SELECT
+  usecase "Chọn loại\n(Đổi hàng / Hoàn tiền)" as UC_TYPE
+  usecase "Nhập lý do\nvà upload ảnh" as UC_REASON
+  usecase "Tạo Return/Refund\n(trạng thái Chờ duyệt)" as UC_CREATE
+  usecase "Quá thời hạn đổi trả\n→ Báo lỗi" as UC_ERR_EXPIRED
+  usecase "Thiếu lý do\n→ Báo lỗi" as UC_ERR_REASON
+}
+
+Customer --> UC_RETURN
+
+UC_RETURN ..> UC_SELECT : <<include>>
+UC_RETURN ..> UC_TYPE : <<include>>
+UC_RETURN ..> UC_REASON : <<include>>
+UC_RETURN ..> UC_CREATE : <<include>>
+UC_SELECT ..> UC_ERR_EXPIRED : <<extend>>
+UC_REASON ..> UC_ERR_REASON : <<extend>>
+
+@enduml

@@ -1,0 +1,34 @@
+@startuml UC-AD-01 Quản lý danh mục và thuộc tính
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-AD-01: Quản lý danh mục và thuộc tính
+
+actor "Quản trị viên\n(Admin)" as Admin
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Quản lý danh mục\nvà thuộc tính" as UC_CAT
+  usecase "Thêm Category mới\n(tên, parent_id)" as UC_ADD
+  usecase "Thêm Attribute\nvà Attribute_Value\ncho Category" as UC_ATTR
+  usecase "Sửa Category" as UC_EDIT
+  usecase "Xóa Category" as UC_DEL
+  usecase "Tên trùng\n→ Báo lỗi" as UC_ERR_DUP
+  usecase "Category đang có Product\n→ Không thể xóa" as UC_ERR_HAS_PROD
+}
+
+Admin --> UC_CAT
+
+UC_CAT ..> UC_ADD : <<include>>
+UC_CAT ..> UC_ATTR : <<include>>
+UC_CAT ..> UC_EDIT : <<include>>
+UC_CAT ..> UC_DEL : <<include>>
+UC_ADD ..> UC_ERR_DUP : <<extend>>
+UC_DEL ..> UC_ERR_HAS_PROD : <<extend>>
+
+@enduml

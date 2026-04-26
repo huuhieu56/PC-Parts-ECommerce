@@ -1,0 +1,32 @@
+@startuml UC-CUS-09 Quản lý danh sách yêu thích
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-CUS-09: Quản lý danh sách yêu thích
+
+actor "Khách hàng\n(Customer)" as Customer
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Quản lý danh sách\nyêu thích" as UC_WISHLIST
+  usecase "Toggle yêu thích\n(thêm/xóa Wishlist entry)" as UC_TOGGLE
+  usecase "Kiểm tra UNIQUE\n(user_id, product_id)" as UC_CHECK
+  usecase "Xem danh sách Wishlist\n(ảnh, giá, Inventory)" as UC_VIEW
+  usecase "Thêm vào giỏ hàng\ntừ Wishlist" as UC_ADD_CART
+  usecase "Sản phẩm Discontinued\n→ Gắn nhãn" as UC_ERR_DISC
+}
+
+Customer --> UC_WISHLIST
+
+UC_WISHLIST ..> UC_TOGGLE : <<include>>
+UC_WISHLIST ..> UC_CHECK : <<include>>
+UC_WISHLIST ..> UC_VIEW : <<include>>
+UC_WISHLIST ..> UC_ADD_CART : <<include>>
+UC_VIEW ..> UC_ERR_DISC : <<extend>>
+
+@enduml

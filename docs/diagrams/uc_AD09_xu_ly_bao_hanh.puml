@@ -1,0 +1,42 @@
+@startuml UC-AD-09 Xử lý bảo hành
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-AD-09: Xử lý bảo hành
+
+actor "Quản trị viên\n(Admin)" as Admin
+actor "Nhân viên bán hàng\n(Sales)" as Sales
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Xử lý bảo hành" as UC_WAR
+  usecase "Quản lý Warranty_Policy\n(CRUD, gán theo\nCategory/Product)" as UC_POLICY
+  usecase "Nhập thời hạn,\nđiều kiện, mô tả" as UC_POLICY_INPUT
+  usecase "Xem danh sách\nWarranty_Ticket\n(lọc trạng thái)" as UC_LIST
+  usecase "Xem chi tiết phiếu\n(User, Product, Serial,\nmô tả lỗi, Policy)" as UC_DETAIL
+  usecase "Cập nhật trạng thái\n(Tiếp nhận → Đang xử lý\n→ Đã sửa/Từ chối\n→ Trả khách)" as UC_STATUS
+  usecase "Nhập kết quả xử lý\nvà ngày hoàn tất" as UC_RESOLVE
+  usecase "Phiếu đã Trả khách\n→ Không cập nhật" as UC_ERR_CLOSED
+  usecase "Từ chối → Yêu cầu\nnhập lý do" as UC_ERR_REASON
+  usecase "Xóa Policy có Ticket\n→ Chặn xóa" as UC_ERR_DEL
+}
+
+Admin --> UC_WAR
+Sales --> UC_WAR
+
+UC_WAR ..> UC_POLICY : <<include>>
+UC_WAR ..> UC_POLICY_INPUT : <<include>>
+UC_WAR ..> UC_LIST : <<include>>
+UC_WAR ..> UC_DETAIL : <<include>>
+UC_WAR ..> UC_STATUS : <<include>>
+UC_WAR ..> UC_RESOLVE : <<include>>
+UC_STATUS ..> UC_ERR_CLOSED : <<extend>>
+UC_STATUS ..> UC_ERR_REASON : <<extend>>
+UC_POLICY ..> UC_ERR_DEL : <<extend>>
+
+@enduml

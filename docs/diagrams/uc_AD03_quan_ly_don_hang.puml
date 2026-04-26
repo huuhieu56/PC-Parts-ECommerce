@@ -1,0 +1,38 @@
+@startuml UC-AD-03 Quản lý đơn hàng
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-AD-03: Quản lý đơn hàng
+
+actor "Quản trị viên\n(Admin)" as Admin
+actor "Nhân viên bán hàng\n(Sales)" as Sales
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Quản lý đơn hàng" as UC_ORDER
+  usecase "Xem danh sách Order\n(lọc trạng thái, ngày, mã)" as UC_LIST
+  usecase "Xem chi tiết đơn hàng\n(User, Address, Order_Detail,\nPayment, Shipping)" as UC_DETAIL
+  usecase "Cập nhật trạng thái\n(Chờ xử lý → Đã xác nhận\n→ Đang giao → Hoàn thành)" as UC_UPDATE
+  usecase "Hủy đơn hàng\n(hoàn kho, phục hồi Coupon)" as UC_CANCEL
+  usecase "Ghi Order_Status_History" as UC_HISTORY
+  usecase "Gửi email thông báo\ncho Customer" as UC_EMAIL
+  usecase "Chuyển trạng thái\nkhông hợp lệ → Chặn" as UC_ERR_INVALID
+}
+
+Admin --> UC_ORDER
+Sales --> UC_ORDER
+
+UC_ORDER ..> UC_LIST : <<include>>
+UC_ORDER ..> UC_DETAIL : <<include>>
+UC_ORDER ..> UC_UPDATE : <<include>>
+UC_ORDER ..> UC_HISTORY : <<include>>
+UC_ORDER ..> UC_EMAIL : <<include>>
+UC_UPDATE ..> UC_CANCEL : <<extend>>
+UC_UPDATE ..> UC_ERR_INVALID : <<extend>>
+
+@enduml

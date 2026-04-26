@@ -1,0 +1,38 @@
+@startuml UC-AD-08 Quản lý vận chuyển
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-AD-08: Quản lý vận chuyển
+
+actor "Quản trị viên\n(Admin)" as Admin
+actor "Nhân viên bán hàng\n(Sales)" as Sales
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Quản lý vận chuyển" as UC_SHIP
+  usecase "Truy cập Shipping\ncủa một Order" as UC_ACCESS
+  usecase "Chọn đơn vị vận chuyển\n(GHTK/GHN/Viettel Post)" as UC_PROVIDER
+  usecase "Nhập mã vận đơn,\nphí ship, ngày giao\ndự kiến" as UC_INPUT
+  usecase "Cập nhật trạng thái\nShipping\n(Chờ lấy → Đang vận chuyển\n→ Đã giao / Thất bại)" as UC_STATUS
+  usecase "Đã giao → Order\nchuyển Hoàn thành\n+ ghi Order_Status_History" as UC_COMPLETE
+  usecase "Shipping thất bại\n→ Giao lại hoặc hủy đơn" as UC_ERR_FAIL
+  usecase "Mã vận đơn trống\nkhi Đang vận chuyển\n→ Báo lỗi" as UC_ERR_TRACK
+}
+
+Admin --> UC_SHIP
+Sales --> UC_SHIP
+
+UC_SHIP ..> UC_ACCESS : <<include>>
+UC_SHIP ..> UC_PROVIDER : <<include>>
+UC_SHIP ..> UC_INPUT : <<include>>
+UC_SHIP ..> UC_STATUS : <<include>>
+UC_STATUS ..> UC_COMPLETE : <<extend>>
+UC_STATUS ..> UC_ERR_FAIL : <<extend>>
+UC_INPUT ..> UC_ERR_TRACK : <<extend>>
+
+@enduml

@@ -1,0 +1,38 @@
+@startuml UC-AD-07 Quản lý mã giảm giá
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FEFECE
+  BorderColor #A80036
+  ArrowColor #A80036
+}
+
+title UC-AD-07: Quản lý mã giảm giá
+
+actor "Quản trị viên\n(Admin)" as Admin
+actor "Nhân viên bán hàng\n(Sales)" as Sales
+
+rectangle "Hệ thống PC Parts E-Commerce" {
+  usecase "Quản lý mã giảm giá" as UC_COUPON
+  usecase "Tạo Coupon mới\n(Code, loại, giá trị,\nđiều kiện, ngày hiệu lực)" as UC_CREATE
+  usecase "Sửa Coupon" as UC_EDIT
+  usecase "Xóa Coupon\n(có xác nhận)" as UC_DEL
+  usecase "Code trùng\n→ Báo lỗi" as UC_ERR_DUP
+  usecase "Ngày kết thúc\n< ngày bắt đầu\n→ Báo lỗi" as UC_ERR_DATE
+  usecase "Sửa Coupon đã có\nused_count > 0\n→ Cảnh báo" as UC_WARN_USED
+  usecase "Xóa Coupon đang\nhiệu lực → Cảnh báo" as UC_WARN_ACTIVE
+}
+
+Admin --> UC_COUPON
+Sales --> UC_COUPON
+
+UC_COUPON ..> UC_CREATE : <<include>>
+UC_COUPON ..> UC_EDIT : <<include>>
+UC_COUPON ..> UC_DEL : <<include>>
+UC_CREATE ..> UC_ERR_DUP : <<extend>>
+UC_CREATE ..> UC_ERR_DATE : <<extend>>
+UC_EDIT ..> UC_WARN_USED : <<extend>>
+UC_DEL ..> UC_WARN_ACTIVE : <<extend>>
+
+@enduml
