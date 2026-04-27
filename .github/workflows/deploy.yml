@@ -132,6 +132,14 @@ jobs:
             DEPLOY_DIR="${{ secrets.DEPLOY_PATH }}"
             cd "$DEPLOY_DIR"
 
+              echo "=== Creating .env file ==="      
+            cat > .env << 'EOF'
+            MAIL_HOST=${{ secrets.MAIL_HOST }}
+            MAIL_PORT=${{ secrets.MAIL_PORT }}
+            MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+            MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+            EOF
+
             echo "=== Loading Docker images ==="
             docker load -i images/pcparts-backend.tar.gz
             docker load -i images/pcparts-frontend.tar.gz

@@ -1,5 +1,6 @@
 package com.pcparts.security;
 
+import com.pcparts.module.auth.repository.TokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,6 +28,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
+    private final TokenRepository tokenRepository;
 
     /**
      * Filters each request to extract and validate JWT token.
@@ -40,7 +42,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = getTokenFromRequest(request);
 
-        if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
+        if (StringUtils.hasText(token)
+                && jwtTokenProvider.validateToken(token)
+                && tokenRepository.existsByTokenValueAndTokenType(token, "ACCESS")) {
             String accountId = jwtTokenProvider.getAccountIdFromToken(token);
             UserDetails userDetails = customUserDetailsService.loadUserById(accountId);
 

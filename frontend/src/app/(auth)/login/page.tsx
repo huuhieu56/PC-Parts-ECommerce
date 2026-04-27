@@ -106,6 +106,9 @@ function LoginContent() {
             </button>
           </form>
           <div className="mt-4 text-center text-sm text-gray-500">
+            <Link href="/auth/forgot-password" className="text-blue-600 hover:text-blue-700 font-medium">Quên mật khẩu?</Link>
+          </div>
+          <div className="mt-3 text-center text-sm text-gray-500">
             Chưa có tài khoản?{" "}
             <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium">Đăng ký ngay</Link>
           </div>

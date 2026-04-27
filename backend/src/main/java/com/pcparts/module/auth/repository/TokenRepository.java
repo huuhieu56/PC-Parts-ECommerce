@@ -20,6 +20,11 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
     Optional<Token> findByTokenValueAndTokenType(String tokenValue, String tokenType);
 
     /**
+     * Checks whether a token value is still valid for a given type.
+     */
+    boolean existsByTokenValueAndTokenType(String tokenValue, String tokenType);
+
+    /**
      * Deletes all tokens for an account with a given type.
      */
     @Modifying
