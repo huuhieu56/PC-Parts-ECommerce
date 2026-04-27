@@ -15,6 +15,7 @@ import com.pcparts.module.auth.repository.UserProfileRepository;
 import com.pcparts.security.JwtTokenProvider;
 import com.pcparts.security.LoginRateLimiter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -32,6 +34,14 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+
+    private static final String TOKEN_TYPE_ACCESS = "ACCESS";
+    private static final String TOKEN_TYPE_REFRESH = "REFRESH";
+    private static final String TOKEN_TYPE_RESET_PASSWORD = "RESET_PASSWORD";
+    private static final String FORGOT_PASSWORD_MESSAGE =
+            "Nếu email tồn tại, liên kết đặt lại mật khẩu đã được gửi";
+    private static final String RESET_TOKEN_INVALID_MESSAGE =
+            "Liên kết đã hết hạn. Vui lòng yêu cầu lại";
 
     private final LoginRateLimiter loginRateLimiter;
 
@@ -42,6 +52,10 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
+    private final PasswordResetEmailService passwordResetEmailService;
+
+    @Value("${jwt.access-expiration:900000}")
+    private long accessTokenExpirationMs;
 
     /**
      * Registers a new customer account.
@@ -137,8 +151,10 @@ public class AuthService {
         String accessToken = jwtTokenProvider.generateAccessToken(account.getId().toString());
         String refreshToken = jwtTokenProvider.generateRefreshToken(account.getId().toString());
 
-        // Delete old refresh tokens and save new one
-        tokenRepository.deleteByAccountIdAndTokenType(account.getId(), "REFRESH");
+        // Delete old session tokens and save the new token pair.
+        tokenRepository.deleteByAccountIdAndTokenType(account.getId(), TOKEN_TYPE_ACCESS);
+        tokenRepository.deleteByAccountIdAndTokenType(account.getId(), TOKEN_TYPE_REFRESH);
+        saveToken(account, TOKEN_TYPE_ACCESS, accessToken, accessTokenExpiresAt());
         saveRefreshToken(account, refreshToken);
 
         return AuthResponse.builder()
@@ -159,7 +175,7 @@ public class AuthService {
         }
 
         // Find token in DB
-        Token storedToken = tokenRepository.findByTokenValueAndTokenType(refreshTokenValue, "REFRESH")
+        Token storedToken = tokenRepository.findByTokenValueAndTokenType(refreshTokenValue, TOKEN_TYPE_REFRESH)
                 .orElseThrow(() -> new BusinessException("Refresh token không tồn tại", HttpStatus.UNAUTHORIZED));
 
         if (storedToken.getExpiresAt().isBefore(LocalDateTime.now())) {
@@ -173,8 +189,10 @@ public class AuthService {
         String newAccessToken = jwtTokenProvider.generateAccessToken(accountId);
         String newRefreshToken = jwtTokenProvider.generateRefreshToken(accountId);
 
-        // BUG-15 fix: Delete ALL old refresh tokens and save new one (prevent token leak)
-        tokenRepository.deleteByAccountIdAndTokenType(account.getId(), "REFRESH");
+        // Delete old session tokens and save the rotated token pair.
+        tokenRepository.deleteByAccountIdAndTokenType(account.getId(), TOKEN_TYPE_ACCESS);
+        tokenRepository.deleteByAccountIdAndTokenType(account.getId(), TOKEN_TYPE_REFRESH);
+        saveToken(account, TOKEN_TYPE_ACCESS, newAccessToken, accessTokenExpiresAt());
         saveRefreshToken(account, newRefreshToken);
 
         UserProfile userProfile = userProfileRepository.findByAccountId(account.getId())
@@ -201,16 +219,67 @@ public class AuthService {
     }
 
     /**
+     * Requests a reset password link while always returning a neutral message.
+     */
+    @Transactional
+    public String forgotPassword(ForgotPasswordRequest request) {
+        accountRepository.findByEmail(request.getEmail())
+                .filter(account -> Boolean.TRUE.equals(account.getIsActive()))
+                .ifPresent(account -> {
+                    String resetToken = UUID.randomUUID().toString();
+                    tokenRepository.deleteByAccountIdAndTokenType(account.getId(), TOKEN_TYPE_RESET_PASSWORD);
+                    saveToken(account, TOKEN_TYPE_RESET_PASSWORD, resetToken, LocalDateTime.now().plusMinutes(30));
+                    passwordResetEmailService.sendResetPasswordEmail(account.getEmail(), resetToken);
+                });
+
+        return FORGOT_PASSWORD_MESSAGE;
+    }
+
+    /**
+     * Sets a new password with a valid reset token and revokes all old sessions.
+     */
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new BusinessException("Mật khẩu xác nhận không khớp", HttpStatus.BAD_REQUEST);
+        }
+
+        Token resetToken = tokenRepository
+                .findByTokenValueAndTokenType(request.getToken(), TOKEN_TYPE_RESET_PASSWORD)
+                .orElseThrow(() -> new BusinessException(RESET_TOKEN_INVALID_MESSAGE, HttpStatus.BAD_REQUEST));
+
+        if (resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new BusinessException(RESET_TOKEN_INVALID_MESSAGE, HttpStatus.BAD_REQUEST);
+        }
+
+        Account account = resetToken.getAccount();
+        account.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        accountRepository.save(account);
+        tokenRepository.deleteByAccountId(account.getId());
+    }
+
+    /**
      * Saves a refresh token to the database.
      */
     private void saveRefreshToken(Account account, String refreshTokenValue) {
+        saveToken(account, TOKEN_TYPE_REFRESH, refreshTokenValue, LocalDateTime.now().plusDays(30));
+    }
+
+    /**
+     * Saves a typed token to the database.
+     */
+    private void saveToken(Account account, String tokenType, String tokenValue, LocalDateTime expiresAt) {
         Token token = Token.builder()
                 .account(account)
-                .tokenType("REFRESH")
-                .tokenValue(refreshTokenValue)
-                .expiresAt(LocalDateTime.now().plusDays(30))
+                .tokenType(tokenType)
+                .tokenValue(tokenValue)
+                .expiresAt(expiresAt)
                 .build();
         tokenRepository.save(token);
+    }
+
+    private LocalDateTime accessTokenExpiresAt() {
+        return LocalDateTime.now().plusNanos(accessTokenExpirationMs * 1_000_000);
     }
 
     /**
