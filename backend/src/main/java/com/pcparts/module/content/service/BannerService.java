@@ -10,14 +10,20 @@ import com.pcparts.module.product.service.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+<<<<<<< HEAD
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+=======
+>>>>>>> 8094214 (feat: add homepage banner management)
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.*;
+<<<<<<< HEAD
 import java.util.concurrent.atomic.AtomicBoolean;
+=======
+>>>>>>> 8094214 (feat: add homepage banner management)
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -74,7 +80,10 @@ public class BannerService {
         validateDateRange(startDate, endDate);
 
         String imageUrl = fileService.uploadFile(image, "banners");
+<<<<<<< HEAD
         Runnable cleanupUploadedImage = registerRollbackCleanup(imageUrl);
+=======
+>>>>>>> 8094214 (feat: add homepage banner management)
         Banner banner = Banner.builder()
                 .title(title.trim())
                 .imageUrl(imageUrl)
@@ -85,12 +94,16 @@ public class BannerService {
                 .status(normalizeStatus(status))
                 .build();
 
+<<<<<<< HEAD
         try {
             return toDto(bannerRepository.save(banner));
         } catch (RuntimeException exception) {
             cleanupUploadedImage.run();
             throw exception;
         }
+=======
+        return toDto(bannerRepository.save(banner));
+>>>>>>> 8094214 (feat: add homepage banner management)
     }
 
     /**
@@ -113,6 +126,7 @@ public class BannerService {
         validateOptionalImage(image);
         validateDateRange(startDate, endDate);
 
+<<<<<<< HEAD
         String oldImageUrl = banner.getImageUrl();
         Runnable cleanupUploadedImage = () -> {};
 
@@ -120,6 +134,13 @@ public class BannerService {
             String imageUrl = fileService.uploadFile(image, "banners");
             cleanupUploadedImage = registerRollbackCleanup(imageUrl);
             banner.setImageUrl(imageUrl);
+=======
+        if (image != null && !image.isEmpty()) {
+            String oldImageUrl = banner.getImageUrl();
+            String imageUrl = fileService.uploadFile(image, "banners");
+            banner.setImageUrl(imageUrl);
+            fileService.deleteFile(oldImageUrl);
+>>>>>>> 8094214 (feat: add homepage banner management)
         }
 
         banner.setTitle(title.trim());
@@ -129,6 +150,7 @@ public class BannerService {
         banner.setEndDate(endDate);
         banner.setStatus(normalizeStatus(status));
 
+<<<<<<< HEAD
         try {
             Banner savedBanner = bannerRepository.save(banner);
             if (image != null && !image.isEmpty()) {
@@ -139,6 +161,9 @@ public class BannerService {
             cleanupUploadedImage.run();
             throw exception;
         }
+=======
+        return toDto(bannerRepository.save(banner));
+>>>>>>> 8094214 (feat: add homepage banner management)
     }
 
     /**
@@ -148,8 +173,13 @@ public class BannerService {
     public void deleteBanner(Long id) {
         Banner banner = bannerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Banner", "id", id));
+<<<<<<< HEAD
         bannerRepository.delete(banner);
         runAfterCommit(() -> fileService.deleteFile(banner.getImageUrl()));
+=======
+        fileService.deleteFile(banner.getImageUrl());
+        bannerRepository.delete(banner);
+>>>>>>> 8094214 (feat: add homepage banner management)
     }
 
     /**
@@ -224,6 +254,7 @@ public class BannerService {
         return value == null || value.isBlank() ? null : value.trim();
     }
 
+<<<<<<< HEAD
     private Runnable registerRollbackCleanup(String imageUrl) {
         AtomicBoolean cleaned = new AtomicBoolean(false);
         Runnable cleanup = () -> {
@@ -260,6 +291,8 @@ public class BannerService {
         });
     }
 
+=======
+>>>>>>> 8094214 (feat: add homepage banner management)
     private BannerDto toDto(Banner banner) {
         return BannerDto.builder()
                 .id(banner.getId())
