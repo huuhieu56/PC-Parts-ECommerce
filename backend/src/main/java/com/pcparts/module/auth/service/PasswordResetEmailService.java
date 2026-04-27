@@ -35,7 +35,7 @@ public class PasswordResetEmailService {
         String resetLink = frontendUrl + "/auth/reset-password?token=" + resetToken;
 
         if (!StringUtils.hasText(fromAddress)) {
-            log.info("Password reset email skipped because MAIL_USERNAME is empty. email={}, link={}", email, resetLink);
+            log.info("Password reset email skipped because MAIL_USERNAME is empty. email={}", email);
             return;
         }
 

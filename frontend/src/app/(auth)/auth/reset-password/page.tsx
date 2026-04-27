@@ -4,12 +4,14 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { AlertCircle, CheckCircle, Cpu, Eye, EyeOff } from "lucide-react";
+import { isAxiosError } from "axios";
 import api from "@/lib/api";
 import type { ResetPasswordRequest } from "@/types";
 
 const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 const PASSWORD_RULE_MESSAGE = "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số";
 const TOKEN_ERROR_MESSAGE = "Liên kết đã hết hạn. Vui lòng yêu cầu lại";
+const RESET_ERROR_MESSAGE = "Không thể đặt lại mật khẩu. Vui lòng thử lại sau";
 
 export default function ResetPasswordPage() {
   return (
@@ -56,8 +58,11 @@ function ResetPasswordContent() {
       setSuccess(res.data.message || "Đặt lại mật khẩu thành công");
       window.setTimeout(() => router.push("/login"), 1200);
     } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { message?: string } } };
-      setError(axiosError.response?.data?.message || TOKEN_ERROR_MESSAGE);
+      if (isAxiosError<{ message?: string }>(err)) {
+        setError(err.response?.data?.message || RESET_ERROR_MESSAGE);
+        return;
+      }
+      setError(RESET_ERROR_MESSAGE);
     } finally {
       setLoading(false);
     }
