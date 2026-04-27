@@ -61,6 +61,7 @@ services:
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minio_secret_2026}
       - MINIO_BUCKET=${MINIO_BUCKET:-pcparts}
       - MINIO_PUBLIC_URL=${MINIO_PUBLIC_URL:-http://localhost:9000}
+      - APP_FRONTEND_URL=${APP_FRONTEND_URL:-http://localhost}
       - MAIL_HOST=${MAIL_HOST:-smtp.gmail.com}
       - MAIL_PORT=${MAIL_PORT:-587}
       - MAIL_USERNAME=${MAIL_USERNAME:-}
