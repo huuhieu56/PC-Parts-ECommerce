@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
+import org.springframework.mail.MailAuthenticationException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -54,8 +55,19 @@ public class PasswordResetEmailService {
 
         try {
             mailSender.send(message);
+        } catch (MailAuthenticationException ex) {
+            log.warn("Could not authenticate SMTP account {} while sending password reset email to {}: {}",
+                    fromAddress, email, rootCauseMessage(ex));
         } catch (MailException ex) {
             log.warn("Could not send password reset email to {}: {}", email, ex.getMessage());
         }
+    }
+
+    private String rootCauseMessage(Throwable ex) {
+        Throwable rootCause = ex;
+        while (rootCause.getCause() != null) {
+            rootCause = rootCause.getCause();
+        }
+        return StringUtils.hasText(rootCause.getMessage()) ? rootCause.getMessage() : ex.getMessage();
     }
 }
