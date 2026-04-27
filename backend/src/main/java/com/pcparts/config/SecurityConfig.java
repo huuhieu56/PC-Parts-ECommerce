@@ -53,6 +53,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/brands/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/banners/**").permitAll()
 
                 // Cart — guests use session-based cart (X-Session-Id header)
                 .requestMatchers(HttpMethod.GET, "/api/v1/cart/**").permitAll()

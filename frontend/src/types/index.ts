@@ -194,6 +194,37 @@ export interface Coupon {
   endDate: string;
 }
 
+// --- Banner / Slider ---
+export type BannerStatus = "ACTIVE" | "INACTIVE";
+
+export interface Banner {
+  id: number;
+  title: string;
+  imageUrl: string;
+  linkUrl: string | null;
+  sortOrder: number;
+  status: BannerStatus;
+  startDate: string | null;
+  endDate: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface BannerPayload {
+  title: string;
+  image?: File | null;
+  linkUrl?: string | null;
+  sortOrder?: number | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  status: BannerStatus;
+}
+
+export interface BannerOrderRequest {
+  id: number;
+  sortOrder: number;
+}
+
 // --- Inventory ---
 export interface InventoryDto {
   productId: number;

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { Cpu, Monitor, MemoryStick, HardDrive, Zap, ShoppingCart, ArrowRight, ChevronRight, Truck, Shield, Headphones, Check, Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useCartStore } from "@/stores/cart-store";
-import api from "@/lib/api";
+import api, { getBanners } from "@/lib/api";
+import type { Banner } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 
@@ -183,6 +184,8 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<CategoryDisplay[]>(defaultCategories);
   const [brands, setBrands] = useState<string[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
   const addItem = useCartStore((s) => s.addItem);
 
   const handleAddToCart = useCallback(async (productId: number) => {
@@ -239,10 +242,30 @@ export default function HomePage() {
       } catch { /* fallback */ }
     }
 
+    async function fetchBanners() {
+      try {
+        const data = await getBanners();
+        setBanners(data);
+      } catch { /* fallback to static hero */ }
+    }
+
     fetchProducts();
     fetchCategories();
     fetchBrands();
+    fetchBanners();
   }, []);
+
+  useEffect(() => {
+    if (banners.length <= 1) return;
+    const timer = window.setInterval(() => {
+      setActiveBannerIndex((current) => (current + 1) % banners.length);
+    }, 6000);
+    return () => window.clearInterval(timer);
+  }, [banners.length]);
+
+  const activeBanner = banners[activeBannerIndex] || null;
+  const sideBanners = banners.filter((banner) => banner.id !== activeBanner?.id).slice(0, 2);
+  const promoSectionBanners = banners.slice(3, 6);
 
   return (
     <div className="bg-gray-50">
@@ -250,51 +273,103 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 py-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Main Hero Banner */}
-          <div className="lg:col-span-2 relative rounded-xl overflow-hidden bg-gradient-to-r from-[#1A4B9C] to-[#2563EB] text-white min-h-[300px] flex">
-            <div className="flex-1 p-8 flex flex-col justify-center">
-              <span className="text-amber-400 text-sm font-semibold mb-2 uppercase tracking-wide">🔥 Sản phẩm HOT</span>
-              <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-3">
-                Linh kiện chính hãng<br />
-                <span className="text-amber-400">Giá tốt nhất</span>
-              </h1>
-              <p className="text-white/80 mb-6 text-sm">
-                CPU, GPU, RAM, SSD từ Intel, AMD, NVIDIA — Bảo hành chính hãng
-              </p>
-              <div className="flex gap-3">
-                <Link
-                  href="/products"
-                  className="bg-[#E31837] hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all shadow-lg active:scale-95 cursor-pointer"
-                >
-                  MUA NGAY
-                </Link>
-                <Link
-                  href="/build-pc"
-                  className="bg-white/15 hover:bg-white/25 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all backdrop-blur-sm border border-white/20 active:scale-95 cursor-pointer"
-                >
-                  BUILD PC
-                </Link>
+          {activeBanner ? (
+            <Link
+              href={activeBanner.linkUrl || "/products"}
+              className="lg:col-span-2 relative rounded-xl overflow-hidden bg-[#1A4B9C] text-white min-h-[300px] flex group"
+            >
+              <img
+                src={activeBanner.imageUrl}
+                alt={activeBanner.title}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0D2B5E]/90 via-[#1A4B9C]/70 to-black/10" />
+              <div className="relative flex-1 p-8 flex flex-col justify-center max-w-xl">
+                <span className="text-amber-300 text-sm font-semibold mb-2 uppercase tracking-wide">Khuyến mãi nổi bật</span>
+                <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-3">{activeBanner.title}</h1>
+                <p className="text-white/85 mb-6 text-sm">Ưu đãi linh kiện, combo PC và thiết bị công nghệ đang được cập nhật.</p>
+                <span className="inline-flex w-fit items-center gap-2 bg-[#E31837] hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all shadow-lg active:scale-95">
+                  Xem ngay <ArrowRight className="w-4 h-4" />
+                </span>
+              </div>
+              {banners.length > 1 && (
+                <div className="absolute bottom-4 left-8 flex gap-2">
+                  {banners.map((banner, index) => (
+                    <button
+                      key={banner.id}
+                      type="button"
+                      aria-label={`Xem banner ${index + 1}`}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        setActiveBannerIndex(index);
+                      }}
+                      className={`h-2 rounded-full transition-all ${index === activeBannerIndex ? "w-6 bg-white" : "w-2 bg-white/50"}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </Link>
+          ) : (
+            <div className="lg:col-span-2 relative rounded-xl overflow-hidden bg-gradient-to-r from-[#1A4B9C] to-[#2563EB] text-white min-h-[300px] flex">
+              <div className="flex-1 p-8 flex flex-col justify-center">
+                <span className="text-amber-400 text-sm font-semibold mb-2 uppercase tracking-wide">Sản phẩm HOT</span>
+                <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-3">
+                  Linh kiện chính hãng<br />
+                  <span className="text-amber-400">Giá tốt nhất</span>
+                </h1>
+                <p className="text-white/80 mb-6 text-sm">
+                  CPU, GPU, RAM, SSD từ Intel, AMD, NVIDIA — Bảo hành chính hãng
+                </p>
+                <div className="flex gap-3">
+                  <Link
+                    href="/products"
+                    className="bg-[#E31837] hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all shadow-lg active:scale-95 cursor-pointer"
+                  >
+                    MUA NGAY
+                  </Link>
+                  <Link
+                    href="/build-pc"
+                    className="bg-white/15 hover:bg-white/25 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all backdrop-blur-sm border border-white/20 active:scale-95 cursor-pointer"
+                  >
+                    BUILD PC
+                  </Link>
+                </div>
+              </div>
+              <div className="hidden md:flex items-center justify-center pr-8 opacity-30">
+                <Cpu className="w-48 h-48" />
               </div>
             </div>
-            <div className="hidden md:flex items-center justify-center pr-8 opacity-30">
-              <Cpu className="w-48 h-48" />
-            </div>
-          </div>
+          )}
           {/* Side Promo Cards */}
           <div className="flex flex-col gap-4">
-            <div className="flex-1 rounded-xl overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-500 text-white p-5 flex flex-col justify-center">
-              <p className="text-sm font-semibold opacity-90 mb-1">BUILD PC CẤP</p>
-              <p className="text-2xl font-bold">Giảm lên đến 30tr</p>
-              <Link href="/build-pc" className="text-sm mt-2 flex items-center gap-1 underline underline-offset-4 hover:opacity-80 transition-opacity">
-                Xây dựng ngay <ArrowRight className="w-3 h-3" />
+            {sideBanners.length > 0 ? sideBanners.map((banner) => (
+              <Link key={banner.id} href={banner.linkUrl || "/products"} className="flex-1 relative rounded-xl overflow-hidden bg-gray-900 text-white p-5 flex flex-col justify-end min-h-[140px] group">
+                <img src={banner.imageUrl} alt={banner.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+                <p className="relative text-sm font-semibold opacity-90 mb-1">Ưu đãi</p>
+                <p className="relative text-2xl font-bold line-clamp-2">{banner.title}</p>
+                <span className="relative text-sm mt-2 flex items-center gap-1 underline underline-offset-4 hover:opacity-80 transition-opacity">
+                  Xem ngay <ArrowRight className="w-3 h-3" />
+                </span>
               </Link>
-            </div>
-            <div className="flex-1 rounded-xl overflow-hidden bg-gradient-to-r from-orange-500 to-red-500 text-white p-5 flex flex-col justify-center">
-              <p className="text-sm font-semibold opacity-90 mb-1">LAPTOP</p>
-              <p className="text-2xl font-bold">Giảm thêm 1 Triệu</p>
-              <Link href="/products" className="text-sm mt-2 flex items-center gap-1 underline underline-offset-4 hover:opacity-80 transition-opacity">
-                Xem ngay <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
+            )) : (
+              <>
+                <div className="flex-1 rounded-xl overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-500 text-white p-5 flex flex-col justify-center">
+                  <p className="text-sm font-semibold opacity-90 mb-1">BUILD PC CẤP</p>
+                  <p className="text-2xl font-bold">Giảm lên đến 30tr</p>
+                  <Link href="/build-pc" className="text-sm mt-2 flex items-center gap-1 underline underline-offset-4 hover:opacity-80 transition-opacity">
+                    Xây dựng ngay <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+                <div className="flex-1 rounded-xl overflow-hidden bg-gradient-to-r from-orange-500 to-red-500 text-white p-5 flex flex-col justify-center">
+                  <p className="text-sm font-semibold opacity-90 mb-1">LAPTOP</p>
+                  <p className="text-2xl font-bold">Giảm thêm 1 Triệu</p>
+                  <Link href="/products" className="text-sm mt-2 flex items-center gap-1 underline underline-offset-4 hover:opacity-80 transition-opacity">
+                    Xem ngay <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -334,7 +409,18 @@ export default function HomePage() {
       {/* Promo Banners */}
       <section className="max-w-7xl mx-auto px-4 py-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {promoBanners.map((b) => (
+          {promoSectionBanners.length > 0 ? promoSectionBanners.map((banner) => (
+            <Link
+              key={banner.id}
+              href={banner.linkUrl || "/products"}
+              className="relative rounded-xl text-white p-6 min-h-[120px] flex flex-col justify-end overflow-hidden hover:shadow-lg transition-all cursor-pointer active:scale-[0.98] group"
+            >
+              <img src={banner.imageUrl} alt={banner.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+              <p className="relative text-sm font-semibold opacity-90">Khuyến mãi</p>
+              <p className="relative text-2xl font-bold line-clamp-2">{banner.title}</p>
+            </Link>
+          )) : promoBanners.map((b) => (
             <div
               key={b.title}
               className={`bg-gradient-to-r ${b.gradient} rounded-xl text-white p-6 flex flex-col justify-center hover:shadow-lg transition-all cursor-pointer active:scale-[0.98]`}

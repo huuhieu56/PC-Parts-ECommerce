@@ -1463,6 +1463,18 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 
 8\.    Hậu điều kiện: Banner được tạo/sửa/xóa trong CSDL. Hình ảnh được lưu trữ trên MinIO
 
+9\.    Dữ liệu và API tham chiếu:
+
+-        Entity chính: Banner (tiêu đề, image_url, link_url, sort_order, start_date, end_date, status, created_at, updated_at)
+
+-        Public API: `GET /api/v1/banners` chỉ trả banner `ACTIVE`, còn hiệu lực theo ngày bắt đầu/kết thúc, sắp xếp theo `sort_order`
+
+-        Admin API: `GET /api/v1/admin/banners`, `POST /api/v1/admin/banners`, `PUT /api/v1/admin/banners/{id}`, `DELETE /api/v1/admin/banners/{id}`, `PATCH /api/v1/admin/banners/reorder`
+
+-        Permission: chỉ Admin có quyền `banner.view`, `banner.create`, `banner.update`, `banner.delete`
+
+-        Upload ảnh dùng `multipart/form-data`, field ảnh tên `image`, lưu qua MinIO vào thư mục `banners`
+
 **5\. Bảng yêu cầu người dùng**
 
 | ID | Nhóm Nghiệp Vụ | Tên Yêu Cầu | Mô tả chi tiết (Gắn với Entity) | Độ Ưu Tiên |

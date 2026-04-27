@@ -842,6 +842,28 @@ graph TD
 
 > Wireframe dùng mã tắt do giới hạn không gian cột. Khi implement, dùng `Badge` component với text đầy đủ tiếng Việt ("Chờ xử lý", "Đang giao", ...) và mapping từ enum backend.
 
+### 5.4. Quản lý banner / slider (`/admin/banners`)
+
+```
+┌──────────┬─────────────────────────────────────────────────┐
+│ SIDEBAR  │  Banner / Slider                    [+ Thêm]    │
+│          │                                                  │
+│          │  Tìm kiếm: [_______________]  Trạng thái: [All] │
+│          │                                                  │
+│          │  ┌────┬────────────┬────────┬──────┬──────┬───┐│
+│          │  │ ☰  │ Banner     │ TT     │ Thứ tự│ Hiệu lực│⋮ ││
+│          │  ├────┼────────────┼────────┼──────┼──────┼───┤│
+│          │  │ ☰  │ Sale GPU   │ Active │  1   │ 01-31│⋮ ││
+│          │  │ ☰  │ Build PC   │ Active │  2   │ —    │⋮ ││
+│          │  │ ☰  │ Back2School│ Inactive│ 3   │ 08-09│⋮ ││
+│          │  └────┴────────────┴────────┴──────┴──────┴───┘│
+│          │                                                  │
+│          │  Kéo thả hàng để đổi thứ tự hiển thị trang chủ  │
+└──────────┴─────────────────────────────────────────────────┘
+```
+
+**Form thêm/sửa:** tiêu đề, ảnh banner (JPG/PNG/WEBP, tối đa 5MB), URL liên kết, thứ tự hiển thị, ngày bắt đầu, ngày kết thúc, trạng thái Active/Inactive. Khi tạo mới, ảnh là bắt buộc. Khi sửa, ảnh mới là tùy chọn.
+
 ---
 
 ## 6. Responsive Design

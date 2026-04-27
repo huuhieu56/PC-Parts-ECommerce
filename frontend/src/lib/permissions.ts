@@ -57,6 +57,12 @@ export const Permission = {
   // Report
   REPORT_REVENUE: "report.revenue",
 
+  // Banner / Slider
+  BANNER_VIEW: "banner.view",
+  BANNER_CREATE: "banner.create",
+  BANNER_UPDATE: "banner.update",
+  BANNER_DELETE: "banner.delete",
+
   // System
   SYSTEM_ADMIN: "system.admin",
 } as const;
@@ -80,6 +86,7 @@ export const ADMIN_ROUTES: Record<string, PermissionCode | null> = {
   "/admin/returns": Permission.RETURN_VIEW,
   "/admin/accounts": Permission.ACCOUNT_VIEW,
   "/admin/statistics": Permission.REPORT_REVENUE,
+  "/admin/banners": Permission.BANNER_VIEW,
 };
 
 /**

@@ -135,7 +135,7 @@ export default api;
 
 // --- Product Image API ---
 
-import type { ProductImage } from "@/types";
+import type { Banner, BannerOrderRequest, BannerPayload, ProductImage } from "@/types";
 
 /**
  * Upload images to a product.
@@ -169,4 +169,89 @@ export async function uploadProductImages(
  */
 export async function deleteProductImage(imageId: number): Promise<void> {
   await api.delete(`/products/images/${imageId}`);
+}
+
+// --- Banner / Slider API ---
+
+const extractData = <T>(response: { data: { data?: T } | T }): T => {
+  const payload = response.data;
+  if (payload && typeof payload === "object" && "data" in payload) {
+    return (payload as { data: T }).data;
+  }
+  return payload as T;
+};
+
+const buildBannerFormData = (payload: BannerPayload): FormData => {
+  const formData = new FormData();
+  formData.append("title", payload.title);
+  formData.append("status", payload.status);
+
+  if (payload.image) {
+    formData.append("image", payload.image);
+  }
+  if (payload.linkUrl) {
+    formData.append("linkUrl", payload.linkUrl);
+  }
+  if (payload.sortOrder !== undefined && payload.sortOrder !== null) {
+    formData.append("sortOrder", String(payload.sortOrder));
+  }
+  if (payload.startDate) {
+    formData.append("startDate", payload.startDate);
+  }
+  if (payload.endDate) {
+    formData.append("endDate", payload.endDate);
+  }
+
+  return formData;
+};
+
+/**
+ * Gets active homepage banners for public display.
+ */
+export async function getBanners(): Promise<Banner[]> {
+  const response = await api.get("/banners");
+  return extractData<Banner[]>(response);
+}
+
+/**
+ * Gets all banners for Admin CMS.
+ */
+export async function getAdminBanners(): Promise<Banner[]> {
+  const response = await api.get("/admin/banners");
+  return extractData<Banner[]>(response);
+}
+
+/**
+ * Creates a banner via multipart form data.
+ */
+export async function createBanner(payload: BannerPayload): Promise<Banner> {
+  const response = await api.post("/admin/banners", buildBannerFormData(payload), {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return extractData<Banner>(response);
+}
+
+/**
+ * Updates a banner via multipart form data.
+ */
+export async function updateBanner(id: number, payload: BannerPayload): Promise<Banner> {
+  const response = await api.put(`/admin/banners/${id}`, buildBannerFormData(payload), {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return extractData<Banner>(response);
+}
+
+/**
+ * Deletes a banner.
+ */
+export async function deleteBanner(id: number): Promise<void> {
+  await api.delete(`/admin/banners/${id}`);
+}
+
+/**
+ * Updates homepage banner display order.
+ */
+export async function reorderBanners(items: BannerOrderRequest[]): Promise<Banner[]> {
+  const response = await api.patch("/admin/banners/reorder", items);
+  return extractData<Banner[]>(response);
 }
