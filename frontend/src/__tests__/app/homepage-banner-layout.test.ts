@@ -5,6 +5,7 @@ import {
   HOME_HERO_GRID_COLUMNS_CLASS,
   HOME_HERO_VIEWPORT_CLASSES,
   HOME_SIDE_BANNER_COLUMN_WIDTH_PX,
+  getEventBannerDismissStorageKey,
   getHomepageBannerLayout,
   getPopupDismissStorageKey,
 } from "@/app/(shop)/homeBannerLayout";
@@ -32,6 +33,7 @@ describe("homepage banner layout", () => {
       makeBanner(1, "MAIN", 0),
       makeBanner(11, "CUSTOM", 1),
       makeBanner(4, "POPUP", 0),
+      makeBanner(6, "EVENT", 0),
       makeBanner(3, "SIDE_3", 0),
       makeBanner(12, "CUSTOM", 1),
       makeBanner(5, "SIDE_1", 0),
@@ -39,12 +41,17 @@ describe("homepage banner layout", () => {
 
     expect(layout.mainBanner?.id).toBe(1);
     expect(layout.popupBanner?.id).toBe(4);
+    expect(layout.eventBanner?.id).toBe(6);
     expect(layout.sideBanners.map((banner) => banner.id)).toEqual([5, 2, 3]);
     expect(layout.customBanners.map((banner) => banner.id)).toEqual([11, 12, 10]);
   });
 
   it("should build a stable popup dismiss key per banner id", () => {
     expect(getPopupDismissStorageKey(77)).toBe("homepage-popup-dismissed:77");
+  });
+
+  it("should build a stable event banner dismiss key per banner id", () => {
+    expect(getEventBannerDismissStorageKey(88)).toBe("homepage-event-banner-dismissed:88");
   });
 
   it("should keep the desktop hero area pinned to the first viewport", () => {

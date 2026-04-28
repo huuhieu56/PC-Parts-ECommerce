@@ -38,6 +38,10 @@ export const BANNER_IMAGE_GUIDELINES: Record<BannerPlacement, BannerImageGuideli
     recommendedSize: "1200 x 675 px",
     note: "Dùng cho popup khuyến mãi.",
   },
+  EVENT: {
+    recommendedSize: "1200 x 675 px",
+    note: "Dùng cho event banner hiện giữa màn hình khi khách truy cập lần đầu.",
+  },
   CUSTOM: {
     recommendedSize: "900 x 300 px",
     note: "Dùng cho banner custom ở section khuyến mãi bên dưới.",

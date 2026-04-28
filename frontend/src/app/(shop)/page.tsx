@@ -13,6 +13,7 @@ import {
   HOME_FULL_BLEED_SECTION_SPACED_CLASSES,
   HOME_HERO_GRID_COLUMNS_CLASS,
   HOME_HERO_VIEWPORT_CLASSES,
+  getEventBannerDismissStorageKey,
   getHomepageBannerLayout,
   getPopupDismissStorageKey,
 } from "./homeBannerLayout";
@@ -198,6 +199,7 @@ export default function HomePage() {
   const [brands, setBrands] = useState<string[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [showPopupBanner, setShowPopupBanner] = useState(false);
+  const [showEventBanner, setShowEventBanner] = useState(false);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [brandStartIndex, setBrandStartIndex] = useState(0);
   const addItem = useCartStore((s) => s.addItem);
@@ -270,8 +272,20 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    const { popupBanner } = getHomepageBannerLayout(banners);
-    if (!popupBanner || typeof window === "undefined") {
+    const { eventBanner, popupBanner } = getHomepageBannerLayout(banners);
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (eventBanner) {
+      const dismissKey = getEventBannerDismissStorageKey(eventBanner.id);
+      if (!window.localStorage.getItem(dismissKey)) {
+        setShowEventBanner(true);
+        return;
+      }
+    }
+
+    if (!popupBanner) {
       return;
     }
 
@@ -281,7 +295,7 @@ export default function HomePage() {
     }
   }, [banners]);
 
-  const { mainBanner, sideBanners, popupBanner, customBanners } = getHomepageBannerLayout(banners);
+  const { mainBanner, sideBanners, popupBanner, eventBanner, customBanners } = getHomepageBannerLayout(banners);
   const sideBannerSlots = Array.from({ length: 3 }, (_, index) => sideBanners[index] ?? null);
   const visibleCategories = showAllCategories ? categories : categories.slice(0, 8);
   const brandItems = useMemo(() => brands.length > 0 ? brands : defaultBrands, [brands]);
@@ -314,9 +328,38 @@ export default function HomePage() {
     setShowPopupBanner(false);
   };
 
+  const dismissEventBanner = () => {
+    if (eventBanner && typeof window !== "undefined") {
+      window.localStorage.setItem(getEventBannerDismissStorageKey(eventBanner.id), "1");
+    }
+    setShowEventBanner(false);
+  };
+
   return (
     <div className="bg-gray-50">
-      {showPopupBanner && popupBanner && (
+      {showEventBanner && eventBanner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 px-4 backdrop-blur-[2px]">
+          <div className="relative w-full max-w-4xl rounded-[1.75rem] bg-white/10 p-2 shadow-[0_0_40px_rgba(255,255,255,0.25)] ring-1 ring-white/35 backdrop-blur-sm">
+            <button
+              type="button"
+              onClick={dismissEventBanner}
+              className="absolute -right-3 -top-3 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border-4 border-white bg-red-600 text-white shadow-lg transition hover:bg-red-700"
+              aria-label="Đóng event banner"
+            >
+              <span className="text-3xl font-bold leading-none">×</span>
+            </button>
+            <Link href={eventBanner.linkUrl || "/products"} onClick={dismissEventBanner} className="block overflow-hidden rounded-[1.35rem] bg-white">
+              <img
+                src={eventBanner.imageUrl}
+                alt={eventBanner.title}
+                className="h-auto max-h-[78vh] w-full object-contain"
+              />
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {!showEventBanner && showPopupBanner && popupBanner && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur-sm">
           <div className="relative w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl">
             <button

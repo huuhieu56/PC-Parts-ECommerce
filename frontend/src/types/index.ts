@@ -196,7 +196,7 @@ export interface Coupon {
 
 // --- Banner / Slider ---
 export type BannerStatus = "ACTIVE" | "INACTIVE";
-export type BannerPlacement = "MAIN" | "SIDE_1" | "SIDE_2" | "SIDE_3" | "POPUP" | "CUSTOM";
+export type BannerPlacement = "MAIN" | "SIDE_1" | "SIDE_2" | "SIDE_3" | "POPUP" | "EVENT" | "CUSTOM";
 
 export interface Banner {
   id: number;

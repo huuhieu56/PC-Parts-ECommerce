@@ -17,12 +17,14 @@ export interface HomepageBannerLayout {
   mainBanner: Banner | null;
   sideBanners: Banner[];
   popupBanner: Banner | null;
+  eventBanner: Banner | null;
   customBanners: Banner[];
 }
 
 export const getHomepageBannerLayout = (banners: Banner[]): HomepageBannerLayout => {
   const mainBanner = banners.find((banner) => banner.placement === "MAIN") ?? null;
   const popupBanner = banners.find((banner) => banner.placement === "POPUP") ?? null;
+  const eventBanner = banners.find((banner) => banner.placement === "EVENT") ?? null;
   const sideBanners = sidePlacements
     .map((placement) => banners.find((banner) => banner.placement === placement) ?? null)
     .filter((banner): banner is Banner => banner !== null);
@@ -40,9 +42,13 @@ export const getHomepageBannerLayout = (banners: Banner[]): HomepageBannerLayout
     mainBanner,
     sideBanners,
     popupBanner,
+    eventBanner,
     customBanners,
   };
 };
 
 export const getPopupDismissStorageKey = (bannerId: number): string =>
   `homepage-popup-dismissed:${bannerId}`;
+
+export const getEventBannerDismissStorageKey = (bannerId: number): string =>
+  `homepage-event-banner-dismissed:${bannerId}`;

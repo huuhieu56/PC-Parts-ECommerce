@@ -31,7 +31,7 @@ public class BannerService {
     private static final long MAX_IMAGE_BYTES = 5L * 1024L * 1024L;
     private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
     private static final Set<String> ALLOWED_STATUSES = Set.of("ACTIVE", "INACTIVE");
-    private static final Set<String> ALLOWED_PLACEMENTS = Set.of("MAIN", "SIDE_1", "SIDE_2", "SIDE_3", "POPUP", "CUSTOM");
+    private static final Set<String> ALLOWED_PLACEMENTS = Set.of("MAIN", "SIDE_1", "SIDE_2", "SIDE_3", "POPUP", "EVENT", "CUSTOM");
 
     private final BannerRepository bannerRepository;
     private final FileService fileService;

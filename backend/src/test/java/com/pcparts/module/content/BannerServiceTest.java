@@ -253,6 +253,32 @@ class BannerServiceTest {
     }
 
     @Test
+    @DisplayName("Create banner — event placement is accepted")
+    void createBanner_eventPlacement() {
+        when(fileService.uploadFile(validImage, "banners"))
+                .thenReturn("http://localhost:9000/pcparts/banners/event.webp");
+        when(bannerRepository.save(any(Banner.class))).thenAnswer(invocation -> {
+            Banner saved = invocation.getArgument(0);
+            saved.setId(3L);
+            return saved;
+        });
+
+        BannerDto result = bannerService.createBanner(
+                "Sự kiện tháng này",
+                validImage,
+                "/products",
+                "event",
+                0,
+                null,
+                null,
+                "ACTIVE"
+        );
+
+        assertThat(result.getPlacement()).isEqualTo("EVENT");
+        assertThat(result.getImageUrl()).contains("/banners/event.webp");
+    }
+
+    @Test
     @DisplayName("Update banner — keeps existing image when no new image is provided")
     void updateBanner_withoutImage() {
         when(bannerRepository.findById(1L)).thenReturn(Optional.of(banner));

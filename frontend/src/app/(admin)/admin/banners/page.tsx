@@ -32,6 +32,7 @@ const placementOptions: Array<{ value: BannerPlacement; label: string }> = [
   { value: "SIDE_2", label: "Banner phụ 2" },
   { value: "SIDE_3", label: "Banner phụ 3" },
   { value: "POPUP", label: "Banner popup" },
+  { value: "EVENT", label: "Event banner" },
   { value: "CUSTOM", label: "Banner custom" },
 ];
 
@@ -41,6 +42,7 @@ const placementLabels: Record<BannerPlacement, string> = {
   SIDE_2: "Banner phụ 2",
   SIDE_3: "Banner phụ 3",
   POPUP: "Banner popup",
+  EVENT: "Event banner",
   CUSTOM: "Banner custom",
 };
 
