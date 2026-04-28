@@ -12,6 +12,10 @@ export interface HomepageBannerLayout {
 export const HOME_HERO_VIEWPORT_CLASSES =
   "xl:h-[calc(100svh-166px)] xl:min-h-[560px] xl:max-h-[780px]";
 
+export const HOME_FULL_BLEED_SECTION_CLASSES = "w-full px-3 py-4 sm:px-4 xl:px-0";
+
+export const HOME_FULL_BLEED_SECTION_SPACED_CLASSES = "w-full px-3 py-6 sm:px-4 xl:px-0";
+
 export const getHomepageBannerLayout = (banners: Banner[]): HomepageBannerLayout => {
   const mainBanner = banners.find((banner) => banner.placement === "MAIN") ?? null;
   const popupBanner = banners.find((banner) => banner.placement === "POPUP") ?? null;

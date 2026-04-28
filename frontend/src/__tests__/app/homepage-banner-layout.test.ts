@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { HOME_HERO_VIEWPORT_CLASSES, getHomepageBannerLayout, getPopupDismissStorageKey } from "@/app/(shop)/homeBannerLayout";
+import {
+  HOME_FULL_BLEED_SECTION_CLASSES,
+  HOME_HERO_VIEWPORT_CLASSES,
+  getHomepageBannerLayout,
+  getPopupDismissStorageKey,
+} from "@/app/(shop)/homeBannerLayout";
 import type { Banner, BannerPlacement } from "@/types";
 
 const makeBanner = (id: number, placement: BannerPlacement, sortOrder: number): Banner => ({
@@ -42,5 +47,12 @@ describe("homepage banner layout", () => {
   it("should keep the desktop hero area pinned to the first viewport", () => {
     expect(HOME_HERO_VIEWPORT_CLASSES).toContain("xl:h-[calc(100svh-166px)]");
     expect(HOME_HERO_VIEWPORT_CLASSES).toContain("xl:min-h-[560px]");
+  });
+
+  it("should remove desktop max-width gutters from homepage sections", () => {
+    expect(HOME_FULL_BLEED_SECTION_CLASSES).toContain("w-full");
+    expect(HOME_FULL_BLEED_SECTION_CLASSES).toContain("xl:px-0");
+    expect(HOME_FULL_BLEED_SECTION_CLASSES).not.toContain("max-w-7xl");
+    expect(HOME_FULL_BLEED_SECTION_CLASSES).not.toContain("mx-auto");
   });
 });

@@ -6,7 +6,13 @@ import { useState, useEffect, useCallback } from "react";
 import { useCartStore } from "@/stores/cart-store";
 import api, { getBanners } from "@/lib/api";
 import type { Banner } from "@/types";
-import { HOME_HERO_VIEWPORT_CLASSES, getHomepageBannerLayout, getPopupDismissStorageKey } from "./homeBannerLayout";
+import {
+  HOME_FULL_BLEED_SECTION_CLASSES,
+  HOME_FULL_BLEED_SECTION_SPACED_CLASSES,
+  HOME_HERO_VIEWPORT_CLASSES,
+  getHomepageBannerLayout,
+  getPopupDismissStorageKey,
+} from "./homeBannerLayout";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 
@@ -309,7 +315,7 @@ export default function HomePage() {
       )}
 
       {/* Hero Banner + Sidebar */}
-      <section className="max-w-7xl mx-auto px-4 py-4">
+      <section className={HOME_FULL_BLEED_SECTION_CLASSES}>
         <div className={`grid grid-cols-1 gap-4 xl:grid-cols-[280px_minmax(0,1fr)_280px] xl:items-stretch ${HOME_HERO_VIEWPORT_CLASSES}`}>
           <aside className="order-2 xl:order-1 xl:h-full xl:min-h-0">
             <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm xl:flex xl:h-full xl:min-h-0 xl:flex-col">
@@ -461,7 +467,7 @@ export default function HomePage() {
       </section>
 
       {/* Promo Banners */}
-      <section className="max-w-7xl mx-auto px-4 py-4">
+      <section className={HOME_FULL_BLEED_SECTION_CLASSES}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {customBanners.length > 0 ? customBanners.slice(0, 3).map((banner) => (
             <Link
@@ -487,7 +493,7 @@ export default function HomePage() {
       </section>
 
       {/* Top Products — fetched from API */}
-      <section className="max-w-7xl mx-auto px-4 py-6">
+      <section className={HOME_FULL_BLEED_SECTION_SPACED_CLASSES}>
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="flex items-center justify-between border-b border-gray-200 px-6">
             <h2 className="text-lg font-bold text-[#1A4B9C] flex items-center gap-2 py-4 border-b-2 border-[#1A4B9C] whitespace-nowrap">
@@ -530,7 +536,7 @@ export default function HomePage() {
       </section>
 
       {/* Services Bar */}
-      <section className="max-w-7xl mx-auto px-4 py-6 pb-10">
+      <section className={`${HOME_FULL_BLEED_SECTION_SPACED_CLASSES} pb-10`}>
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="flex items-center gap-3">
