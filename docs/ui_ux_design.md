@@ -857,7 +857,7 @@ graph TD
 └──────────┴─────────────────────────────────────────────────┘
 ```
 
-**Form thêm/sửa:** tiêu đề, ảnh banner (JPG/PNG/WEBP, tối đa 5MB), URL liên kết, thứ tự hiển thị, ngày bắt đầu, ngày kết thúc, trạng thái Active/Inactive. Khi tạo mới, ảnh là bắt buộc. Khi sửa, ảnh mới là tùy chọn.
+**Form thêm/sửa:** tiêu đề, ảnh banner (JPG/PNG/WEBP, tối đa 5MB), URL liên kết, vị trí hiển thị (Banner chính/phụ 1-3/Popup/Event/Custom), thứ tự hiển thị, ngày bắt đầu, ngày kết thúc, trạng thái Active/Inactive. Khi tạo mới, ảnh là bắt buộc. Khi sửa, ảnh mới là tùy chọn.
 
 ---
 

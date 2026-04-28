@@ -813,9 +813,9 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 | DELETE | `/admin/banners/{id}` | Xóa banner | Admin |
 | PATCH | `/admin/banners/reorder` | Cập nhật thứ tự hiển thị | Admin |
 
-**Request multipart tạo/cập nhật:** `title`, `image`, `linkUrl`, `sortOrder`, `startDate`, `endDate`, `status`.
+**Request multipart tạo/cập nhật:** `title`, `image`, `linkUrl`, `placement`, `sortOrder`, `startDate`, `endDate`, `status`.
 
-**Validation:** `title` và `image` bắt buộc khi tạo; ảnh chỉ nhận JPG/PNG/WEBP và tối đa 5MB; `endDate` phải sau `startDate`.
+**Validation:** `title` và `image` bắt buộc khi tạo; ảnh chỉ nhận JPG/PNG/WEBP và tối đa 5MB; `endDate` phải sau `startDate`; `placement` hợp lệ (MAIN/SIDE_1/SIDE_2/SIDE_3/POPUP/EVENT/CUSTOM) và các vị trí khác CUSTOM chỉ có 1 banner.
 
 ### 4.3. Giao diện tích hợp bên ngoài (External Integration Interfaces)
 
