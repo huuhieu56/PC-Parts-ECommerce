@@ -16,6 +16,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,6 +25,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,6 +48,10 @@ class BannerServiceTest {
 
     @BeforeEach
     void setUp() {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+
         banner = Banner.builder()
                 .id(1L)
                 .title("Sale GPU tháng này")
@@ -101,6 +109,27 @@ class BannerServiceTest {
         assertThat(result.getImageUrl()).contains("/banners/new.webp");
         verify(fileService).uploadFile(validImage, "banners");
         verify(bannerRepository).save(any(Banner.class));
+    }
+
+    @Test
+    @DisplayName("Create banner — uploaded image is cleaned up when database save fails")
+    void createBanner_saveFails_cleansUpUploadedImage() {
+        String uploadedImageUrl = "http://localhost:9000/pcparts/banners/new.webp";
+        when(fileService.uploadFile(validImage, "banners")).thenReturn(uploadedImageUrl);
+        when(bannerRepository.save(any(Banner.class))).thenThrow(new RuntimeException("db error"));
+
+        assertThatThrownBy(() -> bannerService.createBanner(
+                "Build PC sale",
+                validImage,
+                "/build-pc",
+                2,
+                null,
+                null,
+                "ACTIVE"
+        )).isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("db error");
+
+        verify(fileService).deleteFile(uploadedImageUrl);
     }
 
     @Test
@@ -218,12 +247,91 @@ class BannerServiceTest {
     }
 
     @Test
+    @DisplayName("Update banner — uploaded replacement image is cleaned up when database save fails")
+    void updateBanner_saveFails_cleansUpNewImageAndKeepsOldImage() {
+        String uploadedImageUrl = "http://localhost:9000/pcparts/banners/new.webp";
+        when(bannerRepository.findById(1L)).thenReturn(Optional.of(banner));
+        when(fileService.uploadFile(validImage, "banners")).thenReturn(uploadedImageUrl);
+        when(bannerRepository.save(any(Banner.class))).thenThrow(new RuntimeException("db error"));
+
+        assertThatThrownBy(() -> bannerService.updateBanner(
+                1L,
+                "Sale GPU cập nhật",
+                validImage,
+                "/products?category=vga",
+                3,
+                null,
+                null,
+                "ACTIVE"
+        )).isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("db error");
+
+        verify(fileService).deleteFile(uploadedImageUrl);
+        verify(fileService, never()).deleteFile(eq("http://localhost:9000/pcparts/banners/gpu.webp"));
+    }
+
+    @Test
+    @DisplayName("Update banner — old image is deleted only after transaction commit")
+    void updateBanner_deletesOldImageAfterCommit() {
+        String uploadedImageUrl = "http://localhost:9000/pcparts/banners/new.webp";
+        when(bannerRepository.findById(1L)).thenReturn(Optional.of(banner));
+        when(fileService.uploadFile(validImage, "banners")).thenReturn(uploadedImageUrl);
+        when(bannerRepository.save(any(Banner.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            bannerService.updateBanner(
+                    1L,
+                    "Sale GPU cập nhật",
+                    validImage,
+                    "/products?category=vga",
+                    3,
+                    null,
+                    null,
+                    "ACTIVE"
+            );
+
+            verify(fileService, never()).deleteFile("http://localhost:9000/pcparts/banners/gpu.webp");
+
+            for (TransactionSynchronization synchronization : TransactionSynchronizationManager.getSynchronizations()) {
+                synchronization.afterCommit();
+            }
+
+            verify(fileService).deleteFile("http://localhost:9000/pcparts/banners/gpu.webp");
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
     @DisplayName("Delete banner — not found throws")
     void deleteBanner_notFound() {
         when(bannerRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> bannerService.deleteBanner(99L))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("Delete banner — image is deleted only after transaction commit")
+    void deleteBanner_deletesImageAfterCommit() {
+        when(bannerRepository.findById(1L)).thenReturn(Optional.of(banner));
+
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            bannerService.deleteBanner(1L);
+
+            verify(bannerRepository).delete(banner);
+            verify(fileService, never()).deleteFile(banner.getImageUrl());
+
+            for (TransactionSynchronization synchronization : TransactionSynchronizationManager.getSynchronizations()) {
+                synchronization.afterCommit();
+            }
+
+            verify(fileService).deleteFile(banner.getImageUrl());
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
     }
 
     @Test

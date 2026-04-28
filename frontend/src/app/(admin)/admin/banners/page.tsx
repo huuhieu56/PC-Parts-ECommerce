@@ -10,6 +10,7 @@ import {
   updateBanner,
 } from "@/lib/api";
 import type { Banner, BannerStatus } from "@/types";
+import { applyBannerDrop } from "./bannerReorder";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -200,24 +201,19 @@ export default function AdminBannersPage() {
   };
 
   const handleDrop = async (targetId: number) => {
-    if (draggedId === null || draggedId === targetId) {
-      setDraggedId(null);
+    const { draggedId: nextDraggedId, reorderedBanners } = applyBannerDrop(banners, draggedId, targetId);
+    setDraggedId(nextDraggedId);
+
+    if (!reorderedBanners) {
       return;
     }
 
-    const current = [...banners];
-    const fromIndex = current.findIndex((banner) => banner.id === draggedId);
-    const toIndex = current.findIndex((banner) => banner.id === targetId);
-    if (fromIndex < 0 || toIndex < 0) return;
-
-    const [moved] = current.splice(fromIndex, 1);
-    current.splice(toIndex, 0, moved);
-    const reordered = current.map((banner, index) => ({ ...banner, sortOrder: index + 1 }));
-    setBanners(reordered);
-    setDraggedId(null);
+    setBanners(reorderedBanners);
 
     try {
-      const saved = await reorderBanners(reordered.map((banner) => ({ id: banner.id, sortOrder: banner.sortOrder })));
+      const saved = await reorderBanners(
+        reorderedBanners.map((banner) => ({ id: banner.id, sortOrder: banner.sortOrder })),
+      );
       setBanners(saved);
       showMessage("success", "Đã cập nhật thứ tự banner.");
     } catch {

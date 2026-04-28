@@ -10,11 +10,14 @@ import com.pcparts.module.product.service.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -71,6 +74,7 @@ public class BannerService {
         validateDateRange(startDate, endDate);
 
         String imageUrl = fileService.uploadFile(image, "banners");
+        Runnable cleanupUploadedImage = registerRollbackCleanup(imageUrl);
         Banner banner = Banner.builder()
                 .title(title.trim())
                 .imageUrl(imageUrl)
@@ -81,7 +85,12 @@ public class BannerService {
                 .status(normalizeStatus(status))
                 .build();
 
-        return toDto(bannerRepository.save(banner));
+        try {
+            return toDto(bannerRepository.save(banner));
+        } catch (RuntimeException exception) {
+            cleanupUploadedImage.run();
+            throw exception;
+        }
     }
 
     /**
@@ -104,11 +113,13 @@ public class BannerService {
         validateOptionalImage(image);
         validateDateRange(startDate, endDate);
 
+        String oldImageUrl = banner.getImageUrl();
+        Runnable cleanupUploadedImage = () -> {};
+
         if (image != null && !image.isEmpty()) {
-            String oldImageUrl = banner.getImageUrl();
             String imageUrl = fileService.uploadFile(image, "banners");
+            cleanupUploadedImage = registerRollbackCleanup(imageUrl);
             banner.setImageUrl(imageUrl);
-            fileService.deleteFile(oldImageUrl);
         }
 
         banner.setTitle(title.trim());
@@ -118,7 +129,16 @@ public class BannerService {
         banner.setEndDate(endDate);
         banner.setStatus(normalizeStatus(status));
 
-        return toDto(bannerRepository.save(banner));
+        try {
+            Banner savedBanner = bannerRepository.save(banner);
+            if (image != null && !image.isEmpty()) {
+                runAfterCommit(() -> fileService.deleteFile(oldImageUrl));
+            }
+            return toDto(savedBanner);
+        } catch (RuntimeException exception) {
+            cleanupUploadedImage.run();
+            throw exception;
+        }
     }
 
     /**
@@ -128,8 +148,8 @@ public class BannerService {
     public void deleteBanner(Long id) {
         Banner banner = bannerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Banner", "id", id));
-        fileService.deleteFile(banner.getImageUrl());
         bannerRepository.delete(banner);
+        runAfterCommit(() -> fileService.deleteFile(banner.getImageUrl()));
     }
 
     /**
@@ -202,6 +222,42 @@ public class BannerService {
 
     private String blankToNull(String value) {
         return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private Runnable registerRollbackCleanup(String imageUrl) {
+        AtomicBoolean cleaned = new AtomicBoolean(false);
+        Runnable cleanup = () -> {
+            if (imageUrl != null && cleaned.compareAndSet(false, true)) {
+                fileService.deleteFile(imageUrl);
+            }
+        };
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(int status) {
+                    if (status == STATUS_ROLLED_BACK) {
+                        cleanup.run();
+                    }
+                }
+            });
+        }
+
+        return cleanup;
+    }
+
+    private void runAfterCommit(Runnable action) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            action.run();
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                action.run();
+            }
+        });
     }
 
     private BannerDto toDto(Banner banner) {
