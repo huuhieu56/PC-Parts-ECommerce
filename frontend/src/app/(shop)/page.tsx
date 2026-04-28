@@ -487,12 +487,9 @@ export default function HomePage() {
             <Link
               key={banner.id}
               href={banner.linkUrl || "/products"}
-              className="relative rounded-xl text-white p-6 min-h-[120px] flex flex-col justify-end overflow-hidden hover:shadow-lg transition-all cursor-pointer active:scale-[0.98] group"
+              className="relative rounded-xl text-white min-h-[120px] overflow-hidden hover:shadow-lg transition-all cursor-pointer active:scale-[0.98] group"
             >
               <img src={banner.imageUrl} alt={banner.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-              <p className="relative text-sm font-semibold opacity-90">Khuyến mãi</p>
-              <p className="relative text-2xl font-bold line-clamp-2">{banner.title}</p>
             </Link>
           )) : promoBanners.map((b) => (
             <div
