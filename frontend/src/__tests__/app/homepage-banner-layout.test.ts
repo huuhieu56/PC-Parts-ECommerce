@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getHomepageBannerLayout, getPopupDismissStorageKey } from "@/app/(shop)/homeBannerLayout";
+import { HOME_HERO_VIEWPORT_CLASSES, getHomepageBannerLayout, getPopupDismissStorageKey } from "@/app/(shop)/homeBannerLayout";
 import type { Banner, BannerPlacement } from "@/types";
 
 const makeBanner = (id: number, placement: BannerPlacement, sortOrder: number): Banner => ({
@@ -37,5 +37,10 @@ describe("homepage banner layout", () => {
 
   it("should build a stable popup dismiss key per banner id", () => {
     expect(getPopupDismissStorageKey(77)).toBe("homepage-popup-dismissed:77");
+  });
+
+  it("should keep the desktop hero area pinned to the first viewport", () => {
+    expect(HOME_HERO_VIEWPORT_CLASSES).toContain("xl:h-[calc(100svh-166px)]");
+    expect(HOME_HERO_VIEWPORT_CLASSES).toContain("xl:min-h-[560px]");
   });
 });

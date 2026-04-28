@@ -9,6 +9,9 @@ export interface HomepageBannerLayout {
   customBanners: Banner[];
 }
 
+export const HOME_HERO_VIEWPORT_CLASSES =
+  "xl:h-[calc(100svh-166px)] xl:min-h-[560px] xl:max-h-[780px]";
+
 export const getHomepageBannerLayout = (banners: Banner[]): HomepageBannerLayout => {
   const mainBanner = banners.find((banner) => banner.placement === "MAIN") ?? null;
   const popupBanner = banners.find((banner) => banner.placement === "POPUP") ?? null;

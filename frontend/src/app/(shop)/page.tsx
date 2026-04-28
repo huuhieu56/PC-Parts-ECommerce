@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useCartStore } from "@/stores/cart-store";
 import api, { getBanners } from "@/lib/api";
 import type { Banner } from "@/types";
-import { getHomepageBannerLayout, getPopupDismissStorageKey } from "./homeBannerLayout";
+import { HOME_HERO_VIEWPORT_CLASSES, getHomepageBannerLayout, getPopupDismissStorageKey } from "./homeBannerLayout";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 
@@ -310,15 +310,16 @@ export default function HomePage() {
 
       {/* Hero Banner + Sidebar */}
       <section className="max-w-7xl mx-auto px-4 py-4">
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[280px_minmax(0,1fr)_280px]">
-          <aside className="order-2 xl:order-1">
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm xl:flex xl:h-[420px] xl:flex-col">
+        <div className={`grid grid-cols-1 gap-4 xl:grid-cols-[280px_minmax(0,1fr)_280px] xl:items-stretch ${HOME_HERO_VIEWPORT_CLASSES}`}>
+          <aside className="order-2 xl:order-1 xl:h-full xl:min-h-0">
+            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm xl:flex xl:h-full xl:min-h-0 xl:flex-col">
               <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
                 <h2 className="text-sm font-bold uppercase tracking-wide text-[#1A4B9C]">Danh mục</h2>
                 {canExpandCategories && (
                   <button
                     type="button"
                     onClick={() => setShowAllCategories((value) => !value)}
+                    aria-expanded={showAllCategories}
                     className="text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700"
                   >
                     {showAllCategories ? "Thu gọn" : "Xem thêm"}
@@ -345,6 +346,7 @@ export default function HomePage() {
                   <button
                     type="button"
                     onClick={() => setShowAllBrands((value) => !value)}
+                    aria-expanded={showAllBrands}
                     className="text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700"
                   >
                     {showAllBrands ? "Thu gọn" : "Xem thêm"}
@@ -353,15 +355,15 @@ export default function HomePage() {
               </div>
               <div className="px-3 pb-4 xl:min-h-[112px] xl:max-h-[132px] xl:overflow-y-auto">
                 <div className="flex flex-wrap gap-2">
-                {visibleBrands.map((brand) => (
-                  <Link
-                    key={brand}
-                    href="/products"
-                    className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-                  >
-                    {brand}
-                  </Link>
-                ))}
+                  {visibleBrands.map((brand) => (
+                    <Link
+                      key={brand}
+                      href="/products"
+                      className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                    >
+                      {brand}
+                    </Link>
+                  ))}
                 </div>
               </div>
             </div>
@@ -370,7 +372,7 @@ export default function HomePage() {
           {mainBanner ? (
             <Link
               href={mainBanner.linkUrl || "/products"}
-              className="order-1 xl:order-2 relative flex min-h-[320px] overflow-hidden rounded-2xl bg-[#1A4B9C] text-white group xl:h-[420px]"
+              className="order-1 xl:order-2 relative flex min-h-[320px] overflow-hidden rounded-2xl bg-[#1A4B9C] text-white group xl:h-full xl:min-h-0"
             >
               <img
                 src={mainBanner.imageUrl}
@@ -388,7 +390,7 @@ export default function HomePage() {
               </div>
             </Link>
           ) : (
-            <div className="order-1 xl:order-2 relative flex min-h-[320px] overflow-hidden rounded-2xl bg-gradient-to-r from-[#1A4B9C] to-[#2563EB] text-white xl:h-[420px]">
+            <div className="order-1 xl:order-2 relative flex min-h-[320px] overflow-hidden rounded-2xl bg-gradient-to-r from-[#1A4B9C] to-[#2563EB] text-white xl:h-full xl:min-h-0">
               <div className="flex-1 p-8 flex flex-col justify-center">
                 <span className="text-amber-400 text-sm font-semibold mb-2 uppercase tracking-wide">Sản phẩm HOT</span>
                 <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-3">
@@ -419,7 +421,7 @@ export default function HomePage() {
             </div>
           )}
 
-          <div className="order-3 flex flex-col gap-4 xl:h-[420px]">
+          <div className="order-3 flex flex-col gap-4 xl:h-full xl:min-h-0">
             {sideBannerSlots.map((banner, index) => banner ? (
               <Link key={banner.id} href={banner.linkUrl || "/products"} className="relative flex-1 min-h-[130px] overflow-hidden rounded-2xl bg-gray-900 p-5 text-white group xl:min-h-0">
                 <img src={banner.imageUrl} alt={banner.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
