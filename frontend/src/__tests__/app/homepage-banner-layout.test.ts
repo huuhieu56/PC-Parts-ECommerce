@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   HOME_FULL_BLEED_SECTION_CLASSES,
+  HOME_HERO_GRID_COLUMNS_CLASS,
   HOME_HERO_VIEWPORT_CLASSES,
+  HOME_SIDE_BANNER_COLUMN_WIDTH_PX,
   getHomepageBannerLayout,
   getPopupDismissStorageKey,
 } from "@/app/(shop)/homeBannerLayout";
@@ -55,5 +57,10 @@ describe("homepage banner layout", () => {
     expect(HOME_FULL_BLEED_SECTION_CLASSES).toContain("2xl:px-16");
     expect(HOME_FULL_BLEED_SECTION_CLASSES).not.toContain("max-w-7xl");
     expect(HOME_FULL_BLEED_SECTION_CLASSES).not.toContain("mx-auto");
+  });
+
+  it("should configure side banner column at one and a half times the previous width", () => {
+    expect(HOME_SIDE_BANNER_COLUMN_WIDTH_PX).toBe(420);
+    expect(HOME_HERO_GRID_COLUMNS_CLASS).toContain("_420px]");
   });
 });

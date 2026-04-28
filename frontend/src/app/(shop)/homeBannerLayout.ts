@@ -1,4 +1,13 @@
 import type { Banner } from "@/types";
+export {
+  BANNER_IMAGE_GUIDELINES,
+  HOME_FULL_BLEED_SECTION_CLASSES,
+  HOME_FULL_BLEED_SECTION_SPACED_CLASSES,
+  HOME_HERO_GRID_COLUMNS_CLASS,
+  HOME_HERO_VIEWPORT_CLASSES,
+  HOME_SIDE_BANNER_COLUMN_WIDTH_PX,
+  HOME_SIDEBAR_COLUMN_WIDTH_PX,
+} from "@/lib/banner-layout-config";
 
 const sidePlacements = ["SIDE_1", "SIDE_2", "SIDE_3"] as const;
 
@@ -8,13 +17,6 @@ export interface HomepageBannerLayout {
   popupBanner: Banner | null;
   customBanners: Banner[];
 }
-
-export const HOME_HERO_VIEWPORT_CLASSES =
-  "xl:h-[calc(100svh-166px)] xl:min-h-[560px] xl:max-h-[780px]";
-
-export const HOME_FULL_BLEED_SECTION_CLASSES = "w-full px-3 py-4 sm:px-4 xl:px-3 2xl:px-16";
-
-export const HOME_FULL_BLEED_SECTION_SPACED_CLASSES = "w-full px-3 py-6 sm:px-4 xl:px-3 2xl:px-16";
 
 export const getHomepageBannerLayout = (banners: Banner[]): HomepageBannerLayout => {
   const mainBanner = banners.find((banner) => banner.placement === "MAIN") ?? null;

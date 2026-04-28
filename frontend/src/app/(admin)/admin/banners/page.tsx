@@ -10,6 +10,7 @@ import {
   updateBanner,
 } from "@/lib/api";
 import type { Banner, BannerPlacement, BannerStatus } from "@/types";
+import { BANNER_IMAGE_GUIDELINES } from "@/lib/banner-layout-config";
 import { applyBannerDrop } from "./bannerReorder";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -248,6 +249,8 @@ export default function AdminBannersPage() {
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => setForm((current) => ({ ...current, [key]: event.target.value }));
 
+  const imageGuideline = BANNER_IMAGE_GUIDELINES[form.placement];
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -297,6 +300,9 @@ export default function AdminBannersPage() {
                 className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100"
               />
               <p className="text-xs text-gray-500">JPG, PNG, WEBP. Tối đa 5MB.</p>
+              <p className="rounded-md bg-blue-50 px-3 py-2 text-xs leading-5 text-blue-700">
+                Kích thước ảnh nên là {imageGuideline.recommendedSize}. {imageGuideline.note}
+              </p>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

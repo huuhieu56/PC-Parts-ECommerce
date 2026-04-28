@@ -9,6 +9,7 @@ import type { Banner } from "@/types";
 import {
   HOME_FULL_BLEED_SECTION_CLASSES,
   HOME_FULL_BLEED_SECTION_SPACED_CLASSES,
+  HOME_HERO_GRID_COLUMNS_CLASS,
   HOME_HERO_VIEWPORT_CLASSES,
   getHomepageBannerLayout,
   getPopupDismissStorageKey,
@@ -316,7 +317,7 @@ export default function HomePage() {
 
       {/* Hero Banner + Sidebar */}
       <section className={HOME_FULL_BLEED_SECTION_CLASSES}>
-        <div className={`grid grid-cols-1 gap-4 xl:grid-cols-[280px_minmax(0,1fr)_280px] xl:items-stretch ${HOME_HERO_VIEWPORT_CLASSES}`}>
+        <div className={`grid grid-cols-1 gap-4 xl:items-stretch ${HOME_HERO_GRID_COLUMNS_CLASS} ${HOME_HERO_VIEWPORT_CLASSES}`}>
           <aside className="order-2 xl:order-1 xl:h-full xl:min-h-0">
             <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm xl:flex xl:h-full xl:min-h-0 xl:flex-col">
               <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
