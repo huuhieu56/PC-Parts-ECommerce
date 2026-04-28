@@ -280,1188 +280,667 @@ Hệ thống cần lưu trữ và xử lý 35 thực thể (Entities) chính, đ
 
 ![UC-CUS-04 — Đăng ký](diagrams/images/uc_CUS04_dang_ky.png)
 
-1\.    Mã UC, tên UC: UC-CUS-04: Đăng ký
+1) Summary
+- Use Case Name: Đăng ký
+- Use Case ID: UC-CUS-04
+- Use Case Description: Cho phép người dùng mới tạo tài khoản trên hệ thống.
+- Actor: Khách vãng lai – Guest
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Người dùng nhấn nút "Đăng ký" trên trang chủ hoặc trang đăng nhập.
+- Pre-Condition: Người dùng chưa có tài khoản (chưa đăng nhập).
+- Post-Condition: Account mới (Role = Customer) và User/Profile được tạo trong CSDL.
 
-2\.    Actor: Khách vãng lai – Guest
+2) Flow
+- Basic Flow: Người dùng nhấn "Đăng ký", hệ thống hiển thị form gồm Họ tên, Email, SĐT, Mật khẩu và Xác nhận mật khẩu; hệ thống kiểm tra tính hợp lệ dữ liệu (định dạng email, độ dài mật khẩu, mật khẩu khớp) và kiểm tra trùng Email/SĐT trong Account/User; nếu hợp lệ thì tạo Account (password_hash, Role = Customer, is_active = true) và User/Profile, sau đó hiển thị thông báo đăng ký thành công và chuyển hướng sang trang đăng nhập.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu thiếu trường bắt buộc thì hệ thống báo lỗi cụ thể; nếu Email/SĐT sai định dạng thì báo lỗi; nếu mật khẩu xác nhận không khớp thì báo lỗi; nếu Email hoặc SĐT đã tồn tại thì báo "Email/SĐT đã được sử dụng".
 
-3\.    Mô tả: Cho phép người dùng mới tạo tài khoản trên hệ thống.
-
-4\.    Tiền điều kiện: Người dùng chưa có tài khoản (chưa đăng nhập).
-
-5\.    Trigger: Người dùng nhấn nút "Đăng ký" trên trang chủ hoặc trang đăng nhập.
-
-6\.    Luồng chính:
-
-\-        Người dùng nhấn "Đăng ký", hệ thống hiển thị form: Họ tên, Email, SĐT, Mật khẩu, Xác nhận mật khẩu
-
-\-        Hệ thống kiểm tra tính hợp lệ (định dạng email, độ dài mật khẩu, mật khẩu khớp)
-
-\-        Hệ thống kiểm tra bảng Account xem Email đã tồn tại chưa, kiểm tra bảng User xem SĐT đã tồn tại chưa
-
-\-        Nếu hợp lệ: tạo Account (password\_hash, Role \= Customer, is\_active \= true) và User/Profile (họ tên, SĐT)
-
-\-        Hiển thị "Đăng ký thành công" và chuyển hướng trang đăng nhập
-
-7\.    Luồng ngoại lệ:
-
-\-        Trường bắt buộc để trống → Báo lỗi cụ thể
-
-\-        Email/SĐT sai định dạng → Báo lỗi
-
-\-        Mật khẩu xác nhận không khớp → Báo lỗi
-
-\-        Email hoặc SĐT đã tồn tại → Báo lỗi "Email/SĐT đã được sử dụng"
-
-8\.    Hậu điều kiện:
-
-\-        Account mới (Role \= Customer) và User/Profile được tạo trong CSDL
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
    **4.2. Đăng nhập**
 
 ![UC-CUS-05 — Đăng nhập](diagrams/images/uc_CUS05_dang_nhap.png)
 
-1\.    Mã UC, tên UC: UC-CUS-05: Đăng nhập
+1) Summary
+- Use Case Name: Đăng nhập
+- Use Case ID: UC-CUS-05
+- Use Case Description: Xác thực người dùng qua Email và Mật khẩu; sinh Token/Session để duy trì phiên và merge giỏ hàng Session vào Cart database.
+- Actor: Khách vãng lai – Guest
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Người dùng nhấn nút "Đăng nhập" trên giao diện hệ thống.
+- Pre-Condition: Người dùng đã có tài khoản (đã đăng ký).
+- Post-Condition: Token/Session mới được tạo trong CSDL; giỏ hàng Session được merge vào Cart database rồi xóa; phiên duy trì cho đến khi Token hết hạn hoặc đăng xuất.
 
-2\.    Actor: Khách vãng lai – Guest
+2) Flow
+- Basic Flow: Người dùng nhập Email và Mật khẩu rồi nhấn "Đăng nhập"; hệ thống truy xuất Account để kiểm tra Email tồn tại, password_hash khớp và is_active = true; hệ thống sinh Token/Session lưu vào bảng Token/Session và trả về trình duyệt; sau đó merge giỏ hàng Session vào Cart database (theo UC-CUS-03) và chuyển hướng theo Role (Customer/Admin/Sales/Warehouse).
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu Email không tồn tại hoặc mật khẩu sai thì hiển thị "Email hoặc mật khẩu không đúng"; nếu tài khoản bị khóa (is_active = false) thì hiển thị "Tài khoản đã bị khóa. Liên hệ quản trị viên"; nếu thiếu trường bắt buộc thì báo lỗi.
 
-3\.    Mô tả: Xác thực người dùng qua Email và Mật khẩu. Sinh Token/Session để duy trì phiên, merge giỏ hàng Session vào Cart database.
-
-4\.    Tiền điều kiện: Người dùng đã có tài khoản (đã đăng ký).
-
-5\.    Trigger: Người dùng nhấn nút "Đăng nhập" trên giao diện hệ thống.
-
-6\.    Luồng chính:
-
-\-        Người dùng nhập Email và Mật khẩu, nhấn "Đăng nhập"
-
-\-        Hệ thống truy xuất Account, kiểm tra Email tồn tại và password\_hash khớp
-
-\-        Kiểm tra is\_active \= true (chưa bị khóa)
-
-\-        Sinh Token/Session (lưu vào bảng Token/Session) và trả về trình duyệt
-
-\-        Merge giỏ hàng Session vào Cart database (theo UC-CUS-03)
-
-\-        Chuyển hướng theo Role (Customer/Admin/Sales/Warehouse)
-
-7\.    Luồng ngoại lệ:
-
-\-        Email không tồn tại hoặc Mật khẩu sai → "Email hoặc mật khẩu không đúng"
-
-\-        Tài khoản bị khóa (is\_active \= false) → "Tài khoản đã bị khóa. Liên hệ quản trị viên"
-
-\-        Trường bắt buộc để trống → Báo lỗi
-
-8\.    Hậu điều kiện:
-
-\-        Token/Session mới được tạo trong CSDL
-
-\-        Giỏ hàng Session được merge vào Cart database rồi xóa
-
-\-        Phiên duy trì cho đến khi Token hết hạn hoặc đăng xuất
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
    **4.3. Đăng xuất**
 
 ![UC-CUS-06 — Đăng xuất](diagrams/images/uc_CUS06_dang_xuat.png)
 
-1\.    Mã UC, tên UC: UC-CUS-06: Đăng xuất
+1) Summary
+- Use Case Name: Đăng xuất
+- Use Case ID: UC-CUS-06
+- Use Case Description: Kết thúc phiên làm việc hiện tại.
+- Actor: Customer / Admin / Sales / Warehouse
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Người dùng nhấn nút "Đăng xuất" trên giao diện hệ thống.
+- Pre-Condition: Người dùng đang đăng nhập (có Token/Session hợp lệ).
+- Post-Condition: Token/Session bị xóa, giỏ hàng Session bị xóa, Cart database vẫn được lưu.
 
-2\.    Actor: Customer / Admin / Sales / Warehouse
+2) Flow
+- Basic Flow: Người dùng nhấn "Đăng xuất"; hệ thống xóa Token/Session trong CSDL, xóa giỏ hàng Session trên trình duyệt và chuyển hướng về trang chủ ở giao diện Guest.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu Token đã hết hạn thì hệ thống tự động chuyển về trang đăng nhập kèm thông báo.
 
-3\.    Mô tả: Kết thúc phiên làm việc hiện tại.
-
-4\.    Tiền điều kiện: Người dùng đang đăng nhập (có Token/Session hợp lệ).
-
-5\.    Trigger: Người dùng nhấn nút "Đăng xuất" trên giao diện hệ thống.
-
-6\.    Luồng chính:
-
-\-        Người dùng nhấn "Đăng xuất"
-
-\-        Hệ thống xóa Token/Session trong CSDL
-
-\-        Xóa giỏ hàng Session trên trình duyệt
-
-\-        Chuyển hướng về trang chủ (giao diện Guest)
-
-7\.    Luồng ngoại lệ:
-
-\-        Token đã hết hạn → Tự động chuyển về trang đăng nhập kèm thông báo
-
-8\.    Hậu điều kiện:
-
-\-        Token/Session bị xóa, giỏ hàng Session bị xóa, Cart database vẫn được lưu
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
    **4.4. Thay đổi mật khẩu**
 
 ![UC-CUS-16 — Thay đổi mật khẩu](diagrams/images/uc_CUS16_thay_doi_mat_khau.png)
 
-1\.    Mã UC, tên UC: UC-CUS-16: Thay đổi mật khẩu
+1) Summary
+- Use Case Name: Thay đổi mật khẩu
+- Use Case ID: UC-CUS-16
+- Use Case Description: Cho phép Customer đổi mật khẩu hiện tại sang mật khẩu mới khi đang đăng nhập.
+- Actor: Khách hàng – Customer
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Customer truy cập "Tài khoản của tôi" và chọn "Đổi mật khẩu".
+- Pre-Condition: Customer đã đăng nhập (có Token/Session hợp lệ).
+- Post-Condition: Account.password_hash được cập nhật.
 
-2\.    Actor: Khách hàng – Customer
+2) Flow
+- Basic Flow: Customer truy cập "Tài khoản của tôi" → "Đổi mật khẩu"; hệ thống hiển thị form gồm mật khẩu hiện tại, mật khẩu mới và xác nhận mật khẩu mới; Customer nhập đầy đủ thông tin và nhấn "Đổi mật khẩu"; hệ thống kiểm tra mật khẩu hiện tại khớp với Account.password_hash rồi cập nhật password_hash mới.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu mật khẩu hiện tại không đúng thì báo "Mật khẩu hiện tại không chính xác"; nếu mật khẩu mới và xác nhận không khớp thì báo "Mật khẩu xác nhận không khớp"; nếu mật khẩu mới trùng mật khẩu cũ thì báo "Mật khẩu mới phải khác mật khẩu cũ"; nếu mật khẩu mới không đủ độ mạnh thì báo lỗi.
 
-3\.    Mô tả: Cho phép Customer đổi mật khẩu hiện tại sang mật khẩu mới khi đang đăng nhập.
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
-4\.    Tiền điều kiện: Customer đã đăng nhập (có Token/Session hợp lệ).
-
-5\.    Trigger: Customer truy cập "Tài khoản của tôi" và chọn "Đổi mật khẩu".
-
-6\.    Luồng chính:
-
-\-        Customer truy cập "Tài khoản của tôi" → "Đổi mật khẩu"
-
-\-        Hệ thống hiển thị form: Mật khẩu hiện tại, Mật khẩu mới, Xác nhận mật khẩu mới
-
-\-        Customer nhập đầy đủ thông tin và nhấn "Đổi mật khẩu"
-
-\-        Hệ thống kiểm tra mật khẩu hiện tại khớp với Account.password\_hash
-
-\-        Nếu đúng: cập nhật password\_hash mới
-
-7\.    Luồng ngoại lệ:
-
-\-        Mật khẩu hiện tại không đúng → Báo lỗi "Mật khẩu hiện tại không chính xác"
-
-\-        Mật khẩu mới và xác nhận không khớp → Báo lỗi "Mật khẩu xác nhận không khớp"
-
-\-        Mật khẩu mới trùng mật khẩu cũ → Báo lỗi "Mật khẩu mới phải khác mật khẩu cũ"
-
-\-        Mật khẩu mới không đủ độ mạnh → Báo lỗi
-
-8\.    Hậu điều kiện: Account.password\_hash được cập nhật
    **4.5. Quên / Thiết lập lại mật khẩu**
 
 ![UC-CUS-15 — Quên / Thiết lập lại mật khẩu](diagrams/images/uc_CUS15_quen_mat_khau.png)
 
-1\.    Mã UC, tên UC: UC-CUS-15: Quên / Thiết lập lại mật khẩu
+1) Summary
+- Use Case Name: Quên / Thiết lập lại mật khẩu
+- Use Case ID: UC-CUS-15
+- Use Case Description: Cho phép người dùng khôi phục quyền truy cập tài khoản khi quên mật khẩu thông qua liên kết đặt lại mật khẩu gửi qua email.
+- Actor: Khách vãng lai (Guest) / Khách hàng (Customer)
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Người dùng nhấn liên kết "Quên mật khẩu" trên trang đăng nhập.
+- Pre-Condition: Người dùng đã có tài khoản (đã đăng ký) và chưa đăng nhập.
+- Post-Condition: Account.password_hash được cập nhật; Reset Password Token bị xóa; toàn bộ Token/Session cũ bị xóa.
 
-2\.    Actor: Khách vãng lai (Guest) / Khách hàng (Customer)
+2) Flow
+- Basic Flow: Người dùng nhấn "Quên mật khẩu" trên trang đăng nhập; hệ thống hiển thị form nhập Email; người dùng nhập Email đã đăng ký và nhấn "Gửi"; hệ thống kiểm tra Email trong Account, nếu tồn tại thì tạo Reset Password Token trong bảng Token/Session kèm thời hạn và gửi email chứa liên kết đặt lại mật khẩu; người dùng nhấn liên kết trong email để hệ thống xác minh Token còn hiệu lực; hệ thống hiển thị form mật khẩu mới/xác nhận; người dùng nhập mật khẩu mới và nhấn "Đặt lại mật khẩu"; hệ thống cập nhật Account.password_hash, xóa Reset Password Token và xóa toàn bộ Token/Session cũ.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu Email không tồn tại thì hệ thống vẫn hiển thị thông báo "Nếu email tồn tại, bạn sẽ nhận được liên kết đặt lại mật khẩu" để tránh lộ thông tin; nếu Token hết hạn hoặc không hợp lệ thì báo "Liên kết đã hết hạn. Vui lòng yêu cầu lại"; nếu mật khẩu mới và xác nhận không khớp thì báo lỗi; nếu mật khẩu mới không đủ độ mạnh thì báo "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số".
 
-3\.    Mô tả: Cho phép người dùng khôi phục quyền truy cập tài khoản khi quên mật khẩu, thông qua liên kết đặt lại mật khẩu gửi qua email.
-
-4\.    Tiền điều kiện:
-
-\-        Người dùng đã có tài khoản (đã đăng ký)
-
-\-        Người dùng chưa đăng nhập
-
-5\.    Trigger: Người dùng nhấn liên kết "Quên mật khẩu" trên trang đăng nhập.
-
-6\.    Luồng chính:
-
-\-        Người dùng nhấn "Quên mật khẩu" trên trang đăng nhập
-
-\-        Hệ thống hiển thị form nhập Email
-
-\-        Người dùng nhập Email đã đăng ký và nhấn "Gửi"
-
-\-        Hệ thống kiểm tra Email tồn tại trong bảng Account
-
-\-        Nếu tồn tại: tạo Reset Password Token (lưu vào bảng Token/Session với thời hạn hết hạn) và gửi email chứa liên kết đặt lại mật khẩu
-
-\-        Người dùng nhấn liên kết trong email → hệ thống xác minh Token còn hiệu lực
-
-\-        Hiển thị form: Mật khẩu mới, Xác nhận mật khẩu mới
-
-\-        Người dùng nhập mật khẩu mới và nhấn "Đặt lại mật khẩu"
-
-\-        Hệ thống cập nhật Account.password\_hash, xóa Reset Password Token, xóa toàn bộ Token/Session cũ (buộc đăng nhập lại với mật khẩu mới)
-
-7\.    Luồng ngoại lệ:
-
-\-        Email không tồn tại → Hệ thống vẫn hiển thị thông báo "Nếu email tồn tại, bạn sẽ nhận được liên kết đặt lại mật khẩu" (tránh lộ thông tin)
-
-\-        Token hết hạn hoặc không hợp lệ → Báo "Liên kết đã hết hạn. Vui lòng yêu cầu lại"
-
-\-        Mật khẩu mới và xác nhận không khớp → Báo lỗi
-
-\-        Mật khẩu mới không đủ độ mạnh → Báo lỗi "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số"
-
-8\.    Hậu điều kiện:
-
-\-        Account.password\_hash được cập nhật. Reset Password Token bị xóa. Toàn bộ Token/Session cũ bị xóa
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
    **4.6. Quản lý thông tin cá nhân**
 
 ![UC-CUS-14 — Quản lý thông tin cá nhân](diagrams/images/uc_CUS14_quan_ly_thong_tin.png)
 
-1\.    Mã UC, tên UC: UC-CUS-14: Quản lý thông tin cá nhân
+1) Summary
+- Use Case Name: Quản lý thông tin cá nhân
+- Use Case ID: UC-CUS-14
+- Use Case Description: Cho phép Customer cập nhật thông tin cá nhân (User/Profile).
+- Actor: Khách hàng – Customer
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Customer truy cập "Tài khoản của tôi" → "Thông tin cá nhân".
+- Pre-Condition: Customer đã đăng nhập.
+- Post-Condition: User/Profile được cập nhật.
 
-2\.    Actor: Khách hàng – Customer
+2) Flow
+- Basic Flow: Customer truy cập "Tài khoản của tôi" → "Thông tin cá nhân"; hệ thống hiển thị form với dữ liệu hiện tại gồm Họ tên, SĐT, ảnh đại diện, ngày sinh và giới tính; Customer chỉnh sửa thông tin, nhấn "Cập nhật" và hệ thống lưu vào bảng User.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu dữ liệu không hợp lệ thì hệ thống báo lỗi cụ thể.
 
-3\.    Mô tả: Cho phép Customer cập nhật thông tin cá nhân (User/Profile).
-
-4\.    Tiền điều kiện: Customer đã đăng nhập.
-
-5\.    Trigger: Customer truy cập "Tài khoản của tôi" → "Thông tin cá nhân".
-
-6\.    Luồng chính:
-
-\-        Customer truy cập "Tài khoản của tôi" → "Thông tin cá nhân"
-
-\-        Hệ thống hiển thị form với dữ liệu hiện tại: Họ tên, SĐT, ảnh đại diện, ngày sinh, giới tính
-
-\-        Customer sửa thông tin, nhấn "Cập nhật". Hệ thống lưu vào bảng User
-
-7\.    Luồng ngoại lệ:
-
-\-        Dữ liệu không hợp lệ → Báo lỗi cụ thể
-
-8\.    Hậu điều kiện: User/Profile được cập nhật
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
    **4.7. Tìm kiếm và lọc sản phẩm**
 
 ![UC-CUS-01 — Tìm kiếm và lọc sản phẩm](diagrams/images/uc_CUS01_tim_kiem_loc.png)
 
-1\.    Mã UC, tên UC: UC-CUS-01: Tìm kiếm và lọc sản phẩm
+1) Summary
+- Use Case Name: Tìm kiếm và lọc sản phẩm
+- Use Case ID: UC-CUS-01
+- Use Case Description: Cho phép người dùng tìm kiếm linh kiện theo từ khóa hoặc lọc chi tiết theo các thuộc tính kỹ thuật động (Attribute) tương ứng với từng danh mục sản phẩm để nhanh chóng tiếp cận sản phẩm phù hợp nhu cầu.
+- Actor: Khách vãng lai (Guest) / Khách hàng (Customer)
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Người dùng chọn danh mục từ menu điều hướng hoặc nhập từ khóa vào thanh tìm kiếm.
+- Pre-Condition: Không yêu cầu đăng nhập, chỉ cần truy cập trang web.
+- Post-Condition: Hệ thống hiển thị danh sách sản phẩm khớp với điều kiện tìm kiếm/lọc của người dùng trên giao diện.
 
-2\.    Actor: Khách vãng lai (Guest) / Khách hàng (Customer)
+2) Flow
+- Basic Flow: Người dùng chọn danh mục (Category) từ menu điều hướng; hệ thống truy xuất Attribute để hiển thị bộ lọc phù hợp danh mục (ví dụ RAM thì có Bus, Dung lượng, Loại DDR); người dùng chọn tiêu chí lọc (Attribute_Value), nhập từ khóa và có thể lọc thêm theo Brand rồi nhấn tìm kiếm; hệ thống truy xuất Product và Product_Attribute, kiểm tra tồn kho qua Inventory để trả về kết quả, làm mờ và gắn nhãn "Hết hàng" với sản phẩm có Inventory.quantity = 0; hệ thống hiển thị tên, ảnh chính (Product_Image), giá bán, Brand và Condition.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu không có kết quả phù hợp thì hệ thống thông báo "Không tìm thấy sản phẩm phù hợp" và gợi ý xóa bớt bộ lọc; nếu không kết nối được CSDL thì hệ thống hiển thị lỗi "Không kết nối được với máy chủ".
 
-3\.    Mô tả: Cho phép người dùng tìm kiếm linh kiện theo từ khóa hoặc lọc chi tiết theo các thuộc tính kỹ thuật động (Attribute) tương ứng với từng danh mục sản phẩm, giúp tiếp cận nhanh nhất sản phẩm phù hợp nhu cầu.
-
-4\.    Tiền điều kiện: Không yêu cầu đăng nhập, chỉ cần truy cập trang web.
-
-5\.    Trigger: Người dùng chọn danh mục từ menu điều hướng hoặc nhập từ khóa vào thanh tìm kiếm.
-
-6\.    Luồng chính:
-
-\-        Người dùng lựa chọn 1 danh mục (Category) từ menu điều hướng
-
-\-        Hệ thống truy xuất bảng Attribute để hiển thị các bộ lọc tương ứng với danh mục đó (VD: Category RAM → bộ lọc Bus, Dung lượng, Loại DDR)
-
-\-        Người dùng chọn tiêu chí lọc (Attribute\_Value) và/hoặc nhận từ khóa tìm kiếm, có thể lọc thêm theo Brand, sau đó nhấn nút Tìm kiếm
-
-\-        Hệ thống truy xuất Product, Product\_Attribute và kiểm tra tồn kho qua Inventory để trả về danh sách kết quả. Sản phẩm nào có Inventory.quantity \= 0 sẽ bị làm mờ và gắn nhãn "Hết hàng"
-
-\-        Hệ thống hiển thị kết quả lên giao diện kèm thông tin: tên, ảnh chính (Product\_Image), giá bán, Brand, tình trạng hàng (Condition)
-
-7\.    Luồng ngoại lệ:
-
-\-        Nếu không có kết quả nào khớp với bộ lọc → Hệ thống hiển thị thông báo "Không tìm thấy sản phẩm phù hợp" và gợi ý khách hàng xóa bớt bộ lọc
-
-\-        Nếu không kết nối được với cơ sở dữ liệu → Hệ thống hiển thị thông báo lỗi "Không kết nối được với máy chủ"
-
-8\.    Hậu điều kiện:
-
-\-        Hệ thống hiển thị danh sách sản phẩm khớp với điều kiện tìm kiếm/lọc của người dùng trên giao diện
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
    **4.8. Quản lý giỏ hàng**
 
 ![UC-CUS-03 — Quản lý giỏ hàng](diagrams/images/uc_CUS03_quan_ly_gio_hang.png)
 
-1\.    Mã UC, tên UC: UC-CUS-03: Quản lý giỏ hàng
+1) Summary
+- Use Case Name: Quản lý giỏ hàng
+- Use Case ID: UC-CUS-03
+- Use Case Description: Cho phép người dùng thêm, xem, sửa số lượng và xóa sản phẩm trong giỏ hàng; Guest dùng giỏ Session, Customer dùng giỏ database (Cart), và khi đăng nhập thì merge giỏ Session vào Cart.
+- Actor: Khách vãng lai (Guest) / Khách hàng (Customer)
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Người dùng nhấn "Thêm vào giỏ" trên trang sản phẩm hoặc truy cập trang giỏ hàng.
+- Pre-Condition: Người dùng đang truy cập hệ thống.
+- Post-Condition: Cart_Item được thêm/sửa/xóa trong CSDL hoặc Session và tổng tiền được tính lại.
 
-2\.    Actor: Khách vãng lai (Guest) / Khách hàng (Customer)
+2) Flow
+- Basic Flow: Người dùng có thể thêm sản phẩm vào giỏ từ trang sản phẩm, hệ thống kiểm tra Inventory.quantity rồi thêm Cart_Item vào Cart (database) hoặc Session; khi xem giỏ, hệ thống truy xuất Cart/Cart_Item và join Product, Product_Image để hiển thị tên, ảnh, giá, số lượng, Condition và tổng tiền; khi sửa số lượng, hệ thống kiểm tra Inventory rồi cập nhật Cart_Item và tổng tiền; khi xóa, hệ thống xóa Cart_Item tương ứng; khi đăng nhập, giỏ Session được merge vào Cart database, sản phẩm trùng thì cộng dồn số lượng và xóa giỏ Session sau merge; khi đăng xuất, giỏ Session bị xóa còn Cart database được giữ.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu giỏ hàng trống thì ẩn nút Thanh toán; nếu số lượng vượt Inventory.quantity thì giới hạn mức tối đa; nếu cộng dồn khi merge vượt Inventory thì giới hạn và thông báo.
 
-3\.    Mô tả: Cho phép người dùng thêm, xem, sửa số lượng và xóa sản phẩm trong giỏ hàng. Guest dùng giỏ Session, Customer dùng giỏ database (Cart). Khi đăng nhập, merge giỏ Session vào Cart.
-
-4\.    Tiền điều kiện: Người dùng đang truy cập hệ thống.
-
-5\.    Trigger: Người dùng nhấn "Thêm vào giỏ" trên trang sản phẩm hoặc truy cập trang giỏ hàng.
-
-6\.    Luồng chính:
-
-\-        Thêm sản phẩm: Người dùng nhấn "Thêm vào giỏ" trên trang sản phẩm. Hệ thống kiểm tra Inventory.quantity, nếu đủ hàng thì thêm Cart\_Item vào Cart (database) hoặc Session
-
-\-        Xem giỏ hàng: Hệ thống truy xuất Cart/Cart\_Item, join với Product và Product\_Image để hiển thị tên, ảnh, giá, số lượng, Condition và tổng tiền
-
-\-        Sửa số lượng: Hệ thống kiểm tra Inventory, cập nhật Cart\_Item và tính lại tổng tiền
-
-\-        Xóa sản phẩm: Hệ thống xóa Cart\_Item tương ứng
-
-\-        Merge giỏ hàng khi đăng nhập: Merge giỏ Session vào Cart database. Nếu trùng Product, cộng dồn số lượng. Xóa giỏ Session sau merge
-
-\-        Đăng xuất: Xóa giỏ Session, giữ nguyên Cart database
-
-7\.    Luồng ngoại lệ:
-
-\-        Giỏ hàng trống → Ẩn nút Thanh toán
-
-\-        Số lượng vượt Inventory.quantity → Giới hạn ở mức tối đa
-
-\-        Merge cộng dồn vượt Inventory → Giới hạn và thông báo
-
-8\.    Hậu điều kiện:
-
-\-        Cart\_Item được thêm/sửa/xóa trong CSDL hoặc Session. Tổng tiền được tính lại
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
    **4.9. Tạo đơn hàng và thanh toán**
 
 ![UC-CUS-02 — Tạo đơn hàng và thanh toán](diagrams/images/uc_CUS02_tao_don_hang.png)
 
-1\.    Mã UC, tên UC: UC-CUS-02: Tạo đơn hàng và thanh toán
+1) Summary
+- Use Case Name: Tạo đơn hàng và thanh toán
+- Use Case ID: UC-CUS-02
+- Use Case Description: Cho phép khách hàng đặt hàng từ giỏ hàng, chọn Address giao hàng, áp dụng Coupon và chọn phương thức thanh toán; hệ thống tạo Order, Order_Detail, Payment và Shipping tương ứng.
+- Actor: Khách hàng – Customer
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Customer nhấn nút "Thanh toán" từ trang giỏ hàng.
+- Pre-Condition: Customer đã đăng nhập (có Token/Session hợp lệ) và giỏ hàng (Cart) không trống (ít nhất 1 Cart_Item).
+- Post-Condition: Order, Order_Detail, Payment, Shipping, Order_Status_History được tạo trong CSDL; Inventory.quantity giảm và Inventory_Log được ghi nhận; Cart_Item đã thanh toán bị xóa; Coupon_Usage được ghi nhận nếu có.
 
-2\.    Actor: Khách hàng – Customer
+2) Flow
+- Basic Flow: Customer nhấn "Thanh toán" từ giỏ hàng; hệ thống hiển thị trang Checkout với danh sách sản phẩm và tổng tiền tạm tính; Customer chọn Address đã lưu hoặc thêm mới; Customer nhập Coupon (nếu có) để hệ thống kiểm tra hợp lệ (code đúng, còn hạn, chưa vượt max_uses, chưa dùng bởi User qua Coupon_Usage) và tính lại tổng tiền; Customer chọn COD hoặc MoMo rồi nhấn "Xác nhận đặt hàng"; hệ thống kiểm tra tồn kho cho từng Cart_Item, nếu đủ thì tạo Order trạng thái "Chờ xử lý", tạo Order_Detail với đơn giá snapshot, tạo Payment trạng thái "Pending", tạo Shipping trạng thái "Chờ lấy hàng", tạo Order_Status_History; nếu MoMo thì chuyển hướng cổng thanh toán và cập nhật Payment.status/transaction_id, nếu COD thì Payment giữ Pending; hệ thống trừ kho qua Inventory và Inventory_Log (loại Bán), ghi Coupon_Usage và tăng Coupon.used_count nếu có, xóa Cart_Item đã thanh toán và gửi email xác nhận đơn hàng.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu Coupon không hợp lệ thì hệ thống báo lỗi cụ thể và giữ nguyên giá gốc; nếu tồn kho không đủ thì hệ thống thông báo sản phẩm hết hàng; nếu thanh toán trực tuyến thất bại (Payment.status = Failed) thì hệ thống giữ Order và cho phép tạo Payment mới hoặc chuyển COD.
 
-3\.    Mô tả: Cho phép khách hàng tiến hành đặt hàng từ giỏ hàng, chọn Address giao hàng, áp dụng mã Coupon và chọn phương thức thanh toán. Hệ thống tạo Order, Order\_Detail, Payment và Shipping tương ứng.
-
-4\.    Tiền điều kiện:
-
-\-        Customer đã đăng nhập (có Token/Session hợp lệ)
-
-\-        Giỏ hàng (Cart) không trống (phải có ít nhất 1 Cart\_Item)
-
-5\.    Trigger: Customer nhấn nút "Thanh toán" từ trang giỏ hàng.
-
-6\.    Luồng chính:
-
-\-        Customer nhấn nút "Thanh toán" từ trang giỏ hàng
-
-\-        Hệ thống hiển thị trang Checkout với danh sách sản phẩm, tổng tiền tạm tính
-
-\-        Customer chọn Address giao hàng từ danh sách Address đã lưu, hoặc thêm Address mới
-
-\-        Customer nhập mã Coupon (nếu có). Hệ thống kiểm tra tính hợp lệ (Code đúng, còn hạn, chưa vượt max\_uses, chưa dùng bởi User này qua Coupon\_Usage) và tính lại tổng tiền
-
-\-        Customer chọn phương thức thanh toán (COD / MoMo)
-
-\-        Customer nhấn "Xác nhận đặt hàng"
-
-\-        Hệ thống kiểm tra tồn kho qua Inventory cho từng Cart\_Item. Nếu đủ hàng:
-
-   \+ Tạo Order (trạng thái "Chờ xử lý") và các Order\_Detail với đơn giá snapshot
-
-   \+ Tạo Payment (trạng thái "Pending") với phương thức đã chọn
-
-   \+ Tạo Shipping (trạng thái "Chờ lấy hàng")
-
-   \+ Tạo Order\_Status\_History (ghi nhận trạng thái "Chờ xử lý")
-
-   \+ Nếu thanh toán online (MoMo): chuyển hướng sang cổng thanh toán → cập nhật Payment.status và transaction\_id
-
-   \+ Nếu COD: Payment giữ trạng thái Pending
-
-\-        Hệ thống trừ kho: cập nhật Inventory.quantity và tạo Inventory\_Log (loại: Bán)
-
-\-        Nếu có Coupon: tạo Coupon\_Usage và tăng Coupon.used\_count
-
-\-        Hệ thống xóa các Cart\_Item đã thanh toán
-
-\-        Hệ thống gửi email xác nhận đơn hàng
-
-7\.    Luồng ngoại lệ:
-
-\-        Mã Coupon không hợp lệ → Hệ thống báo lỗi cụ thể và giữ nguyên giá gốc
-
-\-        Tồn kho không đủ (Inventory.quantity \< số lượng yêu cầu) → Hệ thống thông báo sản phẩm nào hết hàng
-
-\-        Thanh toán trực tuyến thất bại (Payment.status \= Failed) → Hệ thống giữ Order, cho phép tạo Payment mới hoặc chuyển COD
-
-8\.    Hậu điều kiện:
-
-\-        Order, Order\_Detail, Payment, Shipping, Order\_Status\_History được tạo trong CSDL
-
-\-        Inventory.quantity giảm, Inventory\_Log được ghi nhận
-
-\-        Cart\_Item đã thanh toán bị xóa
-
-\-        Coupon\_Usage được ghi nhận (nếu có)
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
    **4.10. Quản lý địa chỉ giao hàng**
 
 ![UC-CUS-12 — Quản lý địa chỉ giao hàng](diagrams/images/uc_CUS12_quan_ly_dia_chi.png)
 
-1\.    Mã UC, tên UC: UC-CUS-12: Quản lý địa chỉ giao hàng
+1) Summary
+- Use Case Name: Quản lý địa chỉ giao hàng
+- Use Case ID: UC-CUS-12
+- Use Case Description: Cho phép Customer thêm, sửa, xóa và đặt mặc định cho các địa chỉ giao hàng (Address).
+- Actor: Khách hàng – Customer
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Customer truy cập "Tài khoản của tôi" → "Sổ địa chỉ" hoặc thêm địa chỉ mới khi Checkout.
+- Pre-Condition: Customer đã đăng nhập.
+- Post-Condition: Address được tạo/sửa/xóa trong CSDL.
 
-2\.    Actor: Khách hàng – Customer
+2) Flow
+- Basic Flow: Customer truy cập "Tài khoản của tôi" → "Sổ địa chỉ"; hệ thống hiển thị danh sách Address với label, người nhận, SĐT, tỉnh/quận/phường/đường và cờ mặc định; Customer có thể thêm địa chỉ mới rồi lưu, sửa địa chỉ hiện có, xóa địa chỉ hoặc đặt địa chỉ mặc định để hệ thống cập nhật is_default.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu thiếu trường bắt buộc thì hệ thống báo lỗi cụ thể; nếu xóa Address duy nhất (mặc định) thì cảnh báo "Bạn cần tạo địa chỉ mới trước khi xóa".
 
-3\.    Mô tả: Cho phép Customer thêm, sửa, xóa và đặt mặc định cho các địa chỉ giao hàng (Address).
-
-4\.    Tiền điều kiện: Customer đã đăng nhập.
-
-5\.    Trigger: Customer truy cập "Tài khoản của tôi" → "Sổ địa chỉ" hoặc thêm địa chỉ mới khi Checkout.
-
-6\.    Luồng chính:
-
-\-        Customer truy cập "Tài khoản của tôi" → "Sổ địa chỉ"
-
-\-        Hệ thống hiển thị danh sách Address (label, tên người nhận, SĐT, tỉnh/quận/phường/đường, cờ mặc định)
-
-\-        Thêm: Customer nhấn "Thêm địa chỉ mới", nhập đầy đủ thông tin, nhấn "Lưu"
-
-\-        Sửa: Customer chọn Address → "Sửa" → cập nhật thông tin
-
-\-        Xóa: Customer chọn Address → "Xóa" → xác nhận
-
-\-        Đặt mặc định: Customer nhấn "Sử dụng làm mặc định" → hệ thống cập nhật is\_default
-
-7\.    Luồng ngoại lệ:
-
-\-        Thiếu trường bắt buộc → Báo lỗi cụ thể
-
-\-        Xóa Address duy nhất (mặc định) → Cảnh báo "Bạn cần tạo địa chỉ mới trước khi xóa"
-
-8\.    Hậu điều kiện: Address được tạo/sửa/xóa trong CSDL
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
    **4.11. Xem lịch sử đơn hàng và theo dõi vận chuyển**
 
 ![UC-CUS-13 — Xem lịch sử đơn hàng và theo dõi vận chuyển](diagrams/images/uc_CUS13_lich_su_don_hang.png)
 
-1\.    Mã UC, tên UC: UC-CUS-13: Xem lịch sử đơn hàng và theo dõi vận chuyển
+1) Summary
+- Use Case Name: Xem lịch sử đơn hàng và theo dõi vận chuyển
+- Use Case ID: UC-CUS-13
+- Use Case Description: Cho phép Customer xem danh sách đơn hàng đã đặt, xem chi tiết từng đơn và theo dõi trạng thái vận chuyển.
+- Actor: Khách hàng – Customer
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Customer truy cập mục "Lịch sử đơn hàng" trong trang tài khoản.
+- Pre-Condition: Customer đã đăng nhập.
+- Post-Condition: Không thay đổi CSDL, hệ thống chỉ hiển thị thông tin.
 
-2\.    Actor: Khách hàng – Customer
+2) Flow
+- Basic Flow: Customer truy cập "Lịch sử đơn hàng"; hệ thống hiển thị danh sách Order gồm mã đơn, ngày đặt, tổng tiền và trạng thái, có thể lọc theo trạng thái hoặc khoảng thời gian; Customer chọn một Order để xem chi tiết Order_Detail, Address, Payment (phương thức, trạng thái, transaction_id); hệ thống hiển thị thông tin Shipping (đơn vị vận chuyển, tracking_number, trạng thái, ngày giao dự kiến/thực tế) và Order_Status_History (thời gian, trạng thái cũ → mới).
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu không có đơn hàng nào thì hiển thị "Bạn chưa có đơn hàng nào".
 
-3\.    Mô tả: Cho phép Customer xem danh sách đơn hàng đã đặt, xem chi tiết từng đơn và theo dõi trạng thái vận chuyển.
-
-4\.    Tiền điều kiện: Customer đã đăng nhập.
-
-5\.    Trigger: Customer truy cập mục "Lịch sử đơn hàng" trong trang tài khoản.
-
-6\.    Luồng chính:
-
-\-        Customer truy cập "Lịch sử đơn hàng"
-
-\-        Hệ thống hiển thị danh sách Order (mã đơn, ngày đặt, tổng tiền, trạng thái). Có thể lọc theo trạng thái, khoảng thời gian
-
-\-        Customer nhấn vào một Order → xem chi tiết: danh sách Order\_Detail (Product, số lượng, đơn giá), Address, Payment (phương thức, trạng thái, transaction\_id)
-
-\-        Hệ thống hiển thị Shipping: đơn vị vận chuyển, mã vận đơn (tracking\_number), trạng thái, ngày giao dự kiến/thực tế
-
-\-        Hệ thống hiển thị Order\_Status\_History: danh sách các lần đổi trạng thái (thời gian, trạng thái cũ → mới)
-
-7\.    Luồng ngoại lệ:
-
-\-        Không có đơn hàng nào → Hiển thị "Bạn chưa có đơn hàng nào"
-
-8\.    Hậu điều kiện: Không thay đổi CSDL. Chỉ hiển thị thông tin
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
    **4.12. Yêu cầu đổi trả**
 
 ![UC-CUS-11 — Yêu cầu đổi trả](diagrams/images/uc_CUS11_yeu_cau_doi_tra.png)
 
-1\.    Mã UC, tên UC: UC-CUS-11: Yêu cầu đổi trả
+1) Summary
+- Use Case Name: Yêu cầu đổi trả
+- Use Case ID: UC-CUS-11
+- Use Case Description: Cho phép Customer gửi yêu cầu đổi hàng hoặc hoàn tiền cho sản phẩm trong đơn hàng đã hoàn thành, gắn với Order_Detail cụ thể.
+- Actor: Khách hàng – Customer
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Customer nhấn "Yêu cầu đổi trả" trên trang chi tiết đơn hàng đã hoàn thành.
+- Pre-Condition: Customer đã đăng nhập; Order ở trạng thái "Hoàn thành"; thời gian yêu cầu nằm trong hạn đổi trả theo chính sách cửa hàng.
+- Post-Condition: Return/Refund được tạo trong CSDL với trạng thái "Chờ duyệt".
 
-2\.    Actor: Khách hàng – Customer
+2) Flow
+- Basic Flow: Customer truy cập "Lịch sử đơn hàng", chọn Order và sản phẩm cần đổi trả rồi nhấn "Yêu cầu đổi trả"; hệ thống hiển thị form để chọn loại (Đổi hàng/Hoàn tiền), nhập lý do và upload ảnh (tùy chọn); Customer gửi yêu cầu và hệ thống tạo Return/Refund trạng thái "Chờ duyệt" gắn với Order_Detail.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu quá thời hạn đổi trả thì báo "Đã quá thời hạn đổi trả cho đơn hàng này"; nếu thiếu lý do thì báo "Vui lòng nhập lý do đổi trả".
 
-3\.    Mô tả: Cho phép Customer gửi yêu cầu đổi hàng hoặc hoàn tiền cho sản phẩm trong đơn hàng đã hoàn thành, gắn với Order\_Detail cụ thể.
-
-4\.    Tiền điều kiện:
-
-\-        Customer đã đăng nhập
-
-\-        Order ở trạng thái "Hoàn thành"
-
-\-        Thời gian yêu cầu nằm trong thời hạn đổi trả cho phép (theo chính sách cửa hàng)
-
-5\.    Trigger: Customer nhấn "Yêu cầu đổi trả" trên trang chi tiết đơn hàng đã hoàn thành.
-
-6\.    Luồng chính:
-
-\-        Customer truy cập "Lịch sử đơn hàng", chọn Order → chọn sản phẩm cần đổi trả → nhấn "Yêu cầu đổi trả"
-
-\-        Hệ thống hiển thị form: chọn loại (Đổi hàng / Hoàn tiền), nhập lý do, upload ảnh (tùy chọn)
-
-\-        Customer nhấn "Gửi yêu cầu"
-
-\-        Hệ thống tạo Return/Refund (trạng thái "Chờ duyệt") gắn với Order\_Detail
-
-7\.    Luồng ngoại lệ:
-
-\-        Quá thời hạn đổi trả → Báo "Đã quá thời hạn đổi trả cho đơn hàng này"
-
-\-        Thiếu lý do → Báo lỗi "Vui lòng nhập lý do đổi trả"
-
-8\.    Hậu điều kiện:
-
-\-        Return/Refund được tạo trong CSDL với trạng thái "Chờ duyệt"
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
 **4.13. Yêu cầu bảo hành**
 
 ![UC-CUS-10 — Yêu cầu bảo hành](diagrams/images/uc_CUS10_yeu_cau_bao_hanh.png)
 
-1\.    Mã UC, tên UC: UC-CUS-10: Yêu cầu bảo hành
+1) Summary
+- Use Case Name: Yêu cầu bảo hành
+- Use Case ID: UC-CUS-10
+- Use Case Description: Cho phép Customer tạo phiếu bảo hành (Warranty_Ticket) cho sản phẩm đã mua gắn với Order cụ thể, và hệ thống kiểm tra Warranty_Policy trước khi tiếp nhận.
+- Actor: Khách hàng – Customer
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Customer nhấn "Yêu cầu bảo hành" trên trang chi tiết đơn hàng.
+- Pre-Condition: Customer đã đăng nhập và có Order trạng thái "Hoàn thành" chứa Product cần bảo hành.
+- Post-Condition: Warranty_Ticket được tạo trong CSDL với trạng thái "Tiếp nhận".
 
-2\.    Actor: Khách hàng – Customer
+2) Flow
+- Basic Flow: Customer truy cập "Lịch sử đơn hàng", chọn Order và Product cần bảo hành rồi nhấn "Yêu cầu bảo hành"; hệ thống kiểm tra Warranty_Policy theo Product/Category để xác định còn hạn (so sánh Order.created_at + duration_months với ngày hiện tại); nếu còn hạn thì hiển thị form nhập Số Serial và mô tả lỗi; Customer gửi yêu cầu và hệ thống tạo Warranty_Ticket trạng thái "Tiếp nhận".
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu sản phẩm hết hạn bảo hành thì báo "Sản phẩm đã hết hạn bảo hành"; nếu sản phẩm không có Warranty_Policy thì báo "Sản phẩm này không có chính sách bảo hành"; nếu thiếu Số Serial thì báo "Vui lòng nhập Số Serial".
 
-3\.    Mô tả: Cho phép Customer tạo phiếu bảo hành (Warranty\_Ticket) cho sản phẩm đã mua, gắn với Order cụ thể. Hệ thống kiểm tra Warranty\_Policy trước khi tiếp nhận.
-
-4\.    Tiền điều kiện:
-
-\-        Customer đã đăng nhập
-
-\-        Customer có Order ở trạng thái "Hoàn thành" chứa Product cần bảo hành
-
-5\.    Trigger: Customer nhấn "Yêu cầu bảo hành" trên trang chi tiết đơn hàng.
-
-6\.    Luồng chính:
-
-\-        Customer truy cập "Lịch sử đơn hàng", chọn Order → chọn Product cần bảo hành → nhấn "Yêu cầu bảo hành"
-
-\-        Hệ thống kiểm tra Warranty\_Policy (theo Product hoặc Category): thời hạn bảo hành còn hiệu lực không (so sánh Order.created\_at \+ duration\_months với ngày hiện tại)
-
-\-        Nếu còn hạn: hiển thị form nhập Số Serial, Mô tả tình trạng lỗi
-
-\-        Customer nhập thông tin và nhấn "Gửi yêu cầu"
-
-\-        Hệ thống tạo Warranty\_Ticket (trạng thái "Tiếp nhận")
-
-7\.    Luồng ngoại lệ:
-
-\-        Sản phẩm hết hạn bảo hành → Báo "Sản phẩm đã hết hạn bảo hành"
-
-\-        Sản phẩm không có Warranty\_Policy → Báo "Sản phẩm này không có chính sách bảo hành"
-
-\-        Thiếu Số Serial → Báo lỗi "Vui lòng nhập Số Serial"
-
-8\.    Hậu điều kiện:
-
-\-        Warranty\_Ticket được tạo trong CSDL với trạng thái "Tiếp nhận"
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
    **4.14. Đánh giá sản phẩm**
 
 ![UC-CUS-07 — Đánh giá sản phẩm](diagrams/images/uc_CUS07_danh_gia_san_pham.png)
 
-1\.    Mã UC, tên UC: UC-CUS-07: Đánh giá sản phẩm
+1) Summary
+- Use Case Name: Đánh giá sản phẩm
+- Use Case ID: UC-CUS-07
+- Use Case Description: Cho phép Customer viết đánh giá, chọn số sao và tải ảnh thực tế cho sản phẩm đã mua thành công.
+- Actor: Khách hàng – Customer
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Customer nhấn "Viết đánh giá" trên trang chi tiết sản phẩm đã mua.
+- Pre-Condition: Customer đã đăng nhập và có ít nhất một Order chứa Product này ở trạng thái "Hoàn thành".
+- Post-Condition: Review và Review_Image được tạo trong CSDL.
 
-2\.    Actor: Khách hàng – Customer
+2) Flow
+- Basic Flow: Customer truy cập trang chi tiết sản phẩm và nhấn "Viết đánh giá"; hệ thống kiểm tra Order và Order_Detail để xác nhận Customer đã mua sản phẩm với đơn "Hoàn thành"; hệ thống hiển thị form số sao (1-5), nội dung bình luận và upload ảnh tùy chọn; Customer gửi đánh giá, hệ thống tạo Review liên kết User/Product/Order và Review_Image nếu có ảnh; đánh giá hiển thị ngay trên trang chi tiết sản phẩm.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu chưa mua sản phẩm thì ẩn nút "Viết đánh giá" hoặc báo "Bạn cần mua sản phẩm này để đánh giá"; nếu chưa chọn số sao thì báo "Vui lòng chọn số sao"; nếu ảnh sai định dạng thì báo "Chỉ chấp nhận ảnh JPG, PNG, WEBP"; nếu ảnh vượt 5MB thì báo "Ảnh tối đa 5MB"; nếu vượt quá 5 ảnh thì báo "Tối đa 5 ảnh".
 
-3\.    Mô tả: Cho phép Customer viết đánh giá, chọn số sao và tải ảnh thực tế cho sản phẩm đã mua thành công.
-
-4\.    Tiền điều kiện:
-
-\-        Customer đã đăng nhập
-
-\-        Customer có ít nhất một Order chứa Product này ở trạng thái "Hoàn thành"
-
-5\.    Trigger: Customer nhấn "Viết đánh giá" trên trang chi tiết sản phẩm đã mua.
-
-6\.    Luồng chính:
-
-\-        Customer truy cập trang chi tiết sản phẩm, nhấn "Viết đánh giá"
-
-\-        Hệ thống kiểm tra Order và Order\_Detail xác nhận Customer đã mua và đơn "Hoàn thành"
-
-\-        Hiển thị form: số sao (1-5), nội dung bình luận, upload ảnh (tùy chọn)
-
-\-        Customer nhập thông tin và nhấn "Gửi đánh giá"
-
-\-        Hệ thống tạo Review (liên kết User, Product, Order) và Review\_Image (nếu có ảnh)
-
-\-        Đánh giá hiển thị ngay trên trang chi tiết sản phẩm
-
-7\.    Luồng ngoại lệ:
-
-\-        Chưa mua sản phẩm → Ẩn nút "Viết đánh giá" hoặc báo "Bạn cần mua sản phẩm này để đánh giá"
-
-\-        Chưa chọn số sao → Báo lỗi "Vui lòng chọn số sao"
-
-\-        Ảnh sai định dạng (chỉ chấp nhận JPG, PNG, WEBP) → Báo lỗi "Chỉ chấp nhận ảnh JPG, PNG, WEBP"
-
-\-        Ảnh quá dung lượng (tối đa 5MB/ảnh) → Báo lỗi "Ảnh tối đa 5MB"
-
-\-        Vượt số lượng ảnh (tối đa 5 ảnh) → Báo lỗi "Tối đa 5 ảnh"
-
-8\.    Hậu điều kiện:
-
-\-        Review và Review\_Image được tạo trong CSDL
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
    **4.15. Quản lý danh sách yêu thích**
 
 ![UC-CUS-09 — Quản lý danh sách yêu thích](diagrams/images/uc_CUS09_wishlist.png)
 
-1\.    Mã UC, tên UC: UC-CUS-09: Quản lý danh sách yêu thích
+1) Summary
+- Use Case Name: Quản lý danh sách yêu thích
+- Use Case ID: UC-CUS-09
+- Use Case Description: Cho phép Customer lưu sản phẩm quan tâm vào Wishlist để xem lại sau và xóa khỏi Wishlist khi không còn quan tâm.
+- Actor: Khách hàng – Customer
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Customer nhấn biểu tượng "Yêu thích" trên sản phẩm hoặc truy cập trang "Danh sách yêu thích".
+- Pre-Condition: Customer đã đăng nhập.
+- Post-Condition: Wishlist entry được tạo hoặc xóa trong CSDL.
 
-2\.    Actor: Khách hàng – Customer
+2) Flow
+- Basic Flow: Customer nhấn biểu tượng "Yêu thích" trên trang sản phẩm hoặc danh sách sản phẩm; hệ thống kiểm tra UNIQUE(user_id, product_id) trong Wishlist, nếu chưa có thì tạo entry mới, nếu đã có thì xóa entry (toggle yêu thích); Customer truy cập trang "Danh sách yêu thích" để xem Product đã lưu kèm ảnh, giá và tình trạng Inventory, đồng thời có thể nhấn "Thêm vào giỏ" trực tiếp từ Wishlist.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu sản phẩm đã ngừng kinh doanh (status = Discontinued) thì gắn nhãn "Ngừng kinh doanh" trong Wishlist.
 
-3\.    Mô tả: Cho phép Customer lưu sản phẩm quan tâm vào Wishlist để xem lại sau, và xóa khỏi Wishlist khi không còn quan tâm.
-
-4\.    Tiền điều kiện: Customer đã đăng nhập.
-
-5\.    Trigger: Customer nhấn biểu tượng "Yêu thích" trên sản phẩm hoặc truy cập trang "Danh sách yêu thích".
-
-6\.    Luồng chính:
-
-\-        Customer nhấn biểu tượng "Yêu thích" (trái tim) trên trang sản phẩm hoặc danh sách sản phẩm
-
-\-        Hệ thống kiểm tra UNIQUE(user\_id, product\_id) trong Wishlist
-
-\-        Nếu chưa có: tạo Wishlist entry mới
-
-\-        Nếu đã có: xóa Wishlist entry (toggle yêu thích)
-
-\-        Customer truy cập trang "Danh sách yêu thích" → Hệ thống hiển thị danh sách Product đã lưu kèm ảnh, giá, tình trạng Inventory
-
-\-        Customer có thể nhấn "Thêm vào giỏ" trực tiếp từ Wishlist
-
-7\.    Luồng ngoại lệ:
-
-\-        Sản phẩm đã bị ngừng kinh doanh (status \= Discontinued) → Gắn nhãn "Ngừng kinh doanh" trong Wishlist
-
-8\.    Hậu điều kiện:
-
-\-        Wishlist entry được tạo hoặc xóa trong CSDL
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
    **4.16. Xây dựng cấu hình PC (Build PC)**
 
 ![UC-CUS-08 — Xây dựng cấu hình PC](diagrams/images/uc_CUS08_build_pc.png)
 
-1\.    Mã UC, tên UC: UC-CUS-08: Xây dựng cấu hình PC (Build PC)
+1) Summary
+- Use Case Name: Xây dựng cấu hình PC (Build PC)
+- Use Case ID: UC-CUS-08
+- Use Case Description: Cho phép người dùng (Guest hoặc Customer) chọn tuần tự linh kiện để lắp bộ PC trên form Frontend (không lưu DB), hiển thị tổng giá và xuất báo giá không cần đăng nhập; các thao tác kiểm tra AI, thêm vào giỏ hoặc tạo đơn yêu cầu đăng nhập.
+- Actor: Khách vãng lai (Guest) / Khách hàng (Customer)
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Người dùng truy cập trang "Build PC" từ menu điều hướng.
+- Pre-Condition: Không yêu cầu đăng nhập để chọn linh kiện và xuất báo giá; yêu cầu đăng nhập để dùng AI và thêm vào giỏ/tạo đơn; hệ thống có sản phẩm thuộc các Category linh kiện PC.
+- Post-Condition: Nếu xuất báo giá thì file PDF được tạo (không thay đổi CSDL); nếu thêm vào giỏ thì linh kiện được thêm vào Cart dưới dạng Cart_Item riêng lẻ (yêu cầu đã đăng nhập).
 
-2\.    Actor: Khách vãng lai (Guest) / Khách hàng (Customer)
+2) Flow
+- Basic Flow: Người dùng truy cập trang "Build PC"; hệ thống hiển thị các slot CPU, Mainboard, RAM, VGA, PSU, Case, SSD/HDD và Tản nhiệt; người dùng chọn từng slot để hệ thống hiển thị Product theo Category tương ứng (có thể lọc theo Attribute/Brand); người dùng chọn linh kiện và hệ thống cập nhật tổng giá; khi nhấn "Xuất báo giá", hệ thống tạo file PDF mà không cần đăng nhập; khi nhấn "Kiểm tra tương thích (AI)", hệ thống kiểm tra đăng nhập, nếu chưa đăng nhập thì yêu cầu đăng nhập, nếu đã đăng nhập thì gửi thông số qua API LLM để nhận phân tích/gợi ý; khi nhấn "Thêm vào giỏ hàng" hoặc "Tạo đơn hàng", hệ thống kiểm tra đăng nhập, nếu chưa đăng nhập thì chuyển hướng đăng nhập và lưu tạm cấu hình vào Session, sau đăng nhập thì thêm toàn bộ linh kiện vào Cart dưới dạng Cart_Item riêng lẻ.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu chưa chọn đủ linh kiện tối thiểu (CPU, Mainboard) thì báo "Vui lòng chọn ít nhất CPU và Mainboard"; nếu API LLM lỗi thì báo "Dịch vụ AI tạm không khả dụng. Bạn vẫn có thể tiếp tục"; nếu linh kiện hết hàng (Inventory.quantity = 0) thì đánh dấu "Hết hàng" và yêu cầu chọn thay thế; nếu chưa đăng nhập khi nhấn "Kiểm tra AI"/"Thêm vào giỏ hàng"/"Tạo đơn hàng" thì yêu cầu đăng nhập và lưu cấu hình vào Session.
 
-3\.    Mô tả: Cho phép người dùng (Guest hoặc Customer) chọn tuần tự các linh kiện để lắp thành bộ PC. Đây là form phía Frontend (không lưu DB). Hệ thống hiển thị tổng giá và xuất báo giá mà không cần đăng nhập. Khi muốn sử dụng AI kiểm tra tương thích, thêm vào giỏ hàng hoặc tạo đơn hàng, hệ thống yêu cầu đăng nhập.
-
-4\.    Tiền điều kiện:
-
-\-        Không yêu cầu đăng nhập để chọn linh kiện và xuất báo giá
-
-\-        Yêu cầu đăng nhập để sử dụng AI và thêm vào giỏ hàng/tạo đơn hàng
-
-\-        Hệ thống có sản phẩm thuộc các Category linh kiện PC
-
-5\.    Trigger: Người dùng truy cập trang "Build PC" từ menu điều hướng.
-
-6\.    Luồng chính:
-
-\-        Người dùng truy cập trang "Build PC"
-
-\-        Hệ thống hiển thị các slot: CPU, Mainboard, RAM, VGA, PSU, Case, SSD/HDD, Tản nhiệt
-
-\-        Người dùng nhấn vào từng slot, hệ thống hiển thị danh sách Product thuộc Category tương ứng (có thể lọc theo Attribute, Brand)
-
-\-        Người dùng chọn linh kiện. Hệ thống cập nhật tổng giá
-
-\-        Người dùng nhấn "Xuất báo giá" → Hệ thống tạo file báo giá PDF (không cần đăng nhập)
-
-\-        Người dùng nhấn "Kiểm tra tương thích (AI)" → Hệ thống kiểm tra đăng nhập. Nếu chưa đăng nhập → yêu cầu đăng nhập. Sau khi đăng nhập → gửi thông số kỹ thuật qua API LLM → LLM trả về phân tích và gợi ý
-
-\-        Người dùng nhấn "Thêm vào giỏ hàng" hoặc "Tạo đơn hàng" → Hệ thống kiểm tra đăng nhập. Nếu chưa đăng nhập → chuyển hướng trang đăng nhập (lưu tạm cấu hình vào Session). Sau khi đăng nhập → thêm tất cả linh kiện vào Cart dưới dạng Cart\\\_Item riêng lẻ
-
-7\.    Luồng ngoại lệ:
-
-\-        Chưa chọn đủ linh kiện tối thiểu (CPU, Mainboard) → Báo "Vui lòng chọn ít nhất CPU và Mainboard"
-
-\-        API LLM lỗi → "Dịch vụ AI tạm không khả dụng. Bạn vẫn có thể tiếp tục"
-
-\-        Linh kiện hết hàng (Inventory.quantity \= 0\) → Đánh dấu "Hết hàng", yêu cầu chọn thay thế
-
-\-	Chưa đăng nhập khi nhấn "Kiểm tra AI" / "Thêm vào giỏ hàng" / "Tạo đơn hàng" → Yêu cầu đăng nhập, lưu cấu hình vào Session
-
-8\.    Hậu điều kiện:
-
-- Nếu xuất báo giá: file PDF được tạo (không thay đổi CSDL  
-- Nếu thêm vào giỏ: linh kiện được thêm vào Cart dưới dạng Cart\\\_Item riêng lẻ (yêu cầu đã đăng nhập)
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
    **4.17. Nhận thông báo trạng thái đơn hàng**
 
 ![UC-CUS-17 — Nhận thông báo trạng thái đơn hàng](diagrams/images/uc_CUS17_thong_bao.png)
 
-1\.    Mã UC, tên UC: UC-CUS-17: Nhận thông báo trạng thái đơn hàng
+1) Summary
+- Use Case Name: Nhận thông báo trạng thái đơn hàng
+- Use Case ID: UC-CUS-17
+- Use Case Description: Cho phép Customer nhận thông báo email và in-app khi trạng thái đơn hàng thay đổi để theo dõi tiến trình xử lý đơn hàng.
+- Actor: Khách hàng – Customer
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Admin/Sales cập nhật trạng thái đơn hàng (Order.status thay đổi).
+- Pre-Condition: Customer đã đăng nhập và có ít nhất một Order trong hệ thống.
+- Post-Condition: Notification được tạo trong CSDL và email thông báo được gửi đến Customer.
 
-2\.    Actor: Khách hàng – Customer
+2) Flow
+- Basic Flow: Khi Admin/Sales cập nhật Order.status (ví dụ Chờ xử lý → Đang xử lý → Đang giao → Hoàn thành), hệ thống tự động tạo Notification cho Customer; hệ thống gửi email đến Account.email với mã đơn, trạng thái mới và thời gian cập nhật; đồng thời tạo thông báo in-app có is_read = false; khi Customer truy cập hệ thống, biểu tượng thông báo hiển thị số chưa đọc; Customer mở thông báo để xem chi tiết và chuyển hướng đến trang chi tiết đơn hàng, hệ thống cập nhật Notification.is_read = true.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu gửi email thất bại thì hệ thống ghi log lỗi nhưng vẫn tạo thông báo in-app; nếu Customer không có thông báo thì hiển thị "Bạn chưa có thông báo nào".
 
-3\.    Mô tả: Cho phép Customer nhận thông báo (email và in-app) khi trạng thái đơn hàng thay đổi, giúp theo dõi tiến trình xử lý đơn hàng.
-
-4\.    Tiền điều kiện:
-
-\-        Customer đã đăng nhập
-
-\-        Customer có ít nhất một Order trong hệ thống
-
-5\.    Trigger: Admin/Sales cập nhật trạng thái đơn hàng (Order.status thay đổi).
-
-6\.    Luồng chính:
-
-\-        Khi Admin/Sales cập nhật Order.status (VD: Chờ xử lý → Đang xử lý → Đang giao → Hoàn thành), hệ thống tự động tạo bản ghi Notification cho Customer
-
-\-        Hệ thống gửi email thông báo đến Account.email của Customer với nội dung: mã đơn hàng, trạng thái mới, thời gian cập nhật
-
-\-        Đồng thời, hệ thống tạo thông báo in-app (Notification) với trạng thái is\_read = false
-
-\-        Customer truy cập hệ thống → biểu tượng thông báo hiển thị số lượng thông báo chưa đọc
-
-\-        Customer nhấn vào thông báo → xem chi tiết và chuyển hướng đến trang chi tiết đơn hàng. Hệ thống cập nhật Notification.is\_read = true
-
-7\.    Luồng ngoại lệ:
-
-\-        Gửi email thất bại → Hệ thống ghi log lỗi, thông báo in-app vẫn được tạo bình thường
-
-\-        Customer không có thông báo nào → Hiển thị "Bạn chưa có thông báo nào"
-
-8\.    Hậu điều kiện: Notification được tạo trong CSDL. Email thông báo được gửi đến Customer
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
    **4.18. Hủy đơn hàng (Customer)**
 
 ![UC-CUS-18 — Hủy đơn hàng (Customer)](diagrams/images/uc_CUS18_huy_don_hang.png)
 
-1\.    Mã UC, tên UC: UC-CUS-18: Hủy đơn hàng
+1) Summary
+- Use Case Name: Hủy đơn hàng
+- Use Case ID: UC-CUS-18
+- Use Case Description: Cho phép Customer tự hủy đơn hàng ở trạng thái "Chờ xử lý" (PENDING); hệ thống hoàn kho, hoàn Coupon (nếu có) và ghi nhận lịch sử.
+- Actor: Khách hàng – Customer
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Customer nhấn "Hủy đơn hàng" trên trang chi tiết đơn hàng.
+- Pre-Condition: Customer đã đăng nhập; Order thuộc về Customer và đang ở trạng thái "Chờ xử lý" (PENDING).
+- Post-Condition: Order.status = CANCELLED và Order_Status_History được ghi nhận; Inventory được hoàn lại và Inventory_Log được ghi nhận; Coupon_Usage bị xóa và Coupon.used_count giảm nếu có; Payment online đã thanh toán được cập nhật REFUNDED khi áp dụng.
 
-2\.    Actor: Khách hàng – Customer
+2) Flow
+- Basic Flow: Customer truy cập "Lịch sử đơn hàng", chọn đơn trạng thái "Chờ xử lý" và nhấn "Hủy đơn hàng"; hệ thống hiển thị popup xác nhận, Customer xác nhận hủy; hệ thống cập nhật Order.status = "Đã hủy" (CANCELLED), tạo Order_Status_History; hệ thống hoàn kho bằng cách cập nhật Inventory.quantity và tạo Inventory_Log (Hoàn trả) cho từng Order_Detail; nếu có Coupon thì giảm Coupon.used_count và xóa Coupon_Usage; nếu có Payment online (MoMo) đã SUCCESS thì cập nhật Payment.status = REFUNDED; hệ thống gửi email thông báo hủy đơn cho Customer.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu đơn không ở trạng thái "Chờ xử lý" thì ẩn nút "Hủy đơn" hoặc báo "Không thể hủy đơn hàng ở trạng thái hiện tại"; nếu đơn không thuộc Customer hiện tại thì trả 403 Forbidden.
 
-3\.    Mô tả: Cho phép Customer tự hủy đơn hàng khi đơn đang ở trạng thái "Chờ xử lý" (PENDING). Hệ thống hoàn kho, hoàn Coupon (nếu có) và ghi nhận lịch sử.
-
-4\.    Tiền điều kiện:
-
-\-        Customer đã đăng nhập
-
-\-        Order thuộc về Customer và đang ở trạng thái "Chờ xử lý" (PENDING)
-
-5\.    Trigger: Customer nhấn "Hủy đơn hàng" trên trang chi tiết đơn hàng.
-
-6\.    Luồng chính:
-
-\-        Customer truy cập "Lịch sử đơn hàng", chọn đơn hàng đang ở trạng thái "Chờ xử lý"
-
-\-        Customer nhấn "Hủy đơn hàng"
-
-\-        Hệ thống hiển thị popup xác nhận: "Bạn có chắc chắn muốn hủy đơn hàng này?"
-
-\-        Customer nhấn "Xác nhận hủy"
-
-\-        Hệ thống cập nhật Order.status \= "Đã hủy" (CANCELLED)
-
-\-        Tạo Order\_Status\_History (trạng thái cũ → CANCELLED, người thao tác: Customer)
-
-\-        Hoàn kho: cập nhật Inventory.quantity và tạo Inventory\_Log (loại: Hoàn trả) cho từng Order\_Detail
-
-\-        Nếu có Coupon: giảm Coupon.used\_count, xóa Coupon\_Usage tương ứng
-
-\-        Nếu có Payment online (MoMo) đã thanh toán (status \= SUCCESS): cập nhật Payment.status \= REFUNDED
-
-\-        Gửi email thông báo hủy đơn cho Customer
-
-7\.    Luồng ngoại lệ:
-
-\-        Đơn hàng không ở trạng thái "Chờ xử lý" → Ẩn nút "Hủy đơn" hoặc báo "Không thể hủy đơn hàng ở trạng thái hiện tại"
-
-\-        Đơn hàng không thuộc Customer hiện tại → Trả 403 Forbidden
-
-8\.    Hậu điều kiện:
-
-\-        Order.status \= CANCELLED, Order\_Status\_History ghi nhận
-
-\-        Inventory hoàn lại, Inventory\_Log ghi nhận
-
-\-        Coupon\_Usage xóa, Coupon.used\_count giảm (nếu có)
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
    **4.19. (Admin) Quản lý danh mục và thuộc tính**
 
 ![UC-AD-01 — Quản lý danh mục và thuộc tính](diagrams/images/uc_AD01_quan_ly_danh_muc.png)
 
-1\.    Mã UC, tên UC: UC-AD-01: Quản lý danh mục và thuộc tính
+1) Summary
+- Use Case Name: Quản lý danh mục và thuộc tính
+- Use Case ID: UC-AD-01
+- Use Case Description: Cho phép Admin tạo, sửa, xóa Category đa tầng và định nghĩa Attribute, Attribute_Value kỹ thuật cho từng danh mục.
+- Actor: Admin
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Admin truy cập mục "Quản lý danh mục" trên trang quản trị.
+- Pre-Condition: Đăng nhập với Role Admin, Token/Session hợp lệ.
+- Post-Condition: Category, Attribute, Attribute_Value được tạo/sửa/xóa trong CSDL.
 
-2\.    Actor: Admin
+2) Flow
+- Basic Flow: Admin truy cập "Quản lý danh mục" và nhấn "Thêm mới"; nhập tên danh mục và danh mục cha (parent_id) nếu có; thêm các Attribute (ví dụ Bus, Dung lượng) và Attribute_Value tương ứng (ví dụ DDR4, DDR5); nhấn "Lưu" để hệ thống tạo Category, Attribute, Attribute_Value; Admin có thể chọn Category để sửa hoặc xóa.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu tên danh mục trùng thì báo "Danh mục đã tồn tại"; nếu xóa Category đang có Product thì báo "Không thể xóa danh mục đang chứa sản phẩm".
 
-3\.    Mô tả: Cho phép Admin tạo, sửa, xóa các danh mục (Category) với phân cấp đa tầng và định nghĩa các thuộc tính kỹ thuật (Attribute, Attribute\_Value) cho từng danh mục.
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
-4\.    Tiền điều kiện: Đăng nhập với Role Admin, Token/Session hợp lệ.
-
-5\.    Trigger: Admin truy cập mục "Quản lý danh mục" trên trang quản trị.
-
-6\.    Luồng chính:
-
-\-        Admin truy cập "Quản lý danh mục", nhấn "Thêm mới"
-
-\-        Nhập tên danh mục, chọn danh mục cha (parent\_id, nếu có)
-
-\-        Thêm Attribute cho danh mục (VD: "Bus", "Dung lượng") và các Attribute\_Value tương ứng (VD: "DDR4", "DDR5")
-
-\-        Nhấn "Lưu". Hệ thống tạo Category, Attribute và Attribute\_Value
-
-\-        Sửa/Xóa: Admin chọn Category → "Sửa" hoặc "Xóa"
-
-7\.    Luồng ngoại lệ:
-
-\-        Tên trùng → Báo lỗi "Danh mục đã tồn tại"
-
-\-        Xóa Category đang có Product → Báo lỗi "Không thể xóa danh mục đang chứa sản phẩm"
-
-8\.    Hậu điều kiện: Category, Attribute, Attribute\_Value được tạo/sửa/xóa trong CSDL
-
-   **4.19. (Admin) Quản lý sản phẩm**
+   **4.20. (Admin) Quản lý sản phẩm**
 
 ![UC-AD-02 — Quản lý sản phẩm](diagrams/images/uc_AD02_quan_ly_san_pham.png)
 
-1\.    Mã UC, tên UC: UC-AD-02: Quản lý sản phẩm
+1) Summary
+- Use Case Name: Quản lý sản phẩm
+- Use Case ID: UC-AD-02
+- Use Case Description: Cho phép Admin thêm, sửa, xóa Product, Product_Image, gán Product_Attribute và quản lý Brand.
+- Actor: Admin
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Admin truy cập mục "Quản lý sản phẩm" trên trang quản trị.
+- Pre-Condition: Đăng nhập với Role Admin, Token/Session hợp lệ.
+- Post-Condition: Product, Product_Attribute, Product_Image, Inventory, Brand được tạo/sửa/xóa.
 
-2\.    Actor: Admin
+2) Flow
+- Basic Flow: Admin thêm Product bằng cách nhập Tên, SKU, giá gốc, giá bán, mô tả; chọn Category, Brand, Condition; gán Attribute_Value cho từng Attribute theo Category; upload Product_Image và đánh dấu ảnh chính; nhấn "Lưu" để tạo Product, Product_Attribute, Product_Image và Inventory (quantity = 0); Admin có thể sửa Product, xóa Product có kiểm tra điều kiện đơn hàng chưa hoàn thành; trong quản lý Brand, Admin CRUD Brand và có thể tạo Brand mới ngay trong form thêm Product.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu thiếu trường bắt buộc (Tên, SKU, Category) thì báo lỗi; nếu SKU trùng thì báo "Mã SKU đã tồn tại"; nếu ảnh sai định dạng hoặc quá dung lượng thì báo lỗi; nếu xóa Product có Order chưa hoàn thành thì chặn xóa; nếu xóa Brand đang có Product thì báo "Không thể xóa thương hiệu đang có sản phẩm".
 
-3\.    Mô tả: Cho phép Admin thêm, sửa, xóa sản phẩm (Product), hình ảnh (Product\_Image), gán thông số kỹ thuật (Product\_Attribute) và quản lý thương hiệu (Brand).
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
-4\.    Tiền điều kiện: Đăng nhập với Role Admin, Token/Session hợp lệ.
-
-5\.    Trigger: Admin truy cập mục "Quản lý sản phẩm" trên trang quản trị.
-
-6\.    Luồng chính:
-
-   Thêm mới Product:
-
-\-        Admin nhấn "Thêm sản phẩm", nhập: Tên, SKU, giá gốc, giá bán, mô tả
-
-\-        Chọn Category, Brand, Condition (Mới/Box/Tray/2nd\_Hand)
-
-\-        Gán Attribute: chọn giá trị Attribute\_Value cho từng Attribute của Category đó
-
-\-        Upload Product\_Image (đánh dấu ảnh chính)
-
-\-        Nhấn "Lưu": tạo Product, Product\_Attribute, Product\_Image và Inventory (quantity \= 0\)
-
-   Sửa: Admin chọn Product → sửa thông tin → "Cập nhật"
-
-   Xóa: Admin chọn Product → "Xóa" → xác nhận → kiểm tra Order chưa hoàn thành
-
-   Quản lý Brand:
-
-\-        Admin truy cập "Quản lý thương hiệu" → CRUD Brand (tên, logo, mô tả)
-
-\-        Khi thêm Product, chọn Brand từ danh sách. Nếu chưa có → tạo Brand mới ngay tại form
-
-7\.    Luồng ngoại lệ:
-
-\-        Thiếu trường bắt buộc (Tên, SKU, Category) → Báo lỗi
-
-\-        SKU trùng → Báo lỗi "Mã SKU đã tồn tại"
-
-\-        Ảnh sai định dạng (chỉ chấp nhận JPG, PNG, WEBP) hoặc quá dung lượng (tối đa 5MB/ảnh) → Báo lỗi
-
-\-        Xóa Product có Order chưa hoàn thành → Chặn xóa
-
--        Xóa Brand đang có Product → Báo lỗi "Không thể xóa thương hiệu đang có sản phẩm"
-
-8\.    Hậu điều kiện: Product, Product\_Attribute, Product\_Image, Inventory, Brand được tạo/sửa/xóa
-
-   **4.20. (Admin/Sales) Quản lý đơn hàng**
+   **4.21. (Admin/Sales) Quản lý đơn hàng**
 
 ![UC-AD-03 — Quản lý đơn hàng](diagrams/images/uc_AD03_quan_ly_don_hang.png)
 
-1\.    Mã UC, tên UC: UC-AD-03: Quản lý đơn hàng
+1) Summary
+- Use Case Name: Quản lý đơn hàng
+- Use Case ID: UC-AD-03
+- Use Case Description: Cho phép xem danh sách đơn hàng, xem chi tiết và cập nhật trạng thái; mỗi lần cập nhật ghi Order_Status_History và gửi thông báo cho khách.
+- Actor: Admin / Sales
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Admin/Sales truy cập mục "Quản lý đơn hàng" trên bảng điều khiển hoặc hệ thống nhận đơn hàng mới.
+- Pre-Condition: Đăng nhập với Role Admin hoặc Sales.
+- Post-Condition: Order.status được cập nhật, Order_Status_History được ghi nhận, email được gửi; nếu hủy đơn thì kho hoàn và Coupon được phục hồi.
 
-2\.    Actor: Admin / Sales
+2) Flow
+- Basic Flow: Admin/Sales truy cập "Quản lý đơn hàng", lọc theo trạng thái/ngày/mã đơn; chọn đơn để xem chi tiết User, Address, Order_Detail, Payment, Shipping; cập nhật trạng thái theo luồng "Chờ xử lý" → "Đã xác nhận", "Đã xác nhận" → "Đang giao", "Đang giao" → "Hoàn thành", hoặc từ trạng thái phù hợp sang "Đã hủy"; hệ thống tạo Order_Status_History (trạng thái cũ → mới, người thao tác, thời gian) và gửi email thông báo cho Customer.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu chuyển trạng thái không hợp lệ (ví dụ "Hoàn thành" → "Đang giao") thì chặn; khi hủy đơn, hệ thống tạo Inventory_Log (Hoàn trả), cập nhật Inventory.quantity và nếu có Coupon thì giảm used_count, xóa Coupon_Usage.
 
-3\.    Mô tả: Cho phép xem danh sách đơn hàng, xem chi tiết và cập nhật trạng thái. Mỗi lần cập nhật ghi Order\_Status\_History và gửi thông báo cho khách.
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
-4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
-
-5\.    Trigger: Admin/Sales truy cập mục "Quản lý đơn hàng" trên bảng điều khiển hoặc hệ thống nhận đơn hàng mới.
-
-6\.    Luồng chính:
-
-\-        Admin/Sales truy cập "Quản lý đơn hàng", lọc theo trạng thái, ngày, mã đơn
-
-\-        Nhấn vào đơn → xem chi tiết: thông tin User, Address, Order\_Detail (tên Product, số lượng, đơn giá), Payment, Shipping
-
-\-        Cập nhật trạng thái:
-
-   \+ "Chờ xử lý" → "Đã xác nhận": xác nhận đơn hàng
-
-   \+ "Đã xác nhận" → "Đang giao": đã bàn giao cho đơn vị vận chuyển
-
-   \+ "Đang giao" → "Hoàn thành": khách đã nhận hàng
-
-   \+ Bất kỳ (trừ Hoàn thành, Đã hủy) → "Đã hủy": hủy đơn
-
-\-        Hệ thống tạo Order\_Status\_History (trạng thái cũ → mới, người thao tác, thời gian)
-
-\-        Gửi email thông báo cho Customer
-
-7\.    Luồng ngoại lệ:
-
--        Chuyển trạng thái không hợp lệ (VD: "Hoàn thành" → "Đang giao") → Chặn
-
--        Hủy đơn → tạo Inventory\_Log (Hoàn trả) để hoàn kho, cập nhật Inventory.quantity. Nếu có Coupon → giảm used\_count, xóa Coupon\_Usage
-
-8\.    Hậu điều kiện: Order.status cập nhật, Order\_Status\_History ghi nhận, email gửi. Nếu hủy: kho hoàn, Coupon phục hồi
-
-   **4.21. (Admin/Warehouse) Quản lý kho hàng**
+   **4.22. (Admin/Warehouse) Quản lý kho hàng**
 
 ![UC-AD-04 — Quản lý kho hàng](diagrams/images/uc_AD04_quan_ly_kho.png)
 
-1\.    Mã UC, tên UC: UC-AD-04: Quản lý kho hàng
+1) Summary
+- Use Case Name: Quản lý kho hàng
+- Use Case ID: UC-AD-04
+- Use Case Description: Cho phép xem tồn kho (Inventory), nhập hàng mới, kiểm kê điều chỉnh, ghi nhận biến động qua Inventory_Log và quản lý Supplier.
+- Actor: Admin / Warehouse
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Admin/Warehouse truy cập mục "Quản lý kho hàng" hoặc hệ thống cảnh báo tồn kho thấp.
+- Pre-Condition: Đăng nhập với Role Admin hoặc Warehouse.
+- Post-Condition: Inventory.quantity được cập nhật, Inventory_Log ghi nhận biến động và Supplier được tạo/sửa/xóa.
 
-2\.    Actor: Admin / Warehouse
+2) Flow
+- Basic Flow: Người dùng xem tồn kho qua danh sách Product kèm Inventory.quantity, low_stock_threshold, Supplier chính và cảnh báo khi quantity <= low_stock_threshold; nhập hàng bằng cách chọn Product, nhập số lượng/ghi chú để hệ thống tăng Inventory.quantity và tạo Inventory_Log loại Nhập; kiểm kê/điều chỉnh bằng cách nhập số lượng +/- và lý do để tạo Inventory_Log loại Điều chỉnh; Admin quản lý Supplier qua CRUD và gắn Supplier chính vào Inventory của từng Product.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu số lượng nhập <= 0 thì báo lỗi; nếu điều chỉnh âm làm tồn kho < 0 thì cảnh báo và yêu cầu xác nhận; nếu xóa Supplier đang được gắn vào Inventory thì báo "Không thể xóa nhà cung cấp đang được sử dụng".
 
-3\.    Mô tả: Cho phép xem tồn kho (Inventory), nhập hàng mới, kiểm kê điều chỉnh, ghi nhận biến động qua Inventory\_Log và quản lý nhà cung cấp (Supplier).
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
-4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Warehouse.
-
-5\.    Trigger: Admin/Warehouse truy cập mục "Quản lý kho hàng" hoặc hệ thống cảnh báo tồn kho thấp.
-
-6\.    Luồng chính:
-
-   Xem tồn kho: Hiển thị danh sách Product kèm Inventory.quantity, low\_stock\_threshold, Supplier chính. Cảnh báo khi quantity \<= low\_stock\_threshold
-
-   Nhập hàng: Chọn Product, nhập số lượng, ghi chú. Hệ thống tăng Inventory.quantity và tạo Inventory\_Log (loại: Nhập)
-
-   Kiểm kê/Điều chỉnh: Nhập số lượng điều chỉnh (+ hoặc \-), lý do. Hệ thống tạo Inventory\_Log (loại: Điều chỉnh)
-
-   Quản lý Supplier:
-
-\-        Admin truy cập "Quản lý nhà cung cấp" → CRUD Supplier (tên, người liên hệ, SĐT, email, địa chỉ)
-
-\-        Gắn Supplier chính vào Inventory của từng Product
-
-7\.    Luồng ngoại lệ:
-
-\-        Số lượng nhập \<= 0 → Báo lỗi
-
--        Điều chỉnh âm dẫn đến tồn kho \< 0 → Cảnh báo và yêu cầu xác nhận
-
--        Xóa Supplier đang được gắn vào Inventory → Báo lỗi "Không thể xóa nhà cung cấp đang được sử dụng"
-
-8\.    Hậu điều kiện: Inventory.quantity cập nhật, Inventory\_Log ghi nhận biến động, Supplier được tạo/sửa/xóa
-
-   **4.22. (Admin/Sales) Quản lý vận chuyển**
+   **4.23. (Admin/Sales) Quản lý vận chuyển**
 
 ![UC-AD-08 — Quản lý vận chuyển](diagrams/images/uc_AD08_quan_ly_van_chuyen.png)
 
-1\.    Mã UC, tên UC: UC-AD-08: Quản lý vận chuyển
+1) Summary
+- Use Case Name: Quản lý vận chuyển
+- Use Case ID: UC-AD-08
+- Use Case Description: Cho phép quản lý thông tin Shipping cho từng đơn hàng, bao gồm chọn đơn vị vận chuyển, nhập mã vận đơn và cập nhật trạng thái giao hàng.
+- Actor: Admin / Sales
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Admin/Sales cần cập nhật thông tin vận chuyển cho đơn hàng.
+- Pre-Condition: Đăng nhập với Role Admin hoặc Sales; Order đang ở trạng thái "Đang giao" hoặc "Chờ xử lý".
+- Post-Condition: Shipping được cập nhật; nếu giao thành công thì Order chuyển "Hoàn thành".
 
-2\.    Actor: Admin / Sales
+2) Flow
+- Basic Flow: Admin/Sales truy cập Shipping của một Order; chọn đơn vị vận chuyển (Shipping.provider); nhập tracking_number, shipping_fee và ngày giao dự kiến; cập nhật trạng thái Shipping theo luồng Chờ lấy hàng → Đang vận chuyển → Đã giao/Thất bại; khi Shipping chuyển "Đã giao", hệ thống tự động cập nhật Order.status = "Hoàn thành" và ghi Order_Status_History.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu Shipping thất bại thì Admin/Sales chọn giao lại hoặc hủy đơn; nếu để trống mã vận đơn khi chuyển "Đang vận chuyển" thì báo lỗi.
 
-3\.    Mô tả: Cho phép quản lý thông tin vận chuyển (Shipping) cho từng đơn hàng: chọn đơn vị vận chuyển, nhập mã vận đơn, cập nhật trạng thái giao hàng.
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
-4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales. Order đang ở trạng thái "Đang giao" hoặc "Chờ xử lý".
-
-5\.    Trigger: Admin/Sales cần cập nhật thông tin vận chuyển cho đơn hàng.
-
-6\.    Luồng chính:
-
-\-        Admin/Sales truy cập Shipping của một Order
-
-\-        Chọn đơn vị vận chuyển (Shipping.provider): GHTK / GHN / Viettel Post...
-
-\-        Nhập mã vận đơn (tracking\_number), phí vận chuyển (shipping\_fee), ngày giao dự kiến
-
-\-        Cập nhật trạng thái Shipping: Chờ lấy hàng → Đang vận chuyển → Đã giao / Thất bại
-
-\-        Khi Shipping chuyển "Đã giao" → hệ thống tự động chuyển Order.status \= "Hoàn thành" và ghi Order\_Status\_History
-
-7\.    Luồng ngoại lệ:
-
-\-        Shipping thất bại → Admin/Sales chọn giao lại hoặc hủy đơn
-
-\-        Mã vận đơn để trống khi chuyển "Đang vận chuyển" → Báo lỗi
-
-8\.    Hậu điều kiện: Shipping cập nhật. Nếu giao thành công: Order chuyển "Hoàn thành"
-
-   **4.23. (Admin/Sales) Xử lý bảo hành**
+   **4.24. (Admin/Sales) Xử lý bảo hành**
 
 ![UC-AD-09 — Xử lý bảo hành](diagrams/images/uc_AD09_xu_ly_bao_hanh.png)
 
-1\.    Mã UC, tên UC: UC-AD-09: Xử lý bảo hành
+1) Summary
+- Use Case Name: Xử lý bảo hành
+- Use Case ID: UC-AD-09
+- Use Case Description: Cho phép tạo/sửa chính sách bảo hành (Warranty_Policy) và xem, xử lý phiếu bảo hành (Warranty_Ticket) từ Customer.
+- Actor: Admin / Sales
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Admin/Sales truy cập "Quản lý bảo hành" hoặc nhận phiếu bảo hành mới từ Customer.
+- Pre-Condition: Đăng nhập với Role Admin hoặc Sales.
+- Post-Condition: Warranty_Policy được tạo/sửa/xóa; Warranty_Ticket.status và resolution được cập nhật trong CSDL.
 
-2\.    Actor: Admin / Sales
+2) Flow
+- Basic Flow: Với Warranty_Policy, Admin truy cập "Chính sách bảo hành" để tạo/sửa/xóa, gán theo Category hoặc Product, nhập duration_months, conditions và mô tả; với Warranty_Ticket, Admin/Sales truy cập "Quản lý bảo hành", lọc danh sách phiếu, mở phiếu để xem User/Product/Serial/mô tả lỗi/chính sách áp dụng, cập nhật trạng thái Tiếp nhận → Đang xử lý → Đã sửa/Từ chối → Trả khách, và nhập kết quả xử lý (resolution) cùng resolved_at.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu phiếu đã ở trạng thái "Trả khách" thì không cho cập nhật thêm; nếu từ chối bảo hành thì bắt buộc nhập lý do; nếu xóa Warranty_Policy đang có Warranty_Ticket liên quan thì bị chặn.
 
-3\.    Mô tả: Cho phép tạo/sửa chính sách bảo hành (Warranty\_Policy) và xem, xử lý phiếu bảo hành (Warranty\_Ticket) từ Customer.
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
-4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
-
-5\.    Trigger: Admin/Sales truy cập "Quản lý bảo hành" hoặc nhận phiếu bảo hành mới từ Customer.
-
-6\.    Luồng chính:
-
-   Quản lý chính sách bảo hành (Warranty\_Policy):
-
-\-        Admin truy cập "Chính sách bảo hành" → tạo/sửa/xóa Warranty\_Policy
-
-\-        Gán theo Category (VD: tất cả CPU bảo hành 36 tháng) hoặc theo Product cụ thể
-
-\-        Nhập thời hạn (duration\_months), điều kiện bảo hành (conditions), mô tả
-
-   Xử lý phiếu bảo hành (Warranty\_Ticket):
-
-\-        Truy cập "Quản lý bảo hành", xem danh sách Warranty\_Ticket (lọc theo trạng thái)
-
-\-        Nhấn vào phiếu → xem chi tiết: User, Product, Serial, mô tả lỗi, Warranty\_Policy áp dụng
-
-\-        Cập nhật trạng thái: Tiếp nhận → Đang xử lý → Đã sửa / Từ chối → Trả khách
-
-\-        Nhập kết quả xử lý (resolution) và ngày hoàn tất (resolved\_at)
-
-7\.    Luồng ngoại lệ:
-
-\-        Phiếu đã ở trạng thái "Trả khách" → Không cho phép cập nhật thêm
-
-\-        Từ chối bảo hành → Yêu cầu nhập lý do
-
-\-        Xóa Warranty\_Policy đang có Warranty\_Ticket liên quan → Chặn xóa
-
-8\.    Hậu điều kiện: Warranty\_Policy được tạo/sửa/xóa. Warranty\_Ticket.status và resolution cập nhật trong CSDL
-
-   **4.24. (Admin/Sales) Xử lý đổi trả**
+   **4.25. (Admin/Sales) Xử lý đổi trả**
 
 ![UC-AD-10 — Xử lý đổi trả](diagrams/images/uc_AD10_xu_ly_doi_tra.png)
 
-1\.    Mã UC, tên UC: UC-AD-10: Xử lý đổi trả
+1) Summary
+- Use Case Name: Xử lý đổi trả
+- Use Case ID: UC-AD-10
+- Use Case Description: Cho phép xem và xử lý yêu cầu đổi trả (Return/Refund) từ Customer.
+- Actor: Admin / Sales
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Admin/Sales truy cập "Quản lý đổi trả" hoặc nhận yêu cầu đổi trả mới từ Customer.
+- Pre-Condition: Đăng nhập với Role Admin hoặc Sales.
+- Post-Condition: Return/Refund được cập nhật; nếu duyệt thì kho được hoàn, Payment chuyển Refunded hoặc Order mới được tạo.
 
-2\.    Actor: Admin / Sales
+2) Flow
+- Basic Flow: Admin/Sales truy cập "Quản lý đổi trả", xem danh sách Return/Refund theo bộ lọc trạng thái/loại, mở yêu cầu để xem User, Order, Order_Detail, lý do và loại; thực hiện duyệt hoặc từ chối: nếu duyệt hoàn tiền thì cập nhật refund_amount, tạo Payment status Refunded và Inventory_Log hoàn kho; nếu duyệt đổi hàng thì hoàn kho sản phẩm cũ và tạo Order mới cho sản phẩm thay thế; nếu từ chối thì nhập lý do; cuối cùng cập nhật Return.status và resolved_at.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu từ chối mà không nhập lý do thì báo lỗi; nếu sản phẩm thay thế hết hàng khi đổi hàng thì báo "Sản phẩm thay thế hiện hết hàng".
 
-3\.    Mô tả: Cho phép xem và xử lý yêu cầu đổi trả (Return/Refund) từ Customer.
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
-4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
-
-5\.    Trigger: Admin/Sales truy cập "Quản lý đổi trả" hoặc nhận yêu cầu đổi trả mới từ Customer.
-
-6\.    Luồng chính:
-
-\-        Truy cập "Quản lý đổi trả", xem danh sách Return/Refund (lọc theo trạng thái, loại)
-
-\-        Nhấn vào yêu cầu → xem chi tiết: User, Order, Order\_Detail, lý do, loại (Đổi hàng/Hoàn tiền)
-
-\-        Duyệt hoặc từ chối:
-
-   \+ Nếu "Đã duyệt" \+ Hoàn tiền: cập nhật refund\_amount, tạo Payment (status: Refunded), tạo Inventory\_Log (Hoàn trả) để hoàn kho
-
-   \+ Nếu "Đã duyệt" \+ Đổi hàng: hoàn kho sản phẩm cũ, tạo Order mới cho sản phẩm thay thế
-
-   \+ Nếu "Từ chối": nhập lý do từ chối
-
-\-        Cập nhật Return.status và resolved\_at
-
-7\.    Luồng ngoại lệ:
-
-\-        Từ chối không nhập lý do → Báo lỗi
-
-\-        Sản phẩm thay thế hết hàng (khi đổi hàng) → Báo "Sản phẩm thay thế hiện hết hàng"
-
-8\.    Hậu điều kiện: Return/Refund cập nhật. Nếu duyệt: kho hoàn, Payment Refunded hoặc Order mới được tạo
-
-   **4.25. (Admin) Quản lý tài khoản**
+   **4.26. (Admin) Quản lý tài khoản**
 
 ![UC-AD-06 — Quản lý tài khoản](diagrams/images/uc_AD06_quan_ly_tai_khoan.png)
 
-1\.    Mã UC, tên UC: UC-AD-06: Quản lý tài khoản
+1) Summary
+- Use Case Name: Quản lý tài khoản
+- Use Case ID: UC-AD-06
+- Use Case Description: Cho phép Admin xem danh sách tài khoản, tạo tài khoản nội bộ, khóa/mở khóa và gán Role/Permission.
+- Actor: Admin
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Admin truy cập mục "Quản lý tài khoản" trên trang quản trị.
+- Pre-Condition: Đăng nhập với Role Admin.
+- Post-Condition: Account/User được cập nhật; nếu khóa tài khoản thì Token/Session bị xóa.
 
-2\.    Actor: Admin
+2) Flow
+- Basic Flow: Admin xem danh sách Account + User (họ tên, email, SĐT, Role, trạng thái) và lọc theo Role; tạo tài khoản nội bộ bằng cách nhập thông tin, chọn Role (Sales/Warehouse) để tạo Account + User; thực hiện khóa/mở khóa qua is_active, nếu khóa thì xóa toàn bộ Token/Session để buộc đăng xuất; gán Role/Permission bằng cách chọn tài khoản và đổi Role hoặc gán permission qua Role_Permission.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu Admin cố khóa chính mình thì hệ thống chặn; nếu email trùng thì báo "Email đã tồn tại".
 
-3\.    Mô tả: Cho phép Admin xem danh sách tài khoản, tạo tài khoản nội bộ, khóa/mở khóa và gán Role/Permission.
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
-4\.    Tiền điều kiện: Đăng nhập với Role Admin.
-
-5\.    Trigger: Admin truy cập mục "Quản lý tài khoản" trên trang quản trị.
-
-6\.    Luồng chính:
-
-   Xem danh sách: Hiển thị Account \+ User (họ tên, email, SĐT, Role, trạng thái). Tìm kiếm/lọc theo Role
-
-   Tạo tài khoản nội bộ: Nhập thông tin, chọn Role (Sales/Warehouse). Tạo Account \+ User
-
-   Khóa/Mở khóa: Cập nhật is\_active. Nếu khóa → xóa toàn bộ Token/Session (buộc đăng xuất)
-
-   Gán Role/Permission: Chọn tài khoản → đổi Role hoặc gán Permission cụ thể qua Role\_Permission
-
-7\.    Luồng ngoại lệ:
-
-\-        Khóa chính mình → Chặn
-
-\-        Email trùng → Báo lỗi "Email đã tồn tại"
-
-8\.    Hậu điều kiện: Account/User cập nhật. Nếu khóa: Token/Session bị xóa
-
-   **4.26. (Admin/Sales) Quản lý mã giảm giá**
+   **4.27. (Admin/Sales) Quản lý mã giảm giá**
 
 ![UC-AD-07 — Quản lý mã giảm giá](diagrams/images/uc_AD07_quan_ly_coupon.png)
 
-1\.    Mã UC, tên UC: UC-AD-07: Quản lý mã giảm giá
+1) Summary
+- Use Case Name: Quản lý mã giảm giá
+- Use Case ID: UC-AD-07
+- Use Case Description: Cho phép tạo, sửa, xóa mã giảm giá (Coupon) để khách nhập khi Checkout.
+- Actor: Admin / Sales
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Admin/Sales truy cập mục "Quản lý mã giảm giá" trên trang quản trị.
+- Pre-Condition: Đăng nhập với Role Admin hoặc Sales.
+- Post-Condition: Coupon được tạo/sửa/xóa trong CSDL.
 
-2\.    Actor: Admin / Sales
+2) Flow
+- Basic Flow: Admin/Sales truy cập "Quản lý mã giảm giá" và nhấn "Tạo mới"; nhập Code, loại (PERCENT/FIXED), giá trị giảm, đơn tối thiểu, giảm tối đa, số lượt max, ngày bắt đầu/kết thúc; nhấn "Lưu" để tạo Coupon; có thể chọn Coupon để sửa hoặc xóa (có xác nhận).
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu code trùng thì báo "Mã giảm giá đã tồn tại"; nếu ngày kết thúc nhỏ hơn ngày bắt đầu thì báo lỗi; nếu sửa Coupon đã có used_count > 0 thì cảnh báo; nếu xóa Coupon đang hiệu lực thì cảnh báo "Mã đang hoạt động. Xóa sẽ ngừng áp dụng".
 
-3\.    Mô tả: Cho phép tạo, sửa, xóa mã giảm giá (Coupon). Khách nhập mã khi Checkout để được giảm giá.
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
-4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
-
-5\.    Trigger: Admin/Sales truy cập mục "Quản lý mã giảm giá" trên trang quản trị.
-
-6\.    Luồng chính:
-
-\-        Truy cập "Quản lý mã giảm giá", nhấn "Tạo mới"
-
-\-        Nhập: Code, loại (PERCENT/FIXED), giá trị giảm, đơn tối thiểu, giảm tối đa, số lượt max, ngày bắt đầu/kết thúc
-
-\-        Nhấn "Lưu" → tạo Coupon
-
-\-        Sửa/Xóa: Chọn Coupon → "Sửa" hoặc "Xóa" (có xác nhận)
-
-7\.    Luồng ngoại lệ:
-
-\-        Code trùng → Báo lỗi "Mã giảm giá đã tồn tại"
-
-\-        Ngày kết thúc \< ngày bắt đầu → Báo lỗi
-
-\-        Sửa Coupon đã có used\_count \> 0 → Cảnh báo
-
-\-        Xóa Coupon đang hiệu lực → Cảnh báo "Mã đang hoạt động. Xóa sẽ ngừng áp dụng"
-
-8\.    Hậu điều kiện: Coupon được tạo/sửa/xóa trong CSDL
-
-   **4.27. (Admin/Sales) Thống kê doanh thu**
+   **4.28. (Admin/Sales) Thống kê doanh thu**
 
 ![UC-AD-05 — Thống kê doanh thu](diagrams/images/uc_AD05_thong_ke_doanh_thu.png)
 
-1\.    Mã UC, tên UC: UC-AD-05: Thống kê doanh thu
+1) Summary
+- Use Case Name: Thống kê doanh thu
+- Use Case ID: UC-AD-05
+- Use Case Description: Cho phép xem báo cáo thống kê doanh thu theo khoảng thời gian, danh mục và trạng thái đơn hàng.
+- Actor: Admin / Sales
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Admin/Sales truy cập mục "Thống kê doanh thu" trên bảng điều khiển.
+- Pre-Condition: Đăng nhập với Role Admin hoặc Sales.
+- Post-Condition: Báo cáo hiển thị trên giao diện; không thay đổi CSDL.
 
-2\.    Actor: Admin / Sales
+2) Flow
+- Basic Flow: Admin/Sales truy cập "Thống kê doanh thu", chọn bộ lọc theo thời gian, Category và trạng thái Order; hệ thống truy xuất Order, Order_Detail, Product, Category để tổng hợp; hệ thống hiển thị tổng doanh thu, số đơn hàng, số sản phẩm bán, top bán chạy và doanh thu theo Category.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu khoảng thời gian không hợp lệ thì báo lỗi; nếu không có dữ liệu thì hiển thị thông báo.
 
-3\.    Mô tả: Cho phép xem báo cáo thống kê doanh thu theo khoảng thời gian, danh mục, trạng thái đơn hàng.
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
-4\.    Tiền điều kiện: Đăng nhập với Role Admin hoặc Sales.
-
-5\.    Trigger: Admin/Sales truy cập mục "Thống kê doanh thu" trên bảng điều khiển.
-
-6\.    Luồng chính:
-
-\-        Truy cập "Thống kê doanh thu", chọn bộ lọc (thời gian, Category, trạng thái Order)
-
-\-        Hệ thống truy xuất Order, Order\_Detail, Product, Category và tổng hợp
-
-\-        Hiển thị: Tổng doanh thu, Số đơn hàng, Số sản phẩm bán, Top bán chạy, Doanh thu theo Category
-
-7\.    Luồng ngoại lệ:
-
-\-        Khoảng thời gian không hợp lệ → Báo lỗi
-
-\-        Không có dữ liệu → Hiển thị thông báo
-
-8\.    Hậu điều kiện: Báo cáo hiển thị trên giao diện. Không thay đổi CSDL
-
-   **4.28. (Admin) Quản lý banner / slider trang chủ**
+   **4.29. (Admin) Quản lý banner / slider trang chủ**
 
 ![UC-AD-11 — Quản lý banner / slider trang chủ](diagrams/images/uc_AD11_quan_ly_banner.png)
 
-1\.    Mã UC, tên UC: UC-AD-11: Quản lý banner / slider trang chủ
+1) Summary
+- Use Case Name: Quản lý banner / slider trang chủ
+- Use Case ID: UC-AD-11
+- Use Case Description: Cho phép Admin tạo, sửa, xóa và sắp xếp banner/slider trang chủ để quảng bá sản phẩm, khuyến mãi hoặc tin tức.
+- Actor: Admin
+- Priority: Chưa xác định (cần thống nhất với bảng yêu cầu người dùng).
+- Trigger: Admin truy cập "Quản lý nội dung" → "Banner / Slider" trên trang quản trị.
+- Pre-Condition: Đăng nhập với Role Admin, Token/Session hợp lệ.
+- Post-Condition: Banner được tạo/sửa/xóa trong CSDL và hình ảnh được lưu trên MinIO.
 
-2\.    Actor: Admin
+2) Flow
+- Basic Flow: Admin truy cập "Quản lý nội dung" → "Banner / Slider"; hệ thống hiển thị danh sách banner hiện có (tiêu đề, hình ảnh, trạng thái Active/Inactive, thứ tự hiển thị, ngày bắt đầu/kết thúc); Admin thêm mới banner bằng cách nhập tiêu đề, upload ảnh (MinIO), nhập URL liên kết, thứ tự hiển thị, ngày bắt đầu/kết thúc, trạng thái rồi lưu để hệ thống lưu banner và upload ảnh; Admin có thể sửa banner, xóa banner có xác nhận và kéo thả để sắp xếp thứ tự hiển thị.
+- Alternative Flow: Không có luồng thay thế được đặc tả trong phiên bản hiện tại.
+- Exception Flow: Nếu ảnh sai định dạng thì báo lỗi; nếu ảnh quá dung lượng 5MB thì báo lỗi; nếu thiếu trường bắt buộc (tiêu đề, hình ảnh) thì báo lỗi cụ thể; nếu ngày kết thúc trước ngày bắt đầu thì báo "Ngày kết thúc phải sau ngày bắt đầu".
 
-3\.    Mô tả: Cho phép Admin tạo, sửa, xóa và sắp xếp các banner/slider hiển thị trên trang chủ, phục vụ quảng bá sản phẩm, chương trình khuyến mãi hoặc tin tức.
-
-4\.    Tiền điều kiện: Đăng nhập với Role Admin, Token/Session hợp lệ.
-
-5\.    Trigger: Admin truy cập "Quản lý nội dung" → "Banner / Slider" trên trang quản trị.
-
-6\.    Luồng chính:
-
-\-        Admin truy cập "Quản lý nội dung" → "Banner / Slider"
-
-\-        Hệ thống hiển thị danh sách banner hiện có (tiêu đề, hình ảnh, trạng thái Active/Inactive, thứ tự hiển thị, ngày bắt đầu, ngày kết thúc)
-
-   Thêm mới:
-
-\-        Admin nhấn "Thêm banner", nhập: tiêu đề, upload hình ảnh (MinIO), URL liên kết (trang sản phẩm, danh mục, khuyến mãi), thứ tự hiển thị, ngày bắt đầu, ngày kết thúc, trạng thái Active/Inactive
-
-\-        Nhấn "Lưu". Hệ thống lưu banner và upload hình ảnh lên MinIO
-
-   Sửa:
-
-\-        Admin chọn banner → "Sửa" → cập nhật thông tin
-
-   Xóa:
-
-\-        Admin chọn banner → "Xóa" → xác nhận
-
-   Sắp xếp:
-
-\-        Admin kéo thả để thay đổi thứ tự hiển thị các banner
-
-7\.    Luồng ngoại lệ:
-
-\-        Hình ảnh sai định dạng (chỉ chấp nhận JPG, PNG, WEBP) → Báo lỗi
-
-\-        Hình ảnh quá dung lượng (tối đa 5MB) → Báo lỗi
-
-\-        Thiếu trường bắt buộc (tiêu đề, hình ảnh) → Báo lỗi cụ thể
-
--        Ngày kết thúc trước ngày bắt đầu → Báo lỗi "Ngày kết thúc phải sau ngày bắt đầu"
-
-8\.    Hậu điều kiện: Banner được tạo/sửa/xóa trong CSDL. Hình ảnh được lưu trữ trên MinIO
+3) Additional Information
+- Business Rule: Tuân thủ các ràng buộc nghiệp vụ đã nêu trong Basic Flow/Exception Flow và các thực thể liên quan.
+- Non-Funtional Requirement: Áp dụng các yêu cầu phi chức năng tại Mục III (hiệu năng, bảo mật, khả dụng, dữ liệu, UX).
 
 **5\. Bảng yêu cầu người dùng**
 
