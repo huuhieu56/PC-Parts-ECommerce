@@ -16,6 +16,7 @@ public class BannerDto {
     private String title;
     private String imageUrl;
     private String linkUrl;
+    private String placement;
     private Integer sortOrder;
     private String status;
     private LocalDateTime startDate;

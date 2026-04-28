@@ -53,11 +53,12 @@ public class BannerController {
             @RequestParam String title,
             @RequestParam MultipartFile image,
             @RequestParam(required = false) String linkUrl,
+            @RequestParam(required = false) String placement,
             @RequestParam(required = false) Integer sortOrder,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
             @RequestParam(required = false) String status) {
-        BannerDto created = bannerService.createBanner(title, image, linkUrl, sortOrder, startDate, endDate, status);
+        BannerDto created = bannerService.createBanner(title, image, linkUrl, placement, sortOrder, startDate, endDate, status);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Tạo banner thành công", created));
     }
@@ -72,11 +73,12 @@ public class BannerController {
             @RequestParam String title,
             @RequestParam(required = false) MultipartFile image,
             @RequestParam(required = false) String linkUrl,
+            @RequestParam(required = false) String placement,
             @RequestParam(required = false) Integer sortOrder,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
             @RequestParam(required = false) String status) {
-        BannerDto updated = bannerService.updateBanner(id, title, image, linkUrl, sortOrder, startDate, endDate, status);
+        BannerDto updated = bannerService.updateBanner(id, title, image, linkUrl, placement, sortOrder, startDate, endDate, status);
         return ResponseEntity.ok(ApiResponse.success("Cập nhật banner thành công", updated));
     }
 

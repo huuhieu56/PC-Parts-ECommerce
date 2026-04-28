@@ -17,6 +17,10 @@ public interface BannerRepository extends JpaRepository<Banner, Long> {
 
     List<Banner> findAllByOrderBySortOrderAscCreatedAtDesc();
 
+    boolean existsByPlacement(String placement);
+
+    boolean existsByPlacementAndIdNot(String placement, Long id);
+
     @Query("""
             SELECT b FROM Banner b
             WHERE b.status = 'ACTIVE'

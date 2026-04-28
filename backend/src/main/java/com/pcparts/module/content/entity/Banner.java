@@ -31,6 +31,10 @@ public class Banner {
     @Column(name = "link_url", length = 500)
     private String linkUrl;
 
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private String placement = "CUSTOM";
+
     @Column(name = "sort_order")
     @Builder.Default
     private Integer sortOrder = 0;

@@ -16,11 +16,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
-<<<<<<< HEAD
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-=======
->>>>>>> 8094214 (feat: add homepage banner management)
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,12 +25,9 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-<<<<<<< HEAD
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
-=======
->>>>>>> 8094214 (feat: add homepage banner management)
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -54,18 +48,16 @@ class BannerServiceTest {
 
     @BeforeEach
     void setUp() {
-<<<<<<< HEAD
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.clearSynchronization();
         }
 
-=======
->>>>>>> 8094214 (feat: add homepage banner management)
         banner = Banner.builder()
                 .id(1L)
                 .title("Sale GPU tháng này")
                 .imageUrl("http://localhost:9000/pcparts/banners/gpu.webp")
                 .linkUrl("/products?category=gpu")
+                .placement("CUSTOM")
                 .sortOrder(1)
                 .status("ACTIVE")
                 .startDate(LocalDateTime.now().minusDays(1))
@@ -107,6 +99,7 @@ class BannerServiceTest {
                 "Build PC sale",
                 validImage,
                 "/build-pc",
+                "main",
                 2,
                 LocalDateTime.now().minusDays(1),
                 LocalDateTime.now().plusDays(10),
@@ -115,13 +108,13 @@ class BannerServiceTest {
 
         assertThat(result.getId()).isEqualTo(2L);
         assertThat(result.getStatus()).isEqualTo("ACTIVE");
+        assertThat(result.getPlacement()).isEqualTo("MAIN");
         assertThat(result.getImageUrl()).contains("/banners/new.webp");
         verify(fileService).uploadFile(validImage, "banners");
         verify(bannerRepository).save(any(Banner.class));
     }
 
     @Test
-<<<<<<< HEAD
     @DisplayName("Create banner — uploaded image is cleaned up when database save fails")
     void createBanner_saveFails_cleansUpUploadedImage() {
         String uploadedImageUrl = "http://localhost:9000/pcparts/banners/new.webp";
@@ -132,6 +125,7 @@ class BannerServiceTest {
                 "Build PC sale",
                 validImage,
                 "/build-pc",
+                "CUSTOM",
                 2,
                 null,
                 null,
@@ -143,14 +137,13 @@ class BannerServiceTest {
     }
 
     @Test
-=======
->>>>>>> 8094214 (feat: add homepage banner management)
     @DisplayName("Create banner — blank title is rejected")
     void createBanner_blankTitle() {
         assertThatThrownBy(() -> bannerService.createBanner(
                 " ",
                 validImage,
                 "/products",
+                "CUSTOM",
                 1,
                 null,
                 null,
@@ -167,6 +160,7 @@ class BannerServiceTest {
                 "Sale RAM",
                 null,
                 "/products",
+                "CUSTOM",
                 1,
                 null,
                 null,
@@ -185,6 +179,7 @@ class BannerServiceTest {
                 "Sale RAM",
                 gif,
                 "/products",
+                "CUSTOM",
                 1,
                 null,
                 null,
@@ -208,6 +203,7 @@ class BannerServiceTest {
                 "Sale RAM",
                 large,
                 "/products",
+                "CUSTOM",
                 1,
                 null,
                 null,
@@ -227,6 +223,7 @@ class BannerServiceTest {
                 "Sale RAM",
                 validImage,
                 "/products",
+                "CUSTOM",
                 1,
                 start,
                 end,
@@ -234,6 +231,25 @@ class BannerServiceTest {
         ))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Ngày kết thúc");
+    }
+
+    @Test
+    @DisplayName("Create banner — duplicate non-custom placement is rejected")
+    void createBanner_duplicatePlacement() {
+        when(bannerRepository.existsByPlacement("MAIN")).thenReturn(true);
+
+        assertThatThrownBy(() -> bannerService.createBanner(
+                "Sale RAM",
+                validImage,
+                "/products",
+                "MAIN",
+                1,
+                null,
+                null,
+                "ACTIVE"
+        ))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Đã tồn tại banner");
     }
 
     @Test
@@ -247,6 +263,7 @@ class BannerServiceTest {
                 "Sale GPU cập nhật",
                 null,
                 "/products?category=vga",
+                "CUSTOM",
                 3,
                 null,
                 null,
@@ -259,7 +276,6 @@ class BannerServiceTest {
     }
 
     @Test
-<<<<<<< HEAD
     @DisplayName("Update banner — uploaded replacement image is cleaned up when database save fails")
     void updateBanner_saveFails_cleansUpNewImageAndKeepsOldImage() {
         String uploadedImageUrl = "http://localhost:9000/pcparts/banners/new.webp";
@@ -272,6 +288,7 @@ class BannerServiceTest {
                 "Sale GPU cập nhật",
                 validImage,
                 "/products?category=vga",
+                "CUSTOM",
                 3,
                 null,
                 null,
@@ -298,6 +315,7 @@ class BannerServiceTest {
                     "Sale GPU cập nhật",
                     validImage,
                     "/products?category=vga",
+                    "CUSTOM",
                     3,
                     null,
                     null,
@@ -317,8 +335,6 @@ class BannerServiceTest {
     }
 
     @Test
-=======
->>>>>>> 8094214 (feat: add homepage banner management)
     @DisplayName("Delete banner — not found throws")
     void deleteBanner_notFound() {
         when(bannerRepository.findById(99L)).thenReturn(Optional.empty());
@@ -328,7 +344,6 @@ class BannerServiceTest {
     }
 
     @Test
-<<<<<<< HEAD
     @DisplayName("Delete banner — image is deleted only after transaction commit")
     void deleteBanner_deletesImageAfterCommit() {
         when(bannerRepository.findById(1L)).thenReturn(Optional.of(banner));
@@ -351,8 +366,6 @@ class BannerServiceTest {
     }
 
     @Test
-=======
->>>>>>> 8094214 (feat: add homepage banner management)
     @DisplayName("Reorder banners — updates sort order for each id")
     void reorderBanners_success() {
         Banner second = Banner.builder().id(2L).title("Build PC").imageUrl("url").sortOrder(2).status("ACTIVE").build();

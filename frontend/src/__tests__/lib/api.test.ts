@@ -108,6 +108,7 @@ describe("API Client", () => {
       title: "Sale GPU",
       image: file,
       linkUrl: "/products",
+      placement: "MAIN",
       sortOrder: 1,
       status: "ACTIVE",
     });
@@ -116,6 +117,7 @@ describe("API Client", () => {
     expect(url).toBe("/admin/banners");
     expect(formData).toBeInstanceOf(FormData);
     expect((formData as FormData).get("title")).toBe("Sale GPU");
+    expect((formData as FormData).get("placement")).toBe("MAIN");
     expect((formData as FormData).get("image")).toBe(file);
     expect(config).toEqual({ headers: { "Content-Type": "multipart/form-data" } });
     postSpy.mockRestore();
@@ -127,6 +129,7 @@ describe("API Client", () => {
     await updateBanner(1, {
       title: "Sale CPU",
       linkUrl: "/products?category=cpu",
+      placement: "CUSTOM",
       sortOrder: 2,
       status: "INACTIVE",
     });
@@ -134,6 +137,7 @@ describe("API Client", () => {
     const [url, formData] = putSpy.mock.calls[0];
     expect(url).toBe("/admin/banners/1");
     expect((formData as FormData).get("title")).toBe("Sale CPU");
+    expect((formData as FormData).get("placement")).toBe("CUSTOM");
     expect((formData as FormData).get("image")).toBeNull();
     putSpy.mockRestore();
   });

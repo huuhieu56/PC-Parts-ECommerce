@@ -9,11 +9,8 @@ import {
   reorderBanners,
   updateBanner,
 } from "@/lib/api";
-import type { Banner, BannerStatus } from "@/types";
-<<<<<<< HEAD
+import type { Banner, BannerPlacement, BannerStatus } from "@/types";
 import { applyBannerDrop } from "./bannerReorder";
-=======
->>>>>>> 8094214 (feat: add homepage banner management)
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -21,15 +18,35 @@ const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 interface BannerFormState {
   title: string;
   linkUrl: string;
+  placement: BannerPlacement;
   sortOrder: string;
   startDate: string;
   endDate: string;
   status: BannerStatus;
 }
 
+const placementOptions: Array<{ value: BannerPlacement; label: string }> = [
+  { value: "MAIN", label: "Banner chính" },
+  { value: "SIDE_1", label: "Banner phụ 1" },
+  { value: "SIDE_2", label: "Banner phụ 2" },
+  { value: "SIDE_3", label: "Banner phụ 3" },
+  { value: "POPUP", label: "Banner popup" },
+  { value: "CUSTOM", label: "Banner custom" },
+];
+
+const placementLabels: Record<BannerPlacement, string> = {
+  MAIN: "Banner chính",
+  SIDE_1: "Banner phụ 1",
+  SIDE_2: "Banner phụ 2",
+  SIDE_3: "Banner phụ 3",
+  POPUP: "Banner popup",
+  CUSTOM: "Banner custom",
+};
+
 const emptyForm: BannerFormState = {
   title: "",
   linkUrl: "",
+  placement: "CUSTOM",
   sortOrder: "0",
   startDate: "",
   endDate: "",
@@ -115,6 +132,7 @@ export default function AdminBannersPage() {
     setForm({
       title: banner.title,
       linkUrl: banner.linkUrl || "",
+      placement: banner.placement,
       sortOrder: String(banner.sortOrder),
       startDate: toDateTimeLocal(banner.startDate),
       endDate: toDateTimeLocal(banner.endDate),
@@ -169,6 +187,7 @@ export default function AdminBannersPage() {
         title: form.title.trim(),
         image: imageFile,
         linkUrl: form.linkUrl.trim() || null,
+        placement: form.placement,
         sortOrder: Number.parseInt(form.sortOrder, 10) || 0,
         startDate: form.startDate || null,
         endDate: form.endDate || null,
@@ -204,7 +223,6 @@ export default function AdminBannersPage() {
   };
 
   const handleDrop = async (targetId: number) => {
-<<<<<<< HEAD
     const { draggedId: nextDraggedId, reorderedBanners } = applyBannerDrop(banners, draggedId, targetId);
     setDraggedId(nextDraggedId);
 
@@ -218,26 +236,6 @@ export default function AdminBannersPage() {
       const saved = await reorderBanners(
         reorderedBanners.map((banner) => ({ id: banner.id, sortOrder: banner.sortOrder })),
       );
-=======
-    if (draggedId === null || draggedId === targetId) {
-      setDraggedId(null);
-      return;
-    }
-
-    const current = [...banners];
-    const fromIndex = current.findIndex((banner) => banner.id === draggedId);
-    const toIndex = current.findIndex((banner) => banner.id === targetId);
-    if (fromIndex < 0 || toIndex < 0) return;
-
-    const [moved] = current.splice(fromIndex, 1);
-    current.splice(toIndex, 0, moved);
-    const reordered = current.map((banner, index) => ({ ...banner, sortOrder: index + 1 }));
-    setBanners(reordered);
-    setDraggedId(null);
-
-    try {
-      const saved = await reorderBanners(reordered.map((banner) => ({ id: banner.id, sortOrder: banner.sortOrder })));
->>>>>>> 8094214 (feat: add homepage banner management)
       setBanners(saved);
       showMessage("success", "Đã cập nhật thứ tự banner.");
     } catch {
@@ -311,8 +309,19 @@ export default function AdminBannersPage() {
                 <input value={form.linkUrl} onChange={setFormValue("linkUrl")} placeholder="/products?categoryId=1" className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-normal text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </label>
               <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
+                Vị trí hiển thị
+                <select value={form.placement} onChange={setFormValue("placement")} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-normal text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  {placementOptions.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
                 Thứ tự
                 <input type="number" min="0" value={form.sortOrder} onChange={setFormValue("sortOrder")} className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-normal text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <span className="text-xs font-normal text-gray-500">
+                  Banner custom dùng thứ tự này để hiển thị ở section bên dưới trang chủ.
+                </span>
               </label>
               <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
                 Trạng thái
@@ -385,6 +394,7 @@ export default function AdminBannersPage() {
                 <tr className="border-b border-gray-200 bg-gray-50 text-left text-gray-500">
                   <th className="w-10 px-4 py-3 font-medium"><ArrowDownUp className="w-4 h-4" /></th>
                   <th className="px-4 py-3 font-medium">Banner</th>
+                  <th className="px-4 py-3 font-medium">Vị trí</th>
                   <th className="px-4 py-3 font-medium">Trạng thái</th>
                   <th className="px-4 py-3 font-medium">Thứ tự</th>
                   <th className="px-4 py-3 font-medium">Hiệu lực</th>
@@ -410,6 +420,11 @@ export default function AdminBannersPage() {
                           <p className="max-w-[280px] truncate text-xs text-gray-500">{banner.linkUrl || "Không có link"}</p>
                         </div>
                       </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                        {placementLabels[banner.placement]}
+                      </span>
                     </td>
                     <td className="px-4 py-3">
                       <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${banner.status === "ACTIVE" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>

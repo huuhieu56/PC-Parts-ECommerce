@@ -184,6 +184,7 @@ const extractData = <T>(response: { data: { data?: T } | T }): T => {
 const buildBannerFormData = (payload: BannerPayload): FormData => {
   const formData = new FormData();
   formData.append("title", payload.title);
+  formData.append("placement", payload.placement);
   formData.append("status", payload.status);
 
   if (payload.image) {

@@ -196,12 +196,14 @@ export interface Coupon {
 
 // --- Banner / Slider ---
 export type BannerStatus = "ACTIVE" | "INACTIVE";
+export type BannerPlacement = "MAIN" | "SIDE_1" | "SIDE_2" | "SIDE_3" | "POPUP" | "CUSTOM";
 
 export interface Banner {
   id: number;
   title: string;
   imageUrl: string;
   linkUrl: string | null;
+  placement: BannerPlacement;
   sortOrder: number;
   status: BannerStatus;
   startDate: string | null;
@@ -214,6 +216,7 @@ export interface BannerPayload {
   title: string;
   image?: File | null;
   linkUrl?: string | null;
+  placement: BannerPlacement;
   sortOrder?: number | null;
   startDate?: string | null;
   endDate?: string | null;

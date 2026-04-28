@@ -10,20 +10,14 @@ import com.pcparts.module.product.service.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-<<<<<<< HEAD
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-=======
->>>>>>> 8094214 (feat: add homepage banner management)
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.*;
-<<<<<<< HEAD
 import java.util.concurrent.atomic.AtomicBoolean;
-=======
->>>>>>> 8094214 (feat: add homepage banner management)
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,6 +31,7 @@ public class BannerService {
     private static final long MAX_IMAGE_BYTES = 5L * 1024L * 1024L;
     private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
     private static final Set<String> ALLOWED_STATUSES = Set.of("ACTIVE", "INACTIVE");
+    private static final Set<String> ALLOWED_PLACEMENTS = Set.of("MAIN", "SIDE_1", "SIDE_2", "SIDE_3", "POPUP", "CUSTOM");
 
     private final BannerRepository bannerRepository;
     private final FileService fileService;
@@ -71,6 +66,7 @@ public class BannerService {
             String title,
             MultipartFile image,
             String linkUrl,
+            String placement,
             Integer sortOrder,
             LocalDateTime startDate,
             LocalDateTime endDate,
@@ -78,32 +74,28 @@ public class BannerService {
         validateTitle(title);
         validateRequiredImage(image);
         validateDateRange(startDate, endDate);
+        String normalizedPlacement = normalizePlacement(placement);
+        validatePlacementAvailability(normalizedPlacement, null);
 
         String imageUrl = fileService.uploadFile(image, "banners");
-<<<<<<< HEAD
         Runnable cleanupUploadedImage = registerRollbackCleanup(imageUrl);
-=======
->>>>>>> 8094214 (feat: add homepage banner management)
         Banner banner = Banner.builder()
                 .title(title.trim())
                 .imageUrl(imageUrl)
                 .linkUrl(blankToNull(linkUrl))
+                .placement(normalizedPlacement)
                 .sortOrder(sortOrder == null ? 0 : sortOrder)
                 .startDate(startDate)
                 .endDate(endDate)
                 .status(normalizeStatus(status))
                 .build();
 
-<<<<<<< HEAD
         try {
             return toDto(bannerRepository.save(banner));
         } catch (RuntimeException exception) {
             cleanupUploadedImage.run();
             throw exception;
         }
-=======
-        return toDto(bannerRepository.save(banner));
->>>>>>> 8094214 (feat: add homepage banner management)
     }
 
     /**
@@ -115,6 +107,7 @@ public class BannerService {
             String title,
             MultipartFile image,
             String linkUrl,
+            String placement,
             Integer sortOrder,
             LocalDateTime startDate,
             LocalDateTime endDate,
@@ -125,8 +118,9 @@ public class BannerService {
         validateTitle(title);
         validateOptionalImage(image);
         validateDateRange(startDate, endDate);
+        String normalizedPlacement = normalizePlacement(placement);
+        validatePlacementAvailability(normalizedPlacement, id);
 
-<<<<<<< HEAD
         String oldImageUrl = banner.getImageUrl();
         Runnable cleanupUploadedImage = () -> {};
 
@@ -134,23 +128,16 @@ public class BannerService {
             String imageUrl = fileService.uploadFile(image, "banners");
             cleanupUploadedImage = registerRollbackCleanup(imageUrl);
             banner.setImageUrl(imageUrl);
-=======
-        if (image != null && !image.isEmpty()) {
-            String oldImageUrl = banner.getImageUrl();
-            String imageUrl = fileService.uploadFile(image, "banners");
-            banner.setImageUrl(imageUrl);
-            fileService.deleteFile(oldImageUrl);
->>>>>>> 8094214 (feat: add homepage banner management)
         }
 
         banner.setTitle(title.trim());
         banner.setLinkUrl(blankToNull(linkUrl));
+        banner.setPlacement(normalizedPlacement);
         banner.setSortOrder(sortOrder == null ? 0 : sortOrder);
         banner.setStartDate(startDate);
         banner.setEndDate(endDate);
         banner.setStatus(normalizeStatus(status));
 
-<<<<<<< HEAD
         try {
             Banner savedBanner = bannerRepository.save(banner);
             if (image != null && !image.isEmpty()) {
@@ -161,9 +148,6 @@ public class BannerService {
             cleanupUploadedImage.run();
             throw exception;
         }
-=======
-        return toDto(bannerRepository.save(banner));
->>>>>>> 8094214 (feat: add homepage banner management)
     }
 
     /**
@@ -173,13 +157,8 @@ public class BannerService {
     public void deleteBanner(Long id) {
         Banner banner = bannerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Banner", "id", id));
-<<<<<<< HEAD
         bannerRepository.delete(banner);
         runAfterCommit(() -> fileService.deleteFile(banner.getImageUrl()));
-=======
-        fileService.deleteFile(banner.getImageUrl());
-        bannerRepository.delete(banner);
->>>>>>> 8094214 (feat: add homepage banner management)
     }
 
     /**
@@ -250,11 +229,32 @@ public class BannerService {
         return normalized;
     }
 
+    private String normalizePlacement(String placement) {
+        String normalized = placement == null || placement.isBlank() ? "CUSTOM" : placement.trim().toUpperCase(Locale.ROOT);
+        if (!ALLOWED_PLACEMENTS.contains(normalized)) {
+            throw new BusinessException("Vị trí banner không hợp lệ", HttpStatus.BAD_REQUEST);
+        }
+        return normalized;
+    }
+
+    private void validatePlacementAvailability(String placement, Long currentBannerId) {
+        if ("CUSTOM".equals(placement)) {
+            return;
+        }
+
+        boolean exists = currentBannerId == null
+                ? bannerRepository.existsByPlacement(placement)
+                : bannerRepository.existsByPlacementAndIdNot(placement, currentBannerId);
+
+        if (exists) {
+            throw new BusinessException("Đã tồn tại banner cho vị trí " + placement);
+        }
+    }
+
     private String blankToNull(String value) {
         return value == null || value.isBlank() ? null : value.trim();
     }
 
-<<<<<<< HEAD
     private Runnable registerRollbackCleanup(String imageUrl) {
         AtomicBoolean cleaned = new AtomicBoolean(false);
         Runnable cleanup = () -> {
@@ -291,14 +291,13 @@ public class BannerService {
         });
     }
 
-=======
->>>>>>> 8094214 (feat: add homepage banner management)
     private BannerDto toDto(Banner banner) {
         return BannerDto.builder()
                 .id(banner.getId())
                 .title(banner.getTitle())
                 .imageUrl(banner.getImageUrl())
                 .linkUrl(banner.getLinkUrl())
+                .placement(banner.getPlacement())
                 .sortOrder(banner.getSortOrder())
                 .status(banner.getStatus())
                 .startDate(banner.getStartDate())
