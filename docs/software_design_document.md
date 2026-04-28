@@ -197,7 +197,7 @@ Hệ thống được thiết kế theo kiến trúc **Monolithic phân lớp (L
 
 ### 3.1. Tổng quan mô hình dữ liệu
 
-Hệ thống quản lý **34 thực thể (Entity)** chính, được nhóm thành **9 nhóm nghiệp vụ** như mô tả trong tài liệu SRS. Dưới đây là thiết kế lược đồ cơ sở dữ liệu chi tiết cho từng nhóm.
+Hệ thống quản lý **33 thực thể (Entity)** chính, được nhóm thành **8 nhóm nghiệp vụ** như mô tả trong tài liệu SRS. Dưới đây là thiết kế lược đồ cơ sở dữ liệu chi tiết cho từng nhóm.
 
 ### 3.2. Nhóm Phân quyền (Authentication & Authorization)
 
@@ -595,7 +595,21 @@ Hệ thống quản lý **34 thực thể (Entity)** chính, được nhóm thà
 | created\_at | TIMESTAMP | DEFAULT NOW() | Ngày tạo |
 | updated\_at | TIMESTAMP | DEFAULT NOW() | Ngày cập nhật |
 
-### 3.9. Tổng hợp quan hệ giữa các thực thể (Entity Relationships Summary)
+### 3.9. Nhóm Thông báo (Notification)
+
+#### 3.9.1. Notification (Thông báo)
+
+| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
+|:----|:--------------|:----------|:------|
+| id | BIGINT | PK, AUTO\_INCREMENT | Khóa chính |
+| user\_id | BIGINT | FK → User(id), NOT NULL | Người nhận |
+| title | VARCHAR(255) | NOT NULL | Tiêu đề thông báo |
+| message | TEXT | NOT NULL | Nội dung thông báo |
+| type | VARCHAR(50) | DEFAULT 'SYSTEM' | Loại: SYSTEM, ORDER, PROMOTION |
+| is\_read | BOOLEAN | DEFAULT FALSE | Trạng thái đã đọc |
+| created\_at | TIMESTAMP | DEFAULT NOW() | Ngày tạo |
+
+### 3.10. Tổng hợp quan hệ giữa các thực thể (Entity Relationships Summary)
 
 | Quan hệ | Loại | Mô tả |
 |:---------|:-----|:------|
@@ -628,6 +642,7 @@ Hệ thống quản lý **34 thực thể (Entity)** chính, được nhóm thà
 | User ↔ Warranty\_Ticket | 1-N | Phiếu bảo hành |
 | User ↔ Return | 1-N | Yêu cầu đổi trả |
 | Order\_Detail ↔ Return | 1-N | Đổi trả theo sản phẩm cụ thể |
+| User ↔ Notification | 1-N | Một User nhận nhiều Notification |
 
 ---
 

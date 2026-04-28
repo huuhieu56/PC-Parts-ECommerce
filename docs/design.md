@@ -1181,7 +1181,7 @@ Notification --> NotificationType
 
 ### 3.3 Sơ đồ quan hệ thực thể (ERD)
 
-Hệ thống quản lý **34 thực thể** chính, được chia thành 9 nhóm nghiệp vụ.
+Hệ thống quản lý **33 thực thể** chính, được chia thành 8 nhóm nghiệp vụ.
 
 #### 3.3.1 ERD — Nhóm Phân quyền (Auth & User)
 
