@@ -23,6 +23,8 @@ rectangle "Hệ thống PC Parts E-Commerce" {
   usecase "Ảnh quá 5MB" as UC_ERR_SIZE
   usecase "Thiếu trường bắt buộc" as UC_ERR_EMPTY
   usecase "Ngày kết thúc trước\nngày bắt đầu" as UC_ERR_DATE
+  usecase "Vị trí hiển thị\nkhông hợp lệ" as UC_ERR_PLACEMENT
+  usecase "Vị trí đã tồn tại\n(MAIN/SIDE/POPUP/EVENT)" as UC_ERR_DUP
 }
 
 Admin --> UC_BANNER
@@ -36,5 +38,7 @@ UC_ADD ..> UC_ERR_FORMAT : <<extend>>
 UC_ADD ..> UC_ERR_SIZE : <<extend>>
 UC_ADD ..> UC_ERR_EMPTY : <<extend>>
 UC_ADD ..> UC_ERR_DATE : <<extend>>
+UC_ADD ..> UC_ERR_PLACEMENT : <<extend>>
+UC_ADD ..> UC_ERR_DUP : <<extend>>
 
 @enduml
