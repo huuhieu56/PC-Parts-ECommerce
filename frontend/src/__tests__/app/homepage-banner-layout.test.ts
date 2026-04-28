@@ -49,9 +49,10 @@ describe("homepage banner layout", () => {
     expect(HOME_HERO_VIEWPORT_CLASSES).toContain("xl:min-h-[560px]");
   });
 
-  it("should remove desktop max-width gutters from homepage sections", () => {
+  it("should keep reduced desktop gutters without restoring max-width containers", () => {
     expect(HOME_FULL_BLEED_SECTION_CLASSES).toContain("w-full");
-    expect(HOME_FULL_BLEED_SECTION_CLASSES).toContain("xl:px-0");
+    expect(HOME_FULL_BLEED_SECTION_CLASSES).toContain("xl:px-3");
+    expect(HOME_FULL_BLEED_SECTION_CLASSES).toContain("2xl:px-16");
     expect(HOME_FULL_BLEED_SECTION_CLASSES).not.toContain("max-w-7xl");
     expect(HOME_FULL_BLEED_SECTION_CLASSES).not.toContain("mx-auto");
   });
