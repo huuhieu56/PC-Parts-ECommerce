@@ -13,6 +13,9 @@ export const HOME_FULL_BLEED_SECTION_CLASSES = "w-full px-3 py-4 sm:px-4 xl:px-3
 
 export const HOME_FULL_BLEED_SECTION_SPACED_CLASSES = "w-full px-3 py-6 sm:px-4 xl:px-3 2xl:px-16";
 
+export const HOME_BRAND_ROTATION_INTERVAL_MS = 5000;
+export const HOME_BRAND_VISIBLE_ITEM_COUNT = 8;
+
 export interface BannerImageGuideline {
   recommendedSize: string;
   note: string;

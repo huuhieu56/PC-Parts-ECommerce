@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  HOME_BRAND_ROTATION_INTERVAL_MS,
   HOME_FULL_BLEED_SECTION_CLASSES,
   HOME_HERO_GRID_COLUMNS_CLASS,
   HOME_HERO_VIEWPORT_CLASSES,
@@ -62,5 +63,9 @@ describe("homepage banner layout", () => {
   it("should configure side banner column at one and a half times the previous width", () => {
     expect(HOME_SIDE_BANNER_COLUMN_WIDTH_PX).toBe(420);
     expect(HOME_HERO_GRID_COLUMNS_CLASS).toContain("_420px]");
+  });
+
+  it("should rotate homepage brands every five seconds", () => {
+    expect(HOME_BRAND_ROTATION_INTERVAL_MS).toBe(5000);
   });
 });

@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Cpu, Monitor, MemoryStick, HardDrive, Zap, ShoppingCart, ArrowRight, ChevronRight, Truck, Shield, Headphones, Check, Loader2 } from "lucide-react";
+import { Cpu, Monitor, MemoryStick, HardDrive, Zap, ShoppingCart, ArrowRight, ChevronLeft, ChevronRight, Truck, Shield, Headphones, Check, Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useCartStore } from "@/stores/cart-store";
 import api, { getBanners } from "@/lib/api";
 import type { Banner } from "@/types";
 import {
+  HOME_BRAND_ROTATION_INTERVAL_MS,
+  HOME_BRAND_VISIBLE_ITEM_COUNT,
   HOME_FULL_BLEED_SECTION_CLASSES,
   HOME_FULL_BLEED_SECTION_SPACED_CLASSES,
   HOME_HERO_GRID_COLUMNS_CLASS,
@@ -197,6 +199,7 @@ export default function HomePage() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [showPopupBanner, setShowPopupBanner] = useState(false);
   const [showAllCategories, setShowAllCategories] = useState(false);
+  const [brandStartIndex, setBrandStartIndex] = useState(0);
   const addItem = useCartStore((s) => s.addItem);
 
   const handleAddToCart = useCallback(async (productId: number) => {
@@ -281,11 +284,28 @@ export default function HomePage() {
   const { mainBanner, sideBanners, popupBanner, customBanners } = getHomepageBannerLayout(banners);
   const sideBannerSlots = Array.from({ length: 3 }, (_, index) => sideBanners[index] ?? null);
   const visibleCategories = showAllCategories ? categories : categories.slice(0, 8);
-  const carouselBrands = useMemo(() => {
-    const source = brands.length > 0 ? brands : defaultBrands;
-    return [...source, ...source];
-  }, [brands]);
+  const brandItems = useMemo(() => brands.length > 0 ? brands : defaultBrands, [brands]);
+  const visibleBrandItems = useMemo(() => {
+    const visibleCount = Math.min(HOME_BRAND_VISIBLE_ITEM_COUNT, brandItems.length);
+    return Array.from({ length: visibleCount }, (_, index) => brandItems[(brandStartIndex + index) % brandItems.length]);
+  }, [brandItems, brandStartIndex]);
   const canExpandCategories = categories.length > 8;
+
+  useEffect(() => {
+    if (brandItems.length <= HOME_BRAND_VISIBLE_ITEM_COUNT) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setBrandStartIndex((current) => (current + 1) % brandItems.length);
+    }, HOME_BRAND_ROTATION_INTERVAL_MS);
+
+    return () => window.clearInterval(timer);
+  }, [brandItems.length]);
+
+  const rotateBrands = (direction: 1 | -1) => {
+    setBrandStartIndex((current) => (current + direction + brandItems.length) % brandItems.length);
+  };
 
   const dismissPopupBanner = () => {
     if (popupBanner && typeof window !== "undefined") {
@@ -429,18 +449,34 @@ export default function HomePage() {
 
       {/* Brand carousel */}
       <section className={HOME_FULL_BLEED_SECTION_CLASSES}>
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white py-3 shadow-sm">
-          <div className="flex w-max gap-3 animate-brand-marquee">
-            {carouselBrands.map((brand, index) => (
+        <div className="flex items-center gap-3 overflow-hidden rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+          <button
+            type="button"
+            onClick={() => rotateBrands(-1)}
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+            aria-label="Xem nhãn hàng trước"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <div className="grid min-w-0 flex-1 grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+            {visibleBrandItems.map((brand, index) => (
               <Link
                 key={`${brand}-${index}`}
                 href={`/products?brand=${encodeURIComponent(brand)}`}
-                className="flex h-10 min-w-32 items-center justify-center rounded-full border border-gray-200 bg-gray-50 px-5 text-sm font-semibold text-gray-700 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                className="flex h-10 min-w-0 items-center justify-center rounded-full border border-gray-200 bg-gray-50 px-4 text-sm font-semibold text-gray-700 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
               >
-                {brand}
+                <span className="truncate">{brand}</span>
               </Link>
             ))}
           </div>
+          <button
+            type="button"
+            onClick={() => rotateBrands(1)}
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+            aria-label="Xem nhãn hàng tiếp theo"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
         </div>
       </section>
 
