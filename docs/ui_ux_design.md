@@ -361,7 +361,7 @@ graph TD
 │  │7.990.000│ │         │ │4.990.000│ │         │ │        ││
 │  │6.990.000│ │12.990.0 │ │3.490.000│ │8.990.000│ │43.990. ││
 │  │ (đỏ đậm)│ │ (đỏ đậm)│ │ [-30%]  │ │(đỏ đậm) │ │(đỏ đậm)││
-│  │☑ So sánh│ │☑ So sánh│ │☑ So sánh│ │☑ So sánh│ │☑Sosánh ││
+│  │         │ │         │ │         │ │         │ │        ││
 │  │✓Còn hàng│ │✓Còn hàng│ │✓Còn hàng│ │✓Còn hàng│ │✓Còn hg ││
 │  │ [🛒]    │ │ [🛒]    │ │ [🛒]    │ │ [🛒]    │ │ [🛒]   ││
 │  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └────────┘│
@@ -386,7 +386,7 @@ graph TD
 - Rating (stars vàng + số review, text xám)
 - **Giá gốc** (line-through, text xám nhạt) — nếu giảm giá
 - **Giá bán** (bold, **MÀU ĐỎ ĐẬM `#E31837`**, cỡ to)
-- Hover: shadow lớn hơn, nút "So sánh" + "Yêu thích ❤️" xuất hiện
+- Hover: shadow lớn hơn, nút "Yêu thích ❤️" xuất hiện
 - Nút icon giỏ hàng nhỏ (góc dưới phải), badge "Còn hàng" xanh lá
 
 ### 4.2. Danh sách sản phẩm (`/products?category=cpu`)
@@ -466,11 +466,10 @@ graph TD
 │                          │  │  ĐẶT MUA NGAY  │  │                      │
 │                          │  │  (btn ĐỎ, lớn) │  │                      │
 │                          │  └────────────────┘  │                      │
-│                          │  ┌───────┐┌────────┐ │                      │
-│                          │  │MUA TRẢ││CHO VÀO │ │                      │
-│                          │  │  GÓP  ││  GIỎ   │ │                      │
-│                          │  │(viền) ││(xanh)  │ │                      │
-│                          │  └───────┘└────────┘ │                      │
+│                          │  ┌────────────────┐  │                      │
+│                          │  │  CHO VÀO GIỎ   │  │                      │
+│                          │  │  (btn xanh)     │  │                      │
+│                          │  └────────────────┘  │                      │
 ├──────────────────────────┴──────────────────────┴──────────────────────┤
 │                                                                        │
 │  Tab Thông số:  (nền trắng, zebra stripes xám/trắng)                  │
@@ -505,9 +504,7 @@ graph TD
 **Layout giá:**
 - Giá gốc: text xám, gạch ngang, cỡ nhỏ
 - Giá sale: **text đỏ đậm (#E31837)**, bold, cỡ lớn (24px+)
-- Button "ĐẶT MUA NGAY": full width, **nền đỏ (#E31837)**, text trắng, cỡ to
-- Button "MUA TRẢ GÓP": viền xám, half width
-- Button "CHO VÀO GIỎ": **nền xanh (blue-600)**, text trắng, half width
+- Button "CHO VÀO GIỎ": **nền xanh (blue-600)**, text trắng, full width
 
 ### 4.4. Build PC (`/build-pc`)
 
@@ -607,9 +604,6 @@ graph TD
 │  │     │ • Ưu đãi giảm 200K mua kèm Win      │      │         │  │
 │  │     │ • Ưu đãi giảm 1tr mua máy in         │      │         │  │
 │  │     │                                      │      │         │  │
-│  │     │ ── Dịch vụ bảo hành (tùy chọn) ──   │      │         │  │
-│  │     │ ☐ Thêm 2 năm BH (+679.000đ)         │      │         │  │
-│  │     │ ☐ Thêm 1 năm BH (+539.000đ)         │      │         │  │
 │  └─────┴──────────────────────────────────────┴──────┴─────────┘  │
 │                                                                    │
 │  ── MÃ GIẢM GIÁ / QUÀ TẶNG ─── (bên trái)                       │
@@ -629,22 +623,22 @@ graph TD
 │                                                                    │
 │                         [📄 In báo giá]  [📊 Tải file excel]       │
 │                                                                    │
-│  ┌─────────────────────────────┐ ┌─────────────────────────────┐  │
-│  │        ĐẶT HÀNG            │ │       MUA TRẢ GÓP           │  │
-│  │   (btn xanh đậm, lớn)      │ │   (btn ĐỎ/CAM, lớn)        │  │
-│  └─────────────────────────────┘ └─────────────────────────────┘  │
+│  ┌─────────────────────────────────────────────────────────────┐  │
+│  │                        ĐẶT HÀNG                              │  │
+│  │                  (btn xanh đậm, lớn)                         │  │
+│  └─────────────────────────────────────────────────────────────┘  │
 │                                                                    │
 │  [FOOTER]                                                          │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
 **Đặc điểm Cart (theo An Phát PC):**
-- Mỗi SP hiển thị: ảnh, tên, mã SP, thời gian BH, khuyến mãi đi kèm, dịch vụ BH tùy chọn (checkbox)
+- Mỗi SP hiển thị: ảnh, tên, mã SP, thời gian BH, khuyến mãi đi kèm
 - Quantity control `[- 1 +]` bên phải
 - Giá từng SP và tổng từng SP bên phải (text đỏ đậm)
 - Phần tổng kết căn phải: phí VC, phí thu hộ, tổng, giảm, thanh toán
 - **Thanh toán** (text đỏ đậm lớn nhất)
-- 2 nút lớn: "ĐẶT HÀNG" (xanh đậm) + "MUA TRẢ GÓP" (đỏ/cam)
+- 1 nút lớn: "ĐẶT HÀNG" (xanh đậm)
 
 ### 4.6. Checkout (`/checkout`)
 
@@ -836,11 +830,12 @@ graph TD
 | Ký hiệu UI | Backend Enum | Màu Badge | Ý nghĩa |
 |:----------|:-------------|:----------|:-------|
 | 🟡 PEND | `PENDING` | Yellow | Chờ xử lý |
-| 🔵 DELI | `DELIVERING` | Blue | Đang giao |
+| 🟠 CONF | `CONFIRMED` | Orange | Đã xác nhận |
+| 🔵 SHIP | `SHIPPING` | Blue | Đang giao |
 | 🟢 COMP | `COMPLETED` | Green | Hoàn thành |
 | 🔴 CANC | `CANCELLED` | Red | Đã hủy |
 
-> Wireframe dùng mã tắt do giới hạn không gian cột. Khi implement, dùng `Badge` component với text đầy đủ tiếng Việt ("Chờ xử lý", "Đang giao", ...) và mapping từ enum backend.
+> Wireframe dùng mã tắt do giới hạn không gian cột. Khi implement, dùng `Badge` component với text đầy đủ tiếng Việt ("Chờ xử lý", "Đã xác nhận", "Đang giao", ...) và mapping từ enum backend.
 
 ### 5.4. Quản lý banner / slider (`/admin/banners`)
 

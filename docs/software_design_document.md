@@ -198,7 +198,7 @@ Hệ thống được thiết kế theo kiến trúc **Monolithic phân lớp (L
 
 ### 3.1. Tổng quan mô hình dữ liệu
 
-Hệ thống quản lý **32 thực thể (Entity)** chính, được nhóm thành **7 nhóm nghiệp vụ** như mô tả trong tài liệu SRS. Dưới đây là thiết kế lược đồ cơ sở dữ liệu chi tiết cho từng nhóm.
+Hệ thống quản lý **34 thực thể (Entity)** chính, được nhóm thành **9 nhóm nghiệp vụ** như mô tả trong tài liệu SRS. Dưới đây là thiết kế lược đồ cơ sở dữ liệu chi tiết cho từng nhóm.
 
 ### 3.2. Nhóm Phân quyền (Authentication & Authorization)
 
@@ -392,7 +392,7 @@ Hệ thống quản lý **32 thực thể (Entity)** chính, được nhóm thà
 |:----|:--------------|:----------|:------|
 | id | BIGINT | PK, AUTO\_INCREMENT | Khóa chính |
 | product\_id | BIGINT | FK → Product(id), NOT NULL | Sản phẩm |
-| type | VARCHAR(20) | NOT NULL | Loại: IMPORT, SELL, RETURN, ADJUSTMENT |
+| type | VARCHAR(20) | NOT NULL | Loại: IMPORT, SALE, RETURN, ADJUSTMENT |
 | quantity\_change | INT | NOT NULL | Số lượng thay đổi (có dấu +/-) |
 | performed\_by | BIGINT | FK → Account(id), NULLABLE | Người thực hiện |
 | note | TEXT | NULLABLE | Ghi chú |
@@ -440,7 +440,7 @@ Hệ thống quản lý **32 thực thể (Entity)** chính, được nhóm thà
 |:----|:--------------|:----------|:------|
 | id | BIGINT | PK, AUTO\_INCREMENT | Khóa chính |
 | code | VARCHAR(50) | UNIQUE, NOT NULL | Mã giảm giá |
-| discount\_type | VARCHAR(10) | NOT NULL | PERCENT hoặc FIXED |
+| discount\_type | VARCHAR(20) | NOT NULL | PERCENTAGE hoặc FIXED |
 | discount\_value | DECIMAL(15,2) | NOT NULL | Giá trị giảm |
 | min\_order\_value | DECIMAL(15,2) | DEFAULT 0 | Đơn tối thiểu |
 | max\_discount | DECIMAL(15,2) | NULLABLE | Giảm tối đa (cho PERCENT) |
@@ -460,7 +460,7 @@ Hệ thống quản lý **32 thực thể (Entity)** chính, được nhóm thà
 | subtotal | DECIMAL(15,2) | NOT NULL | Tổng tiền hàng |
 | discount\_amount | DECIMAL(15,2) | DEFAULT 0 | Tiền giảm giá |
 | total\_amount | DECIMAL(15,2) | NOT NULL | Tổng thanh toán |
-| status | VARCHAR(20) | DEFAULT 'PENDING' | PENDING, DELIVERING, COMPLETED, CANCELLED |
+| status | VARCHAR(20) | DEFAULT 'PENDING' | PENDING, CONFIRMED, SHIPPING, COMPLETED, CANCELLED |
 | note | TEXT | NULLABLE | Ghi chú |
 | coupon\_id | BIGINT | FK → Coupon(id), NULLABLE | Mã giảm giá đã áp dụng |
 | created\_at | TIMESTAMP | DEFAULT NOW() | Ngày tạo |
@@ -574,7 +574,7 @@ Hệ thống quản lý **32 thực thể (Entity)** chính, được nhóm thà
 | order\_id | BIGINT | FK → Order(id), NOT NULL | Đơn hàng |
 | serial\_number | VARCHAR(100) | NULLABLE | Số Serial |
 | issue\_description | TEXT | NOT NULL | Mô tả lỗi |
-| status | VARCHAR(20) | DEFAULT 'RECEIVED' | RECEIVED, PROCESSING, REPAIRED, REJECTED, RETURNED |
+| status | VARCHAR(20) | DEFAULT 'RECEIVED' | RECEIVED, INSPECTING, RESOLVED, REJECTED |
 | resolution | TEXT | NULLABLE | Kết quả xử lý |
 | resolved\_at | TIMESTAMP | NULLABLE | Ngày hoàn tất |
 | created\_at | TIMESTAMP | DEFAULT NOW() | Ngày tạo |
@@ -590,7 +590,7 @@ Hệ thống quản lý **32 thực thể (Entity)** chính, được nhóm thà
 | order\_detail\_id | BIGINT | FK → Order\_Detail(id), NOT NULL | Chi tiết đơn hàng |
 | type | VARCHAR(20) | NOT NULL | EXCHANGE hoặc REFUND |
 | reason | TEXT | NOT NULL | Lý do |
-| status | VARCHAR(20) | DEFAULT 'PENDING\_APPROVAL' | PENDING\_APPROVAL, APPROVED, REJECTED |
+| status | VARCHAR(20) | DEFAULT 'PENDING\_APPROVAL' | PENDING\_APPROVAL, APPROVED, REJECTED, COMPLETED |
 | refund\_amount | DECIMAL(15,2) | NULLABLE | Số tiền hoàn (nếu REFUND) |
 | resolved\_at | TIMESTAMP | NULLABLE | Ngày giải quyết |
 | created\_at | TIMESTAMP | DEFAULT NOW() | Ngày tạo |
@@ -848,7 +848,7 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 2. Validate Coupon (nếu có): code đúng, còn hạn, chưa vượt max\_uses, chưa sử dụng bởi user (Coupon\_Usage).
 3. Kiểm tra tồn kho: với mỗi Cart\_Item, kiểm tra `Inventory.quantity ≥ requested_qty`. Nếu không đủ → trả lỗi chỉ rõ SP hết hàng.
 4. Tạo Order (status=PENDING) + Order\_Detail (snapshot đơn giá) + Payment (status=PENDING) + Shipping (status=WAITING\_PICKUP) + Order\_Status\_History.
-5. Trừ kho: `Inventory.quantity -= qty`, tạo Inventory\_Log (type=SELL).
+5. Trừ kho: `Inventory.quantity -= qty`, tạo Inventory\_Log (type=SALE).
 6. Nếu có Coupon: tạo Coupon\_Usage, tăng Coupon.used\_count.
 7. Xóa Cart\_Item đã thanh toán.
 8. Nếu online payment (MoMo): redirect sang cổng → callback cập nhật Payment.status + transaction\_id.
@@ -857,16 +857,17 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 **State Machine — Trạng thái đơn hàng:**
 
 ```
-  PENDING ────────────► DELIVERING ────────────► COMPLETED
-     │                       │                        
-     │                       │                        
-     └───────────────────────┴─────────► CANCELLED    
+  PENDING ──► CONFIRMED ──► SHIPPING ──► COMPLETED
+     │            │              │
+     │            │              │
+     └────────────┴──────────────┴───────► CANCELLED
 ```
 
 **Quy tắc chuyển trạng thái:**
-- `PENDING → DELIVERING`: Sales/Admin xác nhận giao cho vận chuyển.
-- `DELIVERING → COMPLETED`: Shipping.status = DELIVERED → tự động chuyển.
-- `Any → CANCELLED`: Hoàn kho (Inventory\_Log type=RETURN), hoàn Coupon (giảm used\_count, xóa Coupon\_Usage).
+- `PENDING → CONFIRMED`: Sales/Admin xác nhận đơn hàng.
+- `CONFIRMED → SHIPPING`: Đã bàn giao cho đơn vị vận chuyển.
+- `SHIPPING → COMPLETED`: Shipping.status = DELIVERED → tự động chuyển.
+- `PENDING/CONFIRMED/SHIPPING → CANCELLED`: Hoàn kho (Inventory\_Log type=RETURN), hoàn Coupon (giảm used\_count, xóa Coupon\_Usage).
 
 ### 5.4. BuildPCService — Xây dựng cấu hình PC
 
@@ -901,7 +902,7 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 **Quy tắc bảo hành:**
 - Kiểm tra Warranty\_Policy: ưu tiên Product > Category.
 - Kiểm tra thời hạn: `Order.created_at + duration_months > NOW()`.
-- State Machine phiếu BH: `RECEIVED → PROCESSING → REPAIRED/REJECTED → RETURNED`.
+- State Machine phiếu BH: `RECEIVED → INSPECTING → RESOLVED/REJECTED`.
 
 **Quy tắc đổi trả:**
 - Duyệt + Hoàn tiền: Tạo Payment (status=REFUNDED), Inventory\_Log (type=RETURN).
@@ -1502,7 +1503,8 @@ classDiagram
     class OrderStatus {
         <<enumeration>>
         PENDING
-        DELIVERING
+        CONFIRMED
+        SHIPPING
         COMPLETED
         CANCELLED
     }
@@ -1904,16 +1906,16 @@ classDiagram
 |:-----|:--------|
 | Product.condition | `NEW`, `BOX`, `TRAY`, `SECOND_HAND` |
 | Product.status | `ACTIVE`, `INACTIVE`, `DISCONTINUED` |
-| Order.status | `PENDING`, `DELIVERING`, `COMPLETED`, `CANCELLED` |
+| Order.status | `PENDING`, `CONFIRMED`, `SHIPPING`, `COMPLETED`, `CANCELLED` |
 | Payment.method | `COD`, `MOMO` |
 | Payment.status | `PENDING`, `SUCCESS`, `FAILED`, `REFUNDED` |
 | Shipping.status | `WAITING_PICKUP`, `IN_TRANSIT`, `DELIVERED`, `FAILED` |
-| Inventory\_Log.type | `IMPORT`, `SELL`, `RETURN`, `ADJUSTMENT` |
+| Inventory\_Log.type | `IMPORT`, `SALE`, `RETURN`, `ADJUSTMENT` |
 | Token.token\_type | `REFRESH`, `RESET_PASSWORD`, `OTP` |
-| Warranty\_Ticket.status | `RECEIVED`, `PROCESSING`, `REPAIRED`, `REJECTED`, `RETURNED` |
+| Warranty\_Ticket.status | `RECEIVED`, `INSPECTING`, `RESOLVED`, `REJECTED` |
 | Return.type | `EXCHANGE`, `REFUND` |
-| Return.status | `PENDING_APPROVAL`, `APPROVED`, `REJECTED` |
-| Coupon.discount\_type | `PERCENT`, `FIXED` |
+| Return.status | `PENDING_APPROVAL`, `APPROVED`, `REJECTED`, `COMPLETED` |
+| Coupon.discount\_type | `PERCENTAGE`, `FIXED` |
 | Role.name | `ADMIN`, `SALES`, `WAREHOUSE`, `CUSTOMER` |
 
 ### 12.2. Công nghệ đề xuất (Technology Stack Summary)
