@@ -120,3 +120,23 @@
 .animate-badge-bounce {
   animation: badge-bounce 0.4s ease-out;
 }
+
+/* Brand carousel on the homepage */
+@keyframes brand-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-brand-marquee {
+  animation: brand-marquee 26s linear infinite;
+}
+
+.animate-brand-marquee:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-brand-marquee {
+    animation: none;
+  }
+}

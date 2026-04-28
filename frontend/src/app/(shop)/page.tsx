@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Cpu, Monitor, MemoryStick, HardDrive, Zap, ShoppingCart, ArrowRight, ChevronRight, Truck, Shield, Headphones, Check, Loader2 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useCartStore } from "@/stores/cart-store";
 import api, { getBanners } from "@/lib/api";
 import type { Banner } from "@/types";
@@ -78,6 +78,8 @@ const promoBanners = [
   { title: "MÀN HÌNH", sub: "Giảm 1 Triệu", gradient: "from-blue-500 to-cyan-400" },
   { title: "GEAR", sub: "Giảm 50%", gradient: "from-fuchsia-500 to-purple-500" },
 ];
+
+const defaultBrands = ["Intel", "AMD", "ASUS", "GIGABYTE", "MSI", "CORSAIR", "Kingston", "Samsung", "Western Digital", "NZXT"];
 
 function formatPrice(price: number): string {
   return price.toLocaleString("vi-VN") + " đ";
@@ -195,7 +197,6 @@ export default function HomePage() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [showPopupBanner, setShowPopupBanner] = useState(false);
   const [showAllCategories, setShowAllCategories] = useState(false);
-  const [showAllBrands, setShowAllBrands] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
 
   const handleAddToCart = useCallback(async (productId: number) => {
@@ -280,9 +281,11 @@ export default function HomePage() {
   const { mainBanner, sideBanners, popupBanner, customBanners } = getHomepageBannerLayout(banners);
   const sideBannerSlots = Array.from({ length: 3 }, (_, index) => sideBanners[index] ?? null);
   const visibleCategories = showAllCategories ? categories : categories.slice(0, 8);
-  const visibleBrands = showAllBrands ? brands : brands.slice(0, 12);
+  const carouselBrands = useMemo(() => {
+    const source = brands.length > 0 ? brands : defaultBrands;
+    return [...source, ...source];
+  }, [brands]);
   const canExpandCategories = categories.length > 8;
-  const canExpandBrands = brands.length > 12;
 
   const dismissPopupBanner = () => {
     if (popupBanner && typeof window !== "undefined") {
@@ -347,32 +350,6 @@ export default function HomePage() {
                   ))}
                 </div>
               </div>
-              <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
-                <h2 className="text-sm font-bold uppercase tracking-wide text-[#1A4B9C]">Nhãn hàng</h2>
-                {canExpandBrands && (
-                  <button
-                    type="button"
-                    onClick={() => setShowAllBrands((value) => !value)}
-                    aria-expanded={showAllBrands}
-                    className="text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700"
-                  >
-                    {showAllBrands ? "Thu gọn" : "Xem thêm"}
-                  </button>
-                )}
-              </div>
-              <div className="px-3 pb-4 xl:min-h-[112px] xl:max-h-[132px] xl:overflow-y-auto">
-                <div className="flex flex-wrap gap-2">
-                  {visibleBrands.map((brand) => (
-                    <Link
-                      key={brand}
-                      href="/products"
-                      className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-                    >
-                      {brand}
-                    </Link>
-                  ))}
-                </div>
-              </div>
             </div>
           </aside>
 
@@ -386,15 +363,6 @@ export default function HomePage() {
                 alt={mainBanner.title}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0D2B5E]/90 via-[#1A4B9C]/70 to-black/10" />
-              <div className="relative flex-1 p-8 flex flex-col justify-center max-w-xl">
-                <span className="text-amber-300 text-sm font-semibold mb-2 uppercase tracking-wide">Khuyến mãi nổi bật</span>
-                <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-3">{mainBanner.title}</h1>
-                <p className="text-white/85 mb-6 text-sm">Ưu đãi linh kiện, combo PC và thiết bị công nghệ đang được cập nhật.</p>
-                <span className="inline-flex w-fit items-center gap-2 bg-[#E31837] hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all shadow-lg active:scale-95">
-                  Xem ngay <ArrowRight className="w-4 h-4" />
-                </span>
-              </div>
             </Link>
           ) : (
             <div className="order-1 xl:order-2 relative flex min-h-[320px] overflow-hidden rounded-2xl bg-gradient-to-r from-[#1A4B9C] to-[#2563EB] text-white xl:h-full xl:min-h-0">
@@ -430,16 +398,8 @@ export default function HomePage() {
 
           <div className="order-3 flex flex-col gap-4 xl:h-full xl:min-h-0">
             {sideBannerSlots.map((banner, index) => banner ? (
-              <Link key={banner.id} href={banner.linkUrl || "/products"} className="relative flex-1 min-h-[130px] overflow-hidden rounded-2xl bg-gray-900 p-5 text-white group xl:min-h-0">
+              <Link key={banner.id} href={banner.linkUrl || "/products"} className="relative flex-1 min-h-[130px] overflow-hidden rounded-2xl bg-gray-900 text-white group xl:min-h-0">
                 <img src={banner.imageUrl} alt={banner.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
-                <div className="relative flex h-full flex-col justify-end">
-                  <p className="text-sm font-semibold opacity-90 mb-1">Ưu đãi</p>
-                  <p className="text-xl font-bold line-clamp-2">{banner.title}</p>
-                </div>
-                <span className="relative text-sm mt-2 flex items-center gap-1 underline underline-offset-4 hover:opacity-80 transition-opacity">
-                  Xem ngay <ArrowRight className="w-3 h-3" />
-                </span>
               </Link>
             ) : (
               <div
@@ -462,6 +422,23 @@ export default function HomePage() {
                   {index === 0 ? "Xây dựng ngay" : "Xem ngay"} <ArrowRight className="w-3 h-3" />
                 </Link>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Brand carousel */}
+      <section className={HOME_FULL_BLEED_SECTION_CLASSES}>
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white py-3 shadow-sm">
+          <div className="flex w-max gap-3 animate-brand-marquee">
+            {carouselBrands.map((brand, index) => (
+              <Link
+                key={`${brand}-${index}`}
+                href={`/products?brand=${encodeURIComponent(brand)}`}
+                className="flex h-10 min-w-32 items-center justify-center rounded-full border border-gray-200 bg-gray-50 px-5 text-sm font-semibold text-gray-700 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+              >
+                {brand}
+              </Link>
             ))}
           </div>
         </div>
