@@ -17,6 +17,7 @@ import {
   Users,
   RotateCcw,
   BarChart3,
+  Images,
   LucideIcon,
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
@@ -47,6 +48,7 @@ const adminNavItems: NavItem[] = [
   { href: "/admin/returns", label: "Đổi trả", icon: RotateCcw, permission: Permission.RETURN_VIEW },
   { href: "/admin/accounts", label: "Tài khoản", icon: Users, permission: Permission.ACCOUNT_VIEW },
   { href: "/admin/statistics", label: "Thống kê", icon: BarChart3, permission: Permission.REPORT_REVENUE },
+  { href: "/admin/banners", label: "Banner", icon: Images, permission: Permission.BANNER_VIEW },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

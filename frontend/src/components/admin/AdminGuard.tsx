@@ -26,6 +26,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
 
   // Wait for client-side hydration
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

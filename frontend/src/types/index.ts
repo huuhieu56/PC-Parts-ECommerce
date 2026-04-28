@@ -194,6 +194,40 @@ export interface Coupon {
   endDate: string;
 }
 
+// --- Banner / Slider ---
+export type BannerStatus = "ACTIVE" | "INACTIVE";
+export type BannerPlacement = "MAIN" | "SIDE_1" | "SIDE_2" | "SIDE_3" | "POPUP" | "EVENT" | "CUSTOM";
+
+export interface Banner {
+  id: number;
+  title: string;
+  imageUrl: string;
+  linkUrl: string | null;
+  placement: BannerPlacement;
+  sortOrder: number;
+  status: BannerStatus;
+  startDate: string | null;
+  endDate: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface BannerPayload {
+  title: string;
+  image?: File | null;
+  linkUrl?: string | null;
+  placement: BannerPlacement;
+  sortOrder?: number | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  status: BannerStatus;
+}
+
+export interface BannerOrderRequest {
+  id: number;
+  sortOrder: number;
+}
+
 // --- Inventory ---
 export interface InventoryDto {
   productId: number;

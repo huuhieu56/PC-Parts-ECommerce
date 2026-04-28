@@ -58,6 +58,7 @@ Hệ thống bao gồm các module chức năng chính sau:
 | M09 | Bảo hành & Đổi trả | Warranty\_Policy, Warranty\_Ticket, Return/Refund |
 | M10 | Thông báo | Notification (Email & In-app) |
 | M11 | Quản trị Hệ thống | Quản lý tài khoản, Thống kê doanh thu |
+| M12 | Nội dung | Banner/Slider trang chủ, upload ảnh MinIO, sắp xếp |
 
 ### 1.3. Tài liệu tham chiếu (References)
 
@@ -800,6 +801,21 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 | POST | `/users/addresses` | Thêm địa chỉ | Customer |
 | PUT | `/users/addresses/{id}` | Sửa địa chỉ | Customer |
 | DELETE | `/users/addresses/{id}` | Xóa địa chỉ | Customer |
+
+#### 4.2.12. Module Nội dung (M12 - Banner/Slider)
+
+| Method | Endpoint | Mô tả | Actor |
+|:-------|:---------|:------|:------|
+| GET | `/banners` | Danh sách banner active còn hiệu lực cho trang chủ | Public |
+| GET | `/admin/banners` | Danh sách tất cả banner | Admin |
+| POST | `/admin/banners` | Tạo banner, upload ảnh MinIO qua multipart | Admin |
+| PUT | `/admin/banners/{id}` | Cập nhật banner, ảnh mới là tùy chọn | Admin |
+| DELETE | `/admin/banners/{id}` | Xóa banner | Admin |
+| PATCH | `/admin/banners/reorder` | Cập nhật thứ tự hiển thị | Admin |
+
+**Request multipart tạo/cập nhật:** `title`, `image`, `linkUrl`, `placement`, `sortOrder`, `startDate`, `endDate`, `status`.
+
+**Validation:** `title` và `image` bắt buộc khi tạo; ảnh chỉ nhận JPG/PNG/WEBP và tối đa 5MB; `endDate` phải sau `startDate`; `placement` hợp lệ (MAIN/SIDE_1/SIDE_2/SIDE_3/POPUP/EVENT/CUSTOM) và các vị trí khác CUSTOM chỉ có 1 banner.
 
 ### 4.3. Giao diện tích hợp bên ngoài (External Integration Interfaces)
 
@@ -1946,4 +1962,3 @@ classDiagram
 ---
 
 *Hết tài liệu — Software Design Document v1.0*
-

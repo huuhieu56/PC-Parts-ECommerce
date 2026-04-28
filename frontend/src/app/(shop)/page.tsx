@@ -1,10 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { Cpu, Monitor, MemoryStick, HardDrive, Zap, ShoppingCart, ArrowRight, ChevronRight, Truck, Shield, Headphones, Check, Loader2 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { Cpu, Monitor, MemoryStick, HardDrive, Zap, ShoppingCart, ArrowRight, ChevronLeft, ChevronRight, Truck, Shield, Headphones, Check, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useCartStore } from "@/stores/cart-store";
-import api from "@/lib/api";
+import api, { getBanners } from "@/lib/api";
+import type { Banner } from "@/types";
+import {
+  HOME_BRAND_ROTATION_INTERVAL_MS,
+  HOME_BRAND_VISIBLE_ITEM_COUNT,
+  HOME_FULL_BLEED_SECTION_CLASSES,
+  HOME_FULL_BLEED_SECTION_SPACED_CLASSES,
+  HOME_HERO_GRID_COLUMNS_CLASS,
+  HOME_HERO_VIEWPORT_CLASSES,
+  getEventBannerDismissStorageKey,
+  getHomepageBannerLayout,
+  getPopupDismissStorageKey,
+} from "./homeBannerLayout";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 
@@ -69,6 +81,8 @@ const promoBanners = [
   { title: "MÀN HÌNH", sub: "Giảm 1 Triệu", gradient: "from-blue-500 to-cyan-400" },
   { title: "GEAR", sub: "Giảm 50%", gradient: "from-fuchsia-500 to-purple-500" },
 ];
+
+const defaultBrands = ["Intel", "AMD", "ASUS", "GIGABYTE", "MSI", "CORSAIR", "Kingston", "Samsung", "Western Digital", "NZXT"];
 
 function formatPrice(price: number): string {
   return price.toLocaleString("vi-VN") + " đ";
@@ -183,6 +197,11 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<CategoryDisplay[]>(defaultCategories);
   const [brands, setBrands] = useState<string[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [showPopupBanner, setShowPopupBanner] = useState(false);
+  const [showEventBanner, setShowEventBanner] = useState(false);
+  const [showAllCategories, setShowAllCategories] = useState(false);
+  const [brandStartIndex, setBrandStartIndex] = useState(0);
   const addItem = useCartStore((s) => s.addItem);
 
   const handleAddToCart = useCallback(async (productId: number) => {
@@ -239,102 +258,283 @@ export default function HomePage() {
       } catch { /* fallback */ }
     }
 
+    async function fetchBanners() {
+      try {
+        const data = await getBanners();
+        setBanners(data);
+      } catch { /* fallback to static hero */ }
+    }
+
     fetchProducts();
     fetchCategories();
     fetchBrands();
+    fetchBanners();
   }, []);
+
+  useEffect(() => {
+    const { eventBanner, popupBanner } = getHomepageBannerLayout(banners);
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (eventBanner) {
+      const dismissKey = getEventBannerDismissStorageKey(eventBanner.id);
+      if (!window.localStorage.getItem(dismissKey)) {
+        setShowEventBanner(true);
+        return;
+      }
+    }
+
+    if (!popupBanner) {
+      return;
+    }
+
+    const dismissKey = getPopupDismissStorageKey(popupBanner.id);
+    if (!window.localStorage.getItem(dismissKey)) {
+      setShowPopupBanner(true);
+    }
+  }, [banners]);
+
+  const { mainBanner, sideBanners, popupBanner, eventBanner, customBanners } = getHomepageBannerLayout(banners);
+  const sideBannerSlots = Array.from({ length: 3 }, (_, index) => sideBanners[index] ?? null);
+  const visibleCategories = showAllCategories ? categories : categories.slice(0, 8);
+  const brandItems = useMemo(() => brands.length > 0 ? brands : defaultBrands, [brands]);
+  const visibleBrandItems = useMemo(() => {
+    const visibleCount = Math.min(HOME_BRAND_VISIBLE_ITEM_COUNT, brandItems.length);
+    return Array.from({ length: visibleCount }, (_, index) => brandItems[(brandStartIndex + index) % brandItems.length]);
+  }, [brandItems, brandStartIndex]);
+  const canExpandCategories = categories.length > 8;
+
+  useEffect(() => {
+    if (brandItems.length <= HOME_BRAND_VISIBLE_ITEM_COUNT) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setBrandStartIndex((current) => (current + 1) % brandItems.length);
+    }, HOME_BRAND_ROTATION_INTERVAL_MS);
+
+    return () => window.clearInterval(timer);
+  }, [brandItems.length]);
+
+  const rotateBrands = (direction: 1 | -1) => {
+    setBrandStartIndex((current) => (current + direction + brandItems.length) % brandItems.length);
+  };
+
+  const dismissPopupBanner = () => {
+    if (popupBanner && typeof window !== "undefined") {
+      window.localStorage.setItem(getPopupDismissStorageKey(popupBanner.id), "1");
+    }
+    setShowPopupBanner(false);
+  };
+
+  const dismissEventBanner = () => {
+    if (eventBanner && typeof window !== "undefined") {
+      window.localStorage.setItem(getEventBannerDismissStorageKey(eventBanner.id), "1");
+    }
+    setShowEventBanner(false);
+  };
 
   return (
     <div className="bg-gray-50">
-      {/* Hero Banner + Promo Cards */}
-      <section className="max-w-7xl mx-auto px-4 py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Main Hero Banner */}
-          <div className="lg:col-span-2 relative rounded-xl overflow-hidden bg-gradient-to-r from-[#1A4B9C] to-[#2563EB] text-white min-h-[300px] flex">
-            <div className="flex-1 p-8 flex flex-col justify-center">
-              <span className="text-amber-400 text-sm font-semibold mb-2 uppercase tracking-wide">🔥 Sản phẩm HOT</span>
-              <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-3">
-                Linh kiện chính hãng<br />
-                <span className="text-amber-400">Giá tốt nhất</span>
-              </h1>
-              <p className="text-white/80 mb-6 text-sm">
-                CPU, GPU, RAM, SSD từ Intel, AMD, NVIDIA — Bảo hành chính hãng
-              </p>
-              <div className="flex gap-3">
-                <Link
-                  href="/products"
-                  className="bg-[#E31837] hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all shadow-lg active:scale-95 cursor-pointer"
-                >
-                  MUA NGAY
-                </Link>
-                <Link
-                  href="/build-pc"
-                  className="bg-white/15 hover:bg-white/25 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all backdrop-blur-sm border border-white/20 active:scale-95 cursor-pointer"
-                >
-                  BUILD PC
-                </Link>
+      {showEventBanner && eventBanner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 px-4 backdrop-blur-[2px]">
+          <div className="relative w-full max-w-4xl rounded-[1.75rem] bg-white/10 p-2 shadow-[0_0_40px_rgba(255,255,255,0.25)] ring-1 ring-white/35 backdrop-blur-sm">
+            <button
+              type="button"
+              onClick={dismissEventBanner}
+              className="absolute -right-3 -top-3 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border-4 border-white bg-red-600 text-white shadow-lg transition hover:bg-red-700"
+              aria-label="Đóng event banner"
+            >
+              <span className="text-3xl font-bold leading-none">×</span>
+            </button>
+            <Link href={eventBanner.linkUrl || "/products"} onClick={dismissEventBanner} className="block overflow-hidden rounded-[1.35rem] bg-white">
+              <img
+                src={eventBanner.imageUrl}
+                alt={eventBanner.title}
+                className="h-auto max-h-[78vh] w-full object-contain"
+              />
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {!showEventBanner && showPopupBanner && popupBanner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+            <button
+              type="button"
+              onClick={dismissPopupBanner}
+              className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/65 text-white transition hover:bg-black/80"
+              aria-label="Đóng banner popup"
+            >
+              <span className="text-lg leading-none">×</span>
+            </button>
+            <Link href={popupBanner.linkUrl || "/products"} onClick={dismissPopupBanner} className="block">
+              <img
+                src={popupBanner.imageUrl}
+                alt={popupBanner.title}
+                className="h-auto max-h-[80vh] w-full object-cover"
+              />
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Hero Banner + Sidebar */}
+      <section className={HOME_FULL_BLEED_SECTION_CLASSES}>
+        <div className={`grid grid-cols-1 gap-4 xl:items-stretch ${HOME_HERO_GRID_COLUMNS_CLASS} ${HOME_HERO_VIEWPORT_CLASSES}`}>
+          <aside className="order-2 xl:order-1 xl:h-full xl:min-h-0">
+            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm xl:flex xl:h-full xl:min-h-0 xl:flex-col">
+              <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+                <h2 className="text-sm font-bold uppercase tracking-wide text-[#1A4B9C]">Danh mục</h2>
+                {canExpandCategories && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllCategories((value) => !value)}
+                    aria-expanded={showAllCategories}
+                    className="text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700"
+                  >
+                    {showAllCategories ? "Thu gọn" : "Xem thêm"}
+                  </button>
+                )}
+              </div>
+              <div className="p-3 xl:min-h-0 xl:flex-1">
+                <div className="grid grid-cols-2 gap-2 xl:h-full xl:grid-cols-1 xl:overflow-y-auto xl:pr-1">
+                  {visibleCategories.map((cat) => (
+                    <Link
+                      key={cat.name}
+                      href={cat.href}
+                      className={`flex items-center gap-3 rounded-xl border px-3 py-3 transition-all hover:shadow-sm ${cat.color}`}
+                    >
+                      <cat.icon className="h-5 w-5 shrink-0" />
+                      <span className="text-sm font-medium">{cat.name}</span>
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
-            <div className="hidden md:flex items-center justify-center pr-8 opacity-30">
-              <Cpu className="w-48 h-48" />
-            </div>
-          </div>
-          {/* Side Promo Cards */}
-          <div className="flex flex-col gap-4">
-            <div className="flex-1 rounded-xl overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-500 text-white p-5 flex flex-col justify-center">
-              <p className="text-sm font-semibold opacity-90 mb-1">BUILD PC CẤP</p>
-              <p className="text-2xl font-bold">Giảm lên đến 30tr</p>
-              <Link href="/build-pc" className="text-sm mt-2 flex items-center gap-1 underline underline-offset-4 hover:opacity-80 transition-opacity">
-                Xây dựng ngay <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-            <div className="flex-1 rounded-xl overflow-hidden bg-gradient-to-r from-orange-500 to-red-500 text-white p-5 flex flex-col justify-center">
-              <p className="text-sm font-semibold opacity-90 mb-1">LAPTOP</p>
-              <p className="text-2xl font-bold">Giảm thêm 1 Triệu</p>
-              <Link href="/products" className="text-sm mt-2 flex items-center gap-1 underline underline-offset-4 hover:opacity-80 transition-opacity">
-                Xem ngay <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+          </aside>
 
-      {/* Featured Categories */}
-      <section className="max-w-7xl mx-auto px-4 py-6">
-        <div className="bg-white rounded-xl p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Danh mục nổi bật</h2>
-          <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
-            {categories.map((cat) => (
-              <Link
-                key={cat.name}
-                href={cat.href}
-                className={`flex flex-col items-center gap-2 p-3 rounded-xl border hover:shadow-md transition-all cursor-pointer active:scale-95 ${cat.color}`}
+          {mainBanner ? (
+            <Link
+              href={mainBanner.linkUrl || "/products"}
+              className="order-1 xl:order-2 relative flex min-h-[320px] overflow-hidden rounded-2xl bg-[#1A4B9C] text-white group xl:h-full xl:min-h-0"
+            >
+              <img
+                src={mainBanner.imageUrl}
+                alt={mainBanner.title}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+            </Link>
+          ) : (
+            <div className="order-1 xl:order-2 relative flex min-h-[320px] overflow-hidden rounded-2xl bg-gradient-to-r from-[#1A4B9C] to-[#2563EB] text-white xl:h-full xl:min-h-0">
+              <div className="flex-1 p-8 flex flex-col justify-center">
+                <span className="text-amber-400 text-sm font-semibold mb-2 uppercase tracking-wide">Sản phẩm HOT</span>
+                <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-3">
+                  Linh kiện chính hãng<br />
+                  <span className="text-amber-400">Giá tốt nhất</span>
+                </h1>
+                <p className="text-white/80 mb-6 text-sm">
+                  CPU, GPU, RAM, SSD từ Intel, AMD, NVIDIA — Bảo hành chính hãng
+                </p>
+                <div className="flex gap-3">
+                  <Link
+                    href="/products"
+                    className="bg-[#E31837] hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all shadow-lg active:scale-95 cursor-pointer"
+                  >
+                    MUA NGAY
+                  </Link>
+                  <Link
+                    href="/build-pc"
+                    className="bg-white/15 hover:bg-white/25 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all backdrop-blur-sm border border-white/20 active:scale-95 cursor-pointer"
+                  >
+                    BUILD PC
+                  </Link>
+                </div>
+              </div>
+              <div className="hidden md:flex items-center justify-center pr-8 opacity-30">
+                <Cpu className="w-48 h-48" />
+              </div>
+            </div>
+          )}
+
+          <div className="order-3 flex flex-col gap-4 xl:h-full xl:min-h-0">
+            {sideBannerSlots.map((banner, index) => banner ? (
+              <Link key={banner.id} href={banner.linkUrl || "/products"} className="relative flex-1 min-h-[130px] overflow-hidden rounded-2xl bg-gray-900 text-white group xl:min-h-0">
+                <img src={banner.imageUrl} alt={banner.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              </Link>
+            ) : (
+              <div
+                key={`side-placeholder-${index}`}
+                className={`flex-1 rounded-2xl overflow-hidden text-white p-5 flex flex-col justify-center min-h-[130px] xl:min-h-0 ${
+                  index === 0
+                    ? "bg-gradient-to-r from-emerald-500 to-teal-500"
+                    : index === 1
+                      ? "bg-gradient-to-r from-orange-500 to-red-500"
+                      : "bg-gradient-to-r from-fuchsia-500 to-purple-500"
+                }`}
               >
-                <cat.icon className="w-7 h-7" />
-                <span className="text-xs font-medium text-center">{cat.name}</span>
-              </Link>
+                <p className="text-sm font-semibold opacity-90 mb-1">
+                  {index === 0 ? "BUILD PC" : index === 1 ? "LAPTOP" : "GEAR"}
+                </p>
+                <p className="text-2xl font-bold">
+                  {index === 0 ? "Giảm lên đến 30tr" : index === 1 ? "Giảm thêm 1 Triệu" : "Quà tặng tới 50%"}
+                </p>
+                <Link href={index === 0 ? "/build-pc" : "/products"} className="text-sm mt-2 flex items-center gap-1 underline underline-offset-4 hover:opacity-80 transition-opacity">
+                  {index === 0 ? "Xây dựng ngay" : "Xem ngay"} <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Brand Logos */}
-      <section className="max-w-7xl mx-auto px-4 pb-4">
-        <div className="bg-white rounded-xl p-4 shadow-sm overflow-x-auto">
-          <div className="flex items-center gap-6 min-w-max">
-            {brands.map((brand) => (
-              <span key={brand} className="text-sm font-semibold text-gray-400 hover:text-gray-600 transition-colors cursor-pointer whitespace-nowrap">
-                {brand}
-              </span>
+      {/* Brand carousel */}
+      <section className={HOME_FULL_BLEED_SECTION_CLASSES}>
+        <div className="flex items-center gap-3 overflow-hidden rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+          <button
+            type="button"
+            onClick={() => rotateBrands(-1)}
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+            aria-label="Xem nhãn hàng trước"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <div className="grid min-w-0 flex-1 grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+            {visibleBrandItems.map((brand, index) => (
+              <Link
+                key={`${brand}-${index}`}
+                href={`/products?brand=${encodeURIComponent(brand)}`}
+                className="flex h-10 min-w-0 items-center justify-center rounded-full border border-gray-200 bg-gray-50 px-4 text-sm font-semibold text-gray-700 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+              >
+                <span className="truncate">{brand}</span>
+              </Link>
             ))}
           </div>
+          <button
+            type="button"
+            onClick={() => rotateBrands(1)}
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+            aria-label="Xem nhãn hàng tiếp theo"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
         </div>
       </section>
 
       {/* Promo Banners */}
-      <section className="max-w-7xl mx-auto px-4 py-4">
+      <section className={HOME_FULL_BLEED_SECTION_CLASSES}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {promoBanners.map((b) => (
+          {customBanners.length > 0 ? customBanners.slice(0, 3).map((banner) => (
+            <Link
+              key={banner.id}
+              href={banner.linkUrl || "/products"}
+              className="relative rounded-xl text-white min-h-[120px] overflow-hidden hover:shadow-lg transition-all cursor-pointer active:scale-[0.98] group"
+            >
+              <img src={banner.imageUrl} alt={banner.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+            </Link>
+          )) : promoBanners.map((b) => (
             <div
               key={b.title}
               className={`bg-gradient-to-r ${b.gradient} rounded-xl text-white p-6 flex flex-col justify-center hover:shadow-lg transition-all cursor-pointer active:scale-[0.98]`}
@@ -347,7 +547,7 @@ export default function HomePage() {
       </section>
 
       {/* Top Products — fetched from API */}
-      <section className="max-w-7xl mx-auto px-4 py-6">
+      <section className={HOME_FULL_BLEED_SECTION_SPACED_CLASSES}>
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="flex items-center justify-between border-b border-gray-200 px-6">
             <h2 className="text-lg font-bold text-[#1A4B9C] flex items-center gap-2 py-4 border-b-2 border-[#1A4B9C] whitespace-nowrap">
@@ -390,7 +590,7 @@ export default function HomePage() {
       </section>
 
       {/* Services Bar */}
-      <section className="max-w-7xl mx-auto px-4 py-6 pb-10">
+      <section className={`${HOME_FULL_BLEED_SECTION_SPACED_CLASSES} pb-10`}>
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="flex items-center gap-3">

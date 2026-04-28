@@ -43,13 +43,19 @@ export function Header() {
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
   // Debounced search (300ms)
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (searchQuery.trim().length < 2) { setSearchResults([]); setShowResults(false); return; }
+    if (searchQuery.trim().length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
     debounceRef.current = setTimeout(async () => {
       try {
         const res = await api.get(`/products?keyword=${encodeURIComponent(searchQuery.trim())}&page=0&size=5`);
@@ -71,6 +77,7 @@ export function Header() {
   // Shake cart icon when items count increases
   useEffect(() => {
     if (mounted && totalItems > prevTotalItems.current) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCartShake(true);
       const timer = setTimeout(() => setCartShake(false), 600);
       return () => clearTimeout(timer);
