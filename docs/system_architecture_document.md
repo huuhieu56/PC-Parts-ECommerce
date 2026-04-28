@@ -126,7 +126,7 @@ Hệ thống áp dụng kiến trúc **Modular Monolith** (ứng dụng Backend)
                    │                              │                     │
           ┌────────▼────────┐          ┌──────────▼──────┐    ┌────────▼────────┐
           │  Payment APIs   │          │    LLM API      │    │  Email Service  │
-          │  (VNPay, MoMo)  │          │  (AI tương thích)│    │  (SMTP)        │
+          │  (MoMo)        │          │  (AI tương thích)│    │  (SMTP)        │
           │                 │          │                 │    │                 │
           │  External       │          │  External       │    │  External       │
           └─────────────────┘          └─────────────────┘    └─────────────────┘
@@ -278,7 +278,7 @@ graph TB
     InventorySvc --> Repos
     FileSvc --> MinIO[(MinIO)]
     EmailSvc --> SMTP[(SMTP Server)]
-    PaymentSvc --> PayGW[(VNPay / MoMo)]
+    PaymentSvc --> PayGW[(MoMo)]
     LLMSvc --> LLMAPI[(LLM API)]
 ```
 
@@ -294,7 +294,7 @@ graph TB
 | Spring Boot | PostgreSQL | TCP (JDBC) | Đồng bộ | JPA/Hibernate queries |
 | Spring Boot | Redis | TCP | Đồng bộ | Cache read/write, session operations |
 | Spring Boot | MinIO | HTTP (S3 API) | Đồng bộ | Upload/download files |
-| Spring Boot | VNPay/MoMo | HTTPS | Đồng bộ + Callback | Tạo URL thanh toán, nhận IPN callback |
+| Spring Boot | MoMo | HTTPS | Đồng bộ + Callback | Tạo URL thanh toán, nhận IPN callback |
 | Spring Boot | LLM API | HTTPS | Đồng bộ | Gửi prompt kiểm tra tương thích |
 | Spring Boot | Email Queue (Redis) | Publish | Bất đồng bộ | Đẩy email job vào Redis queue |
 | Email Worker | SMTP | SMTP/TLS | Bất đồng bộ (async) | Consumer xử lý email, retry 3 lần, DLQ cho failures |
@@ -553,7 +553,7 @@ Kiến trúc Modular Monolith hiện tại cho phép tách module thành microse
 | Nginx → Backend | REST API | SQL Injection, XSS | Parameterized queries (JPA), Input validation (@Valid), Escape output |
 | Browser → Backend | JWT Token | Stolen token, CSRF | Access Token ngắn (15 phút), Refresh Token HttpOnly Cookie (SameSite=Strict) |
 | Backend → Database | JDBC connection | Data breach | Encrypted connection (SSL), Least privilege DB user, No wildcard SELECT |
-| Backend → Payment Gateway | HTTPS callback | Callback forgery | Verify signature từ VNPay/MoMo, Whitelist IP (nếu có) |
+| Backend → Payment Gateway | HTTPS callback | Callback forgery | Verify signature từ MoMo, Whitelist IP (nếu có) |
 | Backend → MinIO | S3 API | Unauthorized file access | Pre-signed URLs (expire 15 phút), Private buckets, Validate file type/size |
 | Admin Panel | CMS endpoints | Privilege escalation | RBAC cấp Permission, Audit log mọi thao tác Admin |
 
@@ -563,7 +563,7 @@ Kiến trúc Modular Monolith hiện tại cho phép tách module thành microse
 |:------------|:-------|:----------------|
 | DB password | Environment variable (Docker secrets / `.env` không commit) | 90 ngày |
 | JWT signing key | Environment variable | 180 ngày (re-sign khi rotate) |
-| VNPay/MoMo API key | Environment variable | Theo yêu cầu nhà cung cấp |
+| MoMo API key | Environment variable | Theo yêu cầu nhà cung cấp |
 | LLM API key | Environment variable | 90 ngày |
 | MinIO access/secret key | Environment variable | 90 ngày |
 | Redis password | Environment variable | 90 ngày |
