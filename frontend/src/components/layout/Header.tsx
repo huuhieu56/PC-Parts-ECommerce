@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Cpu, ShoppingCart, Heart, User, Menu, LogOut, Package, Settings, Search, Phone, MapPin, Tag, Monitor } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import api from "@/lib/api";
 
 interface SearchResult { id: number; name: string; slug?: string; sellingPrice?: number; imageUrl?: string; }
@@ -24,6 +24,28 @@ const navLinks = [
   { href: "/products", label: "Sản phẩm" },
   { href: "/build-pc", label: "Build PC" },
 ];
+
+const HeaderUserAvatar = ({ avatarUrl, fullName }: { avatarUrl?: string | null; fullName?: string | null }) => {
+  if (avatarUrl) {
+    return (
+      <Avatar size="sm" className="bg-white/15">
+        <span
+          role="img"
+          aria-label={`${fullName || "Người dùng"} avatar`}
+          className="size-full rounded-full bg-cover bg-center"
+          style={{ backgroundImage: `url(${avatarUrl})` }}
+        />
+        <AvatarFallback className="bg-white/15 text-white">
+          <User className="w-4 h-4" />
+        </AvatarFallback>
+      </Avatar>
+    );
+  }
+
+  return <User className="w-5 h-5" />;
+};
+
+const getHeaderUserName = (fullName?: string | null) => fullName?.trim() || "Tài khoản";
 
 export function Header() {
   const router = useRouter();
@@ -194,14 +216,20 @@ export function Header() {
             </Link>
             {mounted && isAuthenticated ? (
               <DropdownMenu>
-                <DropdownMenuTrigger className="flex flex-col items-center gap-0.5 px-3 py-1 hover:bg-white/10 rounded-lg transition-colors text-white/90 hover:text-white cursor-pointer">
-                  <User className="w-5 h-5" />
-                  <span className="text-[10px] font-medium truncate max-w-[60px]">{user?.fullName?.split(' ').pop() || 'Tài khoản'}</span>
+                <DropdownMenuTrigger
+                  aria-label="Mở menu tài khoản"
+                  className="flex min-w-[72px] flex-col items-center gap-0.5 px-3 py-1 hover:bg-white/10 rounded-lg transition-colors text-white/90 hover:text-white cursor-pointer"
+                >
+                  <HeaderUserAvatar avatarUrl={user?.avatarUrl} fullName={user?.fullName} />
+                  <span className="text-[10px] font-medium truncate max-w-[72px]">{getHeaderUserName(user?.fullName)}</span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48 bg-white border-gray-200 text-gray-900">
-                  <div className="px-3 py-2">
-                    <p className="text-sm font-medium text-gray-900">{user?.fullName}</p>
-                    <p className="text-xs text-gray-500">{user?.email}</p>
+                  <div className="flex items-center gap-2 px-3 py-2">
+                    <HeaderUserAvatar avatarUrl={user?.avatarUrl} fullName={user?.fullName} />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-gray-900">{user?.fullName}</p>
+                      <p className="text-xs text-gray-500">{user?.email}</p>
+                    </div>
                   </div>
                   <DropdownMenuSeparator className="bg-gray-200" />
                   <DropdownMenuItem className="text-gray-700 cursor-pointer hover:bg-gray-50">

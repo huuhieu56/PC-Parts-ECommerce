@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Camera, ChevronRight, User, MapPin, Lock, Plus, Trash2, Edit2, Save, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
+import { useAuthStore } from "@/stores/auth-store";
 
 const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 const VIETNAM_PHONE_REGEX = /^0\d{9}$/;
@@ -33,6 +34,7 @@ interface Address {
 }
 
 export default function ProfilePage() {
+  const updateUser = useAuthStore((state) => state.updateUser);
   const [tab, setTab] = useState<"info" | "addresses" | "password">("info");
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -52,12 +54,13 @@ export default function ProfilePage() {
         const profileRes = await api.get("/users/me");
         const p = profileRes.data.data || profileRes.data;
         setProfile(p);
+        updateUser(p);
         setEditForm({ fullName: p.fullName || "", phone: p.phone || "", dateOfBirth: p.dateOfBirth || "", gender: p.gender || "" });
       } catch { /* not logged in */ }
       setLoading(false);
     }
     load();
-  }, []);
+  }, [updateUser]);
 
   useEffect(() => {
     if (tab !== "addresses" || addressesLoaded) {
@@ -117,7 +120,9 @@ export default function ProfilePage() {
         gender: editForm.gender || null,
       };
       const res = await api.put("/users/me", payload);
-      setProfile(res.data.data || res.data);
+      const updatedProfile = res.data.data || res.data;
+      setProfile(updatedProfile);
+      updateUser(updatedProfile);
       setEditMode(false);
       showMessage("success", "Cập nhật thành công!");
     } catch (err: unknown) {
@@ -144,7 +149,9 @@ export default function ProfilePage() {
       const res = await api.post("/users/me/avatar", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setProfile(res.data.data || res.data);
+      const updatedProfile = res.data.data || res.data;
+      setProfile(updatedProfile);
+      updateUser(updatedProfile);
       showMessage("success", "Cập nhật ảnh đại diện thành công!");
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { message?: string } } };

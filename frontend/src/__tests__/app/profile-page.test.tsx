@@ -3,6 +3,8 @@ import type React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ProfilePage from "@/app/(shop)/profile/page";
 import api from "@/lib/api";
+import { useAuthStore } from "@/stores/auth-store";
+import type { UserProfile } from "@/types";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) => (
@@ -33,10 +35,17 @@ const profilePayload = {
   gender: "MALE",
   role: "CUSTOMER",
   permissions: [],
-};
+} satisfies UserProfile;
 
 describe("ProfilePage", () => {
   beforeEach(() => {
+    useAuthStore.setState({
+      user: null,
+      accessToken: null,
+      refreshToken: null,
+      isAuthenticated: false,
+    });
+    localStorage.clear();
     mockedGet.mockReset();
     mockedPut.mockReset();
     mockedPost.mockReset();
@@ -56,6 +65,7 @@ describe("ProfilePage", () => {
   });
 
   it("updates profile through /users/me with only editable profile fields", async () => {
+    useAuthStore.getState().setAuth(profilePayload, "access-token", "refresh-token");
     mockedPut.mockResolvedValue({
       data: {
         data: {
@@ -85,6 +95,7 @@ describe("ProfilePage", () => {
         dateOfBirth: "1995-05-15",
         gender: "FEMALE",
       });
+      expect(useAuthStore.getState().user?.fullName).toBe("Nguyễn Văn B");
     });
   });
 
@@ -101,6 +112,7 @@ describe("ProfilePage", () => {
   });
 
   it("uploads avatar through /users/me/avatar with multipart form data", async () => {
+    useAuthStore.getState().setAuth(profilePayload, "access-token", "refresh-token");
     mockedPost.mockResolvedValue({
       data: {
         data: {
@@ -123,6 +135,7 @@ describe("ProfilePage", () => {
       expect(formData).toBeInstanceOf(FormData);
       expect((formData as FormData).get("avatar")).toBe(file);
       expect(config).toEqual({ headers: { "Content-Type": "multipart/form-data" } });
+      expect(useAuthStore.getState().user?.avatarUrl).toBe("http://localhost:9000/pcparts/avatars/avatar.webp");
     });
   });
 });
