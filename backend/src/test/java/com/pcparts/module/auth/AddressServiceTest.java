@@ -55,11 +55,11 @@ class AddressServiceTest {
     @Test
     @DisplayName("Get addresses — returns list")
     void getAddresses_success() {
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findByUserIdOrderByIsDefaultDesc(1L)).thenReturn(List.of(testAddress));
 
-        List<AddressDto> result = addressService.getAddresses("test@test.com");
+        List<AddressDto> result = addressService.getAddresses("1");
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getLabel()).isEqualTo("Nhà");
@@ -69,11 +69,11 @@ class AddressServiceTest {
     @Test
     @DisplayName("Get addresses — empty list for new user")
     void getAddresses_empty() {
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findByUserIdOrderByIsDefaultDesc(1L)).thenReturn(Collections.emptyList());
 
-        List<AddressDto> result = addressService.getAddresses("test@test.com");
+        List<AddressDto> result = addressService.getAddresses("1");
         assertThat(result).isEmpty();
     }
 
@@ -83,13 +83,13 @@ class AddressServiceTest {
     void createAddress_success() {
         AddressDto dto = AddressDto.builder().label("Công ty").receiverName("Test").receiverPhone("0909999999")
                 .province("HCM").district("Q7").ward("P1").street("456 XYZ").isDefault(false).build();
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.save(any(Address.class))).thenAnswer(inv -> {
             Address a = inv.getArgument(0); a.setId(20L); return a;
         });
 
-        AddressDto result = addressService.createAddress("test@test.com", dto);
+        AddressDto result = addressService.createAddress("1", dto);
 
         assertThat(result.getLabel()).isEqualTo("Công ty");
         verify(addressRepository).save(any(Address.class));
@@ -100,14 +100,14 @@ class AddressServiceTest {
     void createAddress_defaultUnsetsOthers() {
         AddressDto dto = AddressDto.builder().label("Nhà mới").receiverName("T").receiverPhone("0900000000")
                 .province("HN").district("CG").ward("P1").street("1 A").isDefault(true).build();
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findByUserIdOrderByIsDefaultDesc(1L)).thenReturn(List.of(testAddress));
         when(addressRepository.save(any(Address.class))).thenAnswer(inv -> {
             Address a = inv.getArgument(0); if (a.getId() == null) a.setId(30L); return a;
         });
 
-        addressService.createAddress("test@test.com", dto);
+        addressService.createAddress("1", dto);
 
         assertThat(testAddress.getIsDefault()).isFalse(); // old default unset
     }
@@ -118,12 +118,12 @@ class AddressServiceTest {
     void updateAddress_success() {
         AddressDto dto = AddressDto.builder().label("Nhà cập nhật").receiverName("Updated")
                 .receiverPhone("0908888888").province("HN").district("TX").ward("P2").street("789 DEF").isDefault(false).build();
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
 
-        AddressDto result = addressService.updateAddress("test@test.com", 10L, dto);
+        AddressDto result = addressService.updateAddress("1", 10L, dto);
 
         assertThat(result.getLabel()).isEqualTo("Nhà cập nhật");
     }
@@ -133,11 +133,11 @@ class AddressServiceTest {
     void updateAddress_notOwn() {
         UserProfile otherUser = UserProfile.builder().id(99L).build();
         Address otherAddr = Address.builder().id(10L).user(otherUser).build();
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findById(10L)).thenReturn(Optional.of(otherAddr));
 
-        assertThatThrownBy(() -> addressService.updateAddress("test@test.com", 10L, new AddressDto()))
+        assertThatThrownBy(() -> addressService.updateAddress("1", 10L, new AddressDto()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("không có quyền");
     }
@@ -145,11 +145,11 @@ class AddressServiceTest {
     @Test
     @DisplayName("Update address — not found throws")
     void updateAddress_notFound() {
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> addressService.updateAddress("test@test.com", 999L, new AddressDto()))
+        assertThatThrownBy(() -> addressService.updateAddress("1", 999L, new AddressDto()))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
@@ -157,11 +157,11 @@ class AddressServiceTest {
     @Test
     @DisplayName("Delete address — success")
     void deleteAddress_success() {
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
 
-        addressService.deleteAddress("test@test.com", 10L);
+        addressService.deleteAddress("1", 10L);
 
         verify(addressRepository).delete(testAddress);
     }
@@ -171,22 +171,22 @@ class AddressServiceTest {
     void deleteAddress_notOwn() {
         UserProfile otherUser = UserProfile.builder().id(99L).build();
         Address otherAddr = Address.builder().id(10L).user(otherUser).build();
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findById(10L)).thenReturn(Optional.of(otherAddr));
 
-        assertThatThrownBy(() -> addressService.deleteAddress("test@test.com", 10L))
+        assertThatThrownBy(() -> addressService.deleteAddress("1", 10L))
                 .isInstanceOf(BusinessException.class);
     }
 
     @Test
     @DisplayName("Delete address — not found throws")
     void deleteAddress_notFound() {
-        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(addressRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> addressService.deleteAddress("test@test.com", 999L))
+        assertThatThrownBy(() -> addressService.deleteAddress("1", 999L))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 }

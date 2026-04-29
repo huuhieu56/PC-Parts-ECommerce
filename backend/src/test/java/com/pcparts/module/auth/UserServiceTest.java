@@ -214,6 +214,23 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("Update avatar — uploaded file is deleted when profile save fails")
+    void updateAvatar_saveFailsDeletesUploadedFile() {
+        MockMultipartFile avatar = new MockMultipartFile("avatar", "avatar.webp", "image/webp", "image".getBytes());
+        String uploadedUrl = "http://localhost:9000/pcparts/avatars/avatar.webp";
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
+        when(fileService.uploadFile(avatar, "avatars")).thenReturn(uploadedUrl);
+        when(userProfileRepository.save(testProfile)).thenThrow(new RuntimeException("DB unavailable"));
+
+        assertThatThrownBy(() -> userService.updateAvatar("1", avatar))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("DB unavailable");
+
+        verify(fileService).deleteFile(uploadedUrl);
+    }
+
+    @Test
     @DisplayName("Update avatar — invalid content type throws")
     void updateAvatar_invalidType() {
         MockMultipartFile avatar = new MockMultipartFile("avatar", "avatar.pdf", "application/pdf", "pdf".getBytes());

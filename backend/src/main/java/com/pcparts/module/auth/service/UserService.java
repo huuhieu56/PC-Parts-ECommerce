@@ -98,8 +98,13 @@ public class UserService {
         validateAvatar(avatar);
 
         String avatarUrl = fileService.uploadFile(avatar, "avatars");
-        profile.setAvatarUrl(avatarUrl);
-        userProfileRepository.save(profile);
+        try {
+            profile.setAvatarUrl(avatarUrl);
+            userProfileRepository.save(profile);
+        } catch (RuntimeException ex) {
+            fileService.deleteFile(avatarUrl);
+            throw ex;
+        }
         return toDto(account, profile);
     }
 

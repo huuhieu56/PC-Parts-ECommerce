@@ -31,8 +31,8 @@ public class AddressService {
      * Gets all addresses for the current user.
      */
     @Transactional(readOnly = true)
-    public List<AddressDto> getAddresses(String email) {
-        UserProfile user = getUserProfile(email);
+    public List<AddressDto> getAddresses(String accountId) {
+        UserProfile user = getUserProfile(accountId);
         return addressRepository.findByUserIdOrderByIsDefaultDesc(user.getId())
                 .stream()
                 .map(this::toDto)
@@ -43,8 +43,8 @@ public class AddressService {
      * Creates a new address.
      */
     @Transactional
-    public AddressDto createAddress(String email, AddressDto dto) {
-        UserProfile user = getUserProfile(email);
+    public AddressDto createAddress(String accountId, AddressDto dto) {
+        UserProfile user = getUserProfile(accountId);
 
         Address address = Address.builder()
                 .user(user)
@@ -71,8 +71,8 @@ public class AddressService {
      * Updates an existing address.
      */
     @Transactional
-    public AddressDto updateAddress(String email, Long addressId, AddressDto dto) {
-        UserProfile user = getUserProfile(email);
+    public AddressDto updateAddress(String accountId, Long addressId, AddressDto dto) {
+        UserProfile user = getUserProfile(accountId);
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "id", addressId));
 
@@ -101,8 +101,8 @@ public class AddressService {
      * Deletes an address.
      */
     @Transactional
-    public void deleteAddress(String email, Long addressId) {
-        UserProfile user = getUserProfile(email);
+    public void deleteAddress(String accountId, Long addressId) {
+        UserProfile user = getUserProfile(accountId);
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "id", addressId));
 
@@ -113,9 +113,10 @@ public class AddressService {
         addressRepository.delete(address);
     }
 
-    private UserProfile getUserProfile(String email) {
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "email", email));
+    private UserProfile getUserProfile(String accountId) {
+        Long id = Long.parseLong(accountId);
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "id", id));
         return userProfileRepository.findByAccountId(account.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", account.getId()));
     }

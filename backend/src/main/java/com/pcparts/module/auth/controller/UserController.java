@@ -26,7 +26,7 @@ public class UserController {
     /**
      * GET /api/v1/users/me — Get current user's profile.
      */
-    @GetMapping("/me")
+    @GetMapping({"/me", "/profile"})
     public ResponseEntity<ApiResponse<UserProfileDto>> getProfile(Authentication authentication) {
         UserProfileDto profile = userService.getProfile(authentication.getName());
         return ResponseEntity.ok(ApiResponse.success(profile));
@@ -35,7 +35,7 @@ public class UserController {
     /**
      * PUT /api/v1/users/me — Update current user's profile.
      */
-    @PutMapping("/me")
+    @PutMapping({"/me", "/profile"})
     public ResponseEntity<ApiResponse<UserProfileDto>> updateProfile(
             Authentication authentication,
             @RequestBody UpdateUserProfileRequest request) {
