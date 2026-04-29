@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -98,11 +100,14 @@ public class UserService {
         validateAvatar(avatar);
 
         String avatarUrl = fileService.uploadFile(avatar, "avatars");
+        registerAvatarRollbackCleanup(avatarUrl);
         try {
             profile.setAvatarUrl(avatarUrl);
             userProfileRepository.save(profile);
         } catch (RuntimeException ex) {
-            fileService.deleteFile(avatarUrl);
+            if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+                fileService.deleteFile(avatarUrl);
+            }
             throw ex;
         }
         return toDto(account, profile);
@@ -140,6 +145,21 @@ public class UserService {
 
     private boolean isStrongPassword(String password) {
         return password != null && STRONG_PASSWORD_PATTERN.matcher(password).matches();
+    }
+
+    private void registerAvatarRollbackCleanup(String avatarUrl) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status == STATUS_ROLLED_BACK) {
+                    fileService.deleteFile(avatarUrl);
+                }
+            }
+        });
     }
 
     private String validateFullName(String fullName) {

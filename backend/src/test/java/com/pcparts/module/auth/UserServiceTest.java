@@ -22,6 +22,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -228,6 +230,52 @@ class UserServiceTest {
                 .hasMessageContaining("DB unavailable");
 
         verify(fileService).deleteFile(uploadedUrl);
+    }
+
+    @Test
+    @DisplayName("Update avatar — uploaded file is deleted when transaction rolls back after save")
+    void updateAvatar_transactionRollbackDeletesUploadedFile() {
+        MockMultipartFile avatar = new MockMultipartFile("avatar", "avatar.webp", "image/webp", "image".getBytes());
+        String uploadedUrl = "http://localhost:9000/pcparts/avatars/avatar.webp";
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
+        when(fileService.uploadFile(avatar, "avatars")).thenReturn(uploadedUrl);
+        when(userProfileRepository.save(testProfile)).thenReturn(testProfile);
+
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            userService.updateAvatar("1", avatar);
+
+            TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(synchronization -> synchronization.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+
+        verify(fileService).deleteFile(uploadedUrl);
+    }
+
+    @Test
+    @DisplayName("Update avatar — uploaded file is kept when transaction commits")
+    void updateAvatar_transactionCommitKeepsUploadedFile() {
+        MockMultipartFile avatar = new MockMultipartFile("avatar", "avatar.webp", "image/webp", "image".getBytes());
+        String uploadedUrl = "http://localhost:9000/pcparts/avatars/avatar.webp";
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
+        when(fileService.uploadFile(avatar, "avatars")).thenReturn(uploadedUrl);
+        when(userProfileRepository.save(testProfile)).thenReturn(testProfile);
+
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            userService.updateAvatar("1", avatar);
+
+            TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(synchronization -> synchronization.afterCompletion(TransactionSynchronization.STATUS_COMMITTED));
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+
+        verify(fileService, never()).deleteFile(uploadedUrl);
     }
 
     @Test
