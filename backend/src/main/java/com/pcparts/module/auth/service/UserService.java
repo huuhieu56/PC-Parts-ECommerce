@@ -106,7 +106,7 @@ public class UserService {
             userProfileRepository.save(profile);
         } catch (RuntimeException ex) {
             if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-                fileService.deleteFile(avatarUrl);
+                fileService.deleteFileOrThrow(avatarUrl);
             }
             throw ex;
         }
@@ -156,7 +156,7 @@ public class UserService {
             @Override
             public void afterCompletion(int status) {
                 if (status == STATUS_ROLLED_BACK) {
-                    fileService.deleteFile(avatarUrl);
+                    fileService.deleteFileOrThrow(avatarUrl);
                 }
             }
         });

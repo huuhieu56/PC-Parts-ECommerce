@@ -229,7 +229,7 @@ class UserServiceTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("DB unavailable");
 
-        verify(fileService).deleteFile(uploadedUrl);
+        verify(fileService).deleteFileOrThrow(uploadedUrl);
     }
 
     @Test
@@ -252,7 +252,7 @@ class UserServiceTest {
             TransactionSynchronizationManager.clearSynchronization();
         }
 
-        verify(fileService).deleteFile(uploadedUrl);
+        verify(fileService).deleteFileOrThrow(uploadedUrl);
     }
 
     @Test
@@ -275,7 +275,32 @@ class UserServiceTest {
             TransactionSynchronizationManager.clearSynchronization();
         }
 
-        verify(fileService, never()).deleteFile(uploadedUrl);
+        verify(fileService, never()).deleteFileOrThrow(uploadedUrl);
+    }
+
+    @Test
+    @DisplayName("Update avatar — rollback cleanup failure is not swallowed")
+    void updateAvatar_transactionRollbackCleanupFailurePropagates() {
+        MockMultipartFile avatar = new MockMultipartFile("avatar", "avatar.webp", "image/webp", "image".getBytes());
+        String uploadedUrl = "http://localhost:9000/pcparts/avatars/avatar.webp";
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
+        when(fileService.uploadFile(avatar, "avatars")).thenReturn(uploadedUrl);
+        when(userProfileRepository.save(testProfile)).thenReturn(testProfile);
+        doThrow(new BusinessException("Xóa file thất bại: MinIO unavailable"))
+                .when(fileService).deleteFileOrThrow(uploadedUrl);
+
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            userService.updateAvatar("1", avatar);
+
+            assertThatThrownBy(() -> TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(synchronization -> synchronization.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK)))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("MinIO unavailable");
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
     }
 
     @Test

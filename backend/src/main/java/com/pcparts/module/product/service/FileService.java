@@ -85,6 +85,19 @@ public class FileService {
      */
     public void deleteFile(String fileUrl) {
         try {
+            deleteFileOrThrow(fileUrl);
+        } catch (BusinessException e) {
+            log.warn("Failed to delete file: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Deletes a file from MinIO and raises a business exception when cleanup fails.
+     *
+     * @param fileUrl the full URL of the file
+     */
+    public void deleteFileOrThrow(String fileUrl) {
+        try {
             String objectName = fileUrl.replace(publicUrl + "/" + bucket + "/", "");
             minioClient.removeObject(
                     RemoveObjectArgs.builder()
@@ -93,7 +106,7 @@ public class FileService {
                             .build()
             );
         } catch (Exception e) {
-            log.warn("Failed to delete file: {}", e.getMessage());
+            throw new BusinessException("Xóa file thất bại: " + e.getMessage());
         }
     }
 
