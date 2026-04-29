@@ -28,21 +28,28 @@ const navLinks = [
 const HeaderUserAvatar = ({ avatarUrl, fullName }: { avatarUrl?: string | null; fullName?: string | null }) => {
   if (avatarUrl) {
     return (
-      <Avatar size="sm" className="bg-white/15">
-        <span
-          role="img"
-          aria-label={`${fullName || "Người dùng"} avatar`}
-          className="size-full rounded-full bg-cover bg-center"
-          style={{ backgroundImage: `url(${avatarUrl})` }}
-        />
-        <AvatarFallback className="bg-white/15 text-white">
-          <User className="w-4 h-4" />
-        </AvatarFallback>
-      </Avatar>
+      <Avatar
+        size="sm"
+        role="img"
+        aria-label={`${fullName || "Người dùng"} avatar`}
+        className="bg-cover bg-center"
+        style={{ backgroundImage: `url(${avatarUrl})` }}
+      />
     );
   }
 
-  return <User className="w-5 h-5" />;
+  return (
+    <Avatar size="sm" className="bg-white/15">
+      <AvatarFallback className="bg-white/15 text-white">
+        <span
+          aria-hidden="true"
+          className="flex size-full items-center justify-center"
+        >
+          <User className="w-4 h-4" />
+        </span>
+      </AvatarFallback>
+    </Avatar>
+  );
 };
 
 const getHeaderUserName = (fullName?: string | null) => fullName?.trim() || "Tài khoản";
