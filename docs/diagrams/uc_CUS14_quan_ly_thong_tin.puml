@@ -18,8 +18,13 @@ rectangle "Hệ thống PC Parts E-Commerce" {
   usecase "Hiển thị form\nvới dữ liệu hiện tại\n(Họ tên, Ảnh, Ngày sinh,\nGiới tính)" as UC_FORM
   usecase "Sửa thông tin\nvà nhấn Cập nhật" as UC_EDIT
   usecase "Lưu vào bảng User" as UC_SAVE
+  usecase "Upload ảnh\nđại diện" as UC_AVATAR
+  usecase "Điều hướng sang\nĐổi mật khẩu\n(UC-CUS-16)" as UC_PASSWORD
+  usecase "Điều hướng sang\nSổ địa chỉ\n(UC-CUS-12)" as UC_ADDRESS
 
   usecase "Báo lỗi\ndữ liệu không hợp lệ" as UC_ERR_INVALID
+  usecase "Báo lỗi\nSĐT đã được sử dụng" as UC_ERR_PHONE
+  usecase "Yêu cầu\nđăng nhập lại" as UC_ERR_AUTH
 }
 
 Customer --> UC_PROFILE
@@ -28,6 +33,11 @@ UC_PROFILE ..> UC_FORM : <<include>>
 UC_PROFILE ..> UC_EDIT : <<include>>
 UC_PROFILE ..> UC_SAVE : <<include>>
 
+UC_PROFILE ..> UC_AVATAR : <<extend>>\n[cập nhật avatar]
+UC_PROFILE ..> UC_PASSWORD : <<extend>>\n[muốn đổi mật khẩu]
+UC_PROFILE ..> UC_ADDRESS : <<extend>>\n[muốn quản lý địa chỉ]
 UC_EDIT ..> UC_ERR_INVALID : <<extend>>\n[dữ liệu sai]
+UC_EDIT ..> UC_ERR_PHONE : <<extend>>\n[SĐT trùng]
+UC_PROFILE ..> UC_ERR_AUTH : <<extend>>\n[token hết hạn]
 
 @enduml

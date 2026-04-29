@@ -9,28 +9,33 @@ participant "MinIO" as Storage
 
 Customer -> FE : Mở trang Profile
 FE -> BE : GET /api/v1/users/me
-BE -> DB : SELECT User_Profile + Address\nWHERE account_id = ?
-BE --> FE : 200 {fullName, phone, avatar, addresses[]}
+BE -> DB : SELECT Account.email + User_Profile\nWHERE account_id = ?
+BE --> FE : 200 {email, fullName, phone,\navatarUrl, gender, dateOfBirth}
 FE --> Customer : Hiển thị thông tin hiện tại
 
 Customer -> FE : Sửa thông tin + upload avatar mới
 FE -> BE : PUT /api/v1/users/me\n{fullName, phone, gender, dateOfBirth}
-BE -> DB : UPDATE User_Profile SET ...
-BE --> FE : 200 {updatedProfile}
+BE -> BE : Validate fullName, phone,\ngender, dateOfBirth
+alt Dữ liệu không hợp lệ
+    BE --> FE : 400 validation errors
+else SĐT đã thuộc user khác
+    BE --> FE : 409 "SĐT đã được sử dụng"
+else Hợp lệ
+    BE -> DB : UPDATE User_Profile SET ...
+    BE --> FE : 200 {updatedProfile}
+end
 
 opt Upload avatar
     FE -> BE : POST /api/v1/users/me/avatar\n(multipart/form-data)
-    BE -> Storage : PUT object\n(avatars/{user_id}/avatar.jpg)
-    Storage --> BE : Object URL
-    BE -> DB : UPDATE User_Profile\nSET avatar_url = ?
-    BE --> FE : 200 {avatarUrl}
-end
-
-opt Quản lý địa chỉ
-    Customer -> FE : Thêm / Sửa / Xóa địa chỉ
-    FE -> BE : POST|PUT|DELETE\n/api/v1/users/me/addresses/{id?}
-    BE -> DB : INSERT|UPDATE|DELETE Address
-    BE --> FE : 200 {address}
+    BE -> BE : Validate file type and size
+    alt File không hợp lệ
+        BE --> FE : 400 validation error
+    else File hợp lệ
+        BE -> Storage : PUT object\n(avatars/{user_id}/avatar.jpg)
+        Storage --> BE : Object URL
+        BE -> DB : UPDATE User_Profile\nSET avatar_url = ?
+        BE --> FE : 200 {avatarUrl}
+    end
 end
 
 FE --> Customer : Cập nhật giao diện
