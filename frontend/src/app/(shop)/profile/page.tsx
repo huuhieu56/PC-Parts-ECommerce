@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, User, MapPin, Lock, Plus, Trash2, Edit2, Save, X } from "lucide-react";
+import { Camera, ChevronRight, User, MapPin, Lock, Plus, Trash2, Edit2, Save, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
 
 const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const VIETNAM_PHONE_REGEX = /^0\d{9}$/;
+const ALLOWED_AVATAR_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 
 interface UserProfile {
   id: number;
@@ -33,7 +36,9 @@ export default function ProfilePage() {
   const [tab, setTab] = useState<"info" | "addresses" | "password">("info");
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [addresses, setAddresses] = useState<Address[]>([]);
+  const [addressesLoaded, setAddressesLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editForm, setEditForm] = useState({ fullName: "", phone: "", dateOfBirth: "", gender: "" });
   const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
@@ -44,28 +49,109 @@ export default function ProfilePage() {
   useEffect(() => {
     async function load() {
       try {
-        const [profileRes, addrRes] = await Promise.all([
-          api.get("/users/profile"),
-          api.get("/users/addresses"),
-        ]);
+        const profileRes = await api.get("/users/me");
         const p = profileRes.data.data || profileRes.data;
         setProfile(p);
         setEditForm({ fullName: p.fullName || "", phone: p.phone || "", dateOfBirth: p.dateOfBirth || "", gender: p.gender || "" });
-        setAddresses((addrRes.data.data || addrRes.data) || []);
       } catch { /* not logged in */ }
       setLoading(false);
     }
     load();
   }, []);
 
-  const saveProfile = async () => {
-    try {
-      await api.put("/users/profile", editForm);
-      setProfile((prev) => prev ? { ...prev, ...editForm } : prev);
-      setEditMode(false);
-      setMsg({ type: "success", text: "Cập nhật thành công!" });
-    } catch { setMsg({ type: "error", text: "Cập nhật thất bại." }); }
+  useEffect(() => {
+    if (tab !== "addresses" || addressesLoaded) {
+      return;
+    }
+
+    async function loadAddresses() {
+      try {
+        const addrRes = await api.get("/users/addresses");
+        setAddresses((addrRes.data.data || addrRes.data) || []);
+        setAddressesLoaded(true);
+      } catch { /* handled by global auth interceptor */ }
+    }
+
+    loadAddresses();
+  }, [addressesLoaded, tab]);
+
+  const showMessage = (type: "success" | "error", text: string) => {
+    setMsg({ type, text });
     setTimeout(() => setMsg(null), 3000);
+  };
+
+  const validateProfileForm = () => {
+    const fullName = editForm.fullName.trim();
+    const phone = editForm.phone.trim();
+
+    if (fullName.length < 2 || fullName.length > 100) {
+      showMessage("error", "Họ tên phải có độ dài 2-100 ký tự.");
+      return false;
+    }
+    if (!VIETNAM_PHONE_REGEX.test(phone)) {
+      showMessage("error", "SĐT không hợp lệ.");
+      return false;
+    }
+    if (editForm.dateOfBirth && new Date(editForm.dateOfBirth) > new Date()) {
+      showMessage("error", "Ngày sinh không được là ngày tương lai.");
+      return false;
+    }
+    if (editForm.gender && !["MALE", "FEMALE", "OTHER"].includes(editForm.gender)) {
+      showMessage("error", "Giới tính không hợp lệ.");
+      return false;
+    }
+
+    return true;
+  };
+
+  const saveProfile = async () => {
+    if (!validateProfileForm()) {
+      return;
+    }
+
+    try {
+      const payload = {
+        fullName: editForm.fullName.trim(),
+        phone: editForm.phone.trim(),
+        dateOfBirth: editForm.dateOfBirth || null,
+        gender: editForm.gender || null,
+      };
+      const res = await api.put("/users/me", payload);
+      setProfile(res.data.data || res.data);
+      setEditMode(false);
+      showMessage("success", "Cập nhật thành công!");
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } };
+      showMessage("error", axiosError.response?.data?.message || "Cập nhật thất bại.");
+    }
+  };
+
+  const uploadAvatar = async (file: File) => {
+    if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
+      showMessage("error", "Chỉ chấp nhận ảnh JPG, PNG, WEBP.");
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      showMessage("error", "Ảnh đại diện tối đa 2MB.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    try {
+      setAvatarUploading(true);
+      const res = await api.post("/users/me/avatar", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setProfile(res.data.data || res.data);
+      showMessage("success", "Cập nhật ảnh đại diện thành công!");
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } };
+      showMessage("error", axiosError.response?.data?.message || "Upload ảnh đại diện thất bại.");
+    } finally {
+      setAvatarUploading(false);
+    }
   };
 
   const changePassword = async () => {
@@ -100,15 +186,11 @@ export default function ProfilePage() {
         confirmPassword: pwForm.confirmPassword,
       });
       setPwForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      setMsg({ type: "success", text: "Đổi mật khẩu thành công!" });
+      showMessage("success", "Đổi mật khẩu thành công!");
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { message?: string } } };
-      setMsg({
-        type: "error",
-        text: axiosError.response?.data?.message || "Đổi mật khẩu thất bại. Vui lòng thử lại.",
-      });
+      showMessage("error", axiosError.response?.data?.message || "Đổi mật khẩu thất bại. Vui lòng thử lại.");
     }
-    setTimeout(() => setMsg(null), 3000);
   };
 
   const addAddress = async () => {
@@ -117,16 +199,15 @@ export default function ProfilePage() {
       setAddresses((prev) => [...prev, res.data.data || res.data]);
       setAddingAddress(false);
       setNewAddr({ label: "", receiverName: "", receiverPhone: "", province: "", district: "", ward: "", street: "" });
-      setMsg({ type: "success", text: "Thêm địa chỉ thành công!" });
-    } catch { setMsg({ type: "error", text: "Thêm địa chỉ thất bại." }); }
-    setTimeout(() => setMsg(null), 3000);
+      showMessage("success", "Thêm địa chỉ thành công!");
+    } catch { showMessage("error", "Thêm địa chỉ thất bại."); }
   };
 
   const deleteAddress = async (id: number) => {
     try {
       await api.delete(`/users/addresses/${id}`);
       setAddresses((prev) => prev.filter((a) => a.id !== id));
-    } catch { setMsg({ type: "error", text: "Xóa địa chỉ thất bại." }); setTimeout(() => setMsg(null), 3000); }
+    } catch { showMessage("error", "Xóa địa chỉ thất bại."); }
   };
 
   const setDefault = async (id: number) => {
@@ -227,6 +308,38 @@ export default function ProfilePage() {
                       <button onClick={saveProfile} className="flex items-center gap-1 text-sm bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700"><Save className="w-4 h-4" /> Lưu</button>
                     </div>
                   )}
+                </div>
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-16 h-16 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center border border-gray-200">
+                    {profile?.avatarUrl ? (
+                      <div
+                        aria-label="Ảnh đại diện"
+                        className="w-full h-full bg-cover bg-center"
+                        style={{ backgroundImage: `url(${profile.avatarUrl})` }}
+                      />
+                    ) : (
+                      <User className="w-8 h-8 text-gray-400" />
+                    )}
+                  </div>
+                  <div>
+                    <label className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer">
+                      <Camera className="w-4 h-4" />
+                      {avatarUploading ? "Đang tải..." : "Cập nhật ảnh"}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="sr-only"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            uploadAvatar(file);
+                          }
+                          e.target.value = "";
+                        }}
+                      />
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1">JPG, PNG hoặc WebP, tối đa 2MB.</p>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>

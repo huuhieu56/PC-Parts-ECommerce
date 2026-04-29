@@ -21,4 +21,9 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
      * Checks if a user profile exists with the given phone number.
      */
     boolean existsByPhone(String phone);
+
+    /**
+     * Checks whether another user profile already uses the given phone number.
+     */
+    boolean existsByPhoneAndIdNot(String phone, Long id);
 }

@@ -2,6 +2,7 @@ package com.pcparts.module.auth;
 
 import com.pcparts.common.exception.BusinessException;
 import com.pcparts.common.exception.ResourceNotFoundException;
+import com.pcparts.module.auth.dto.UpdateUserProfileRequest;
 import com.pcparts.module.auth.dto.UserProfileDto;
 import com.pcparts.module.auth.entity.Account;
 import com.pcparts.module.auth.entity.Role;
@@ -10,6 +11,7 @@ import com.pcparts.module.auth.repository.AccountRepository;
 import com.pcparts.module.auth.repository.TokenRepository;
 import com.pcparts.module.auth.repository.UserProfileRepository;
 import com.pcparts.module.auth.service.UserService;
+import com.pcparts.module.product.service.FileService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
@@ -34,6 +38,7 @@ class UserServiceTest {
     @Mock private UserProfileRepository userProfileRepository;
     @Mock private TokenRepository tokenRepository;
     @Mock private PasswordEncoder passwordEncoder;
+    @Mock private FileService fileService;
 
     @InjectMocks
     private UserService userService;
@@ -76,31 +81,169 @@ class UserServiceTest {
     @Test
     @DisplayName("Update profile — success with all fields")
     void updateProfile_success() {
-        UserProfileDto dto = UserProfileDto.builder().fullName("Nguyễn Văn B")
-                .dateOfBirth(LocalDate.of(1995, 5, 15)).gender("FEMALE").avatarUrl("https://cdn/new.jpg").build();
+        UpdateUserProfileRequest request = UpdateUserProfileRequest.builder()
+                .fullName(" Nguyễn Văn B ")
+                .phone("0907654321")
+                .dateOfBirth(LocalDate.of(1995, 5, 15))
+                .gender("female")
+                .build();
         when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
+        when(userProfileRepository.existsByPhoneAndIdNot("0907654321", 1L)).thenReturn(false);
         when(userProfileRepository.save(any(UserProfile.class))).thenReturn(testProfile);
 
-        userService.updateProfile("1", dto);
+        UserProfileDto result = userService.updateProfile("1", request);
 
         assertThat(testProfile.getFullName()).isEqualTo("Nguyễn Văn B");
         assertThat(testProfile.getGender()).isEqualTo("FEMALE");
+        assertThat(testProfile.getPhone()).isEqualTo("0907654321");
+        assertThat(result.getPhone()).isEqualTo("0907654321");
         verify(userProfileRepository).save(testProfile);
     }
 
     @Test
-    @DisplayName("Update profile — partial update (null fields unchanged)")
-    void updateProfile_partial() {
-        UserProfileDto dto = UserProfileDto.builder().fullName("Partial Update").build();
+    @DisplayName("Update profile — invalid phone throws")
+    void updateProfile_invalidPhone() {
+        UpdateUserProfileRequest request = UpdateUserProfileRequest.builder()
+                .fullName("Nguyễn Văn B")
+                .phone("123")
+                .gender("MALE")
+                .build();
         when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
+
+        assertThatThrownBy(() -> userService.updateProfile("1", request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("SĐT không hợp lệ");
+
+        verify(userProfileRepository, never()).save(any(UserProfile.class));
+    }
+
+    @Test
+    @DisplayName("Update profile — duplicate phone throws conflict")
+    void updateProfile_duplicatePhone() {
+        UpdateUserProfileRequest request = UpdateUserProfileRequest.builder()
+                .fullName("Nguyễn Văn B")
+                .phone("0907654321")
+                .gender("MALE")
+                .build();
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
+        when(userProfileRepository.existsByPhoneAndIdNot("0907654321", 1L)).thenReturn(true);
+
+        assertThatThrownBy(() -> userService.updateProfile("1", request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("SĐT đã được sử dụng")
+                .extracting("httpStatus")
+                .isEqualTo(HttpStatus.CONFLICT);
+
+        verify(userProfileRepository, never()).save(any(UserProfile.class));
+    }
+
+    @Test
+    @DisplayName("Update profile — future date of birth throws")
+    void updateProfile_futureDateOfBirth() {
+        UpdateUserProfileRequest request = UpdateUserProfileRequest.builder()
+                .fullName("Nguyễn Văn B")
+                .phone("0907654321")
+                .dateOfBirth(LocalDate.now().plusDays(1))
+                .gender("MALE")
+                .build();
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
+        when(userProfileRepository.existsByPhoneAndIdNot("0907654321", 1L)).thenReturn(false);
+
+        assertThatThrownBy(() -> userService.updateProfile("1", request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Ngày sinh không được là ngày tương lai");
+
+        verify(userProfileRepository, never()).save(any(UserProfile.class));
+    }
+
+    @Test
+    @DisplayName("Update profile — invalid gender throws")
+    void updateProfile_invalidGender() {
+        UpdateUserProfileRequest request = UpdateUserProfileRequest.builder()
+                .fullName("Nguyễn Văn B")
+                .phone("0907654321")
+                .gender("UNKNOWN")
+                .build();
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
+        when(userProfileRepository.existsByPhoneAndIdNot("0907654321", 1L)).thenReturn(false);
+
+        assertThatThrownBy(() -> userService.updateProfile("1", request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Giới tính không hợp lệ");
+
+        verify(userProfileRepository, never()).save(any(UserProfile.class));
+    }
+
+    @Test
+    @DisplayName("Update profile — invalid full name throws")
+    void updateProfile_invalidFullName() {
+        UpdateUserProfileRequest request = UpdateUserProfileRequest.builder()
+                .fullName("A")
+                .phone("0907654321")
+                .gender("MALE")
+                .build();
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
+
+        assertThatThrownBy(() -> userService.updateProfile("1", request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Họ tên phải có độ dài 2-100 ký tự");
+
+        verify(userProfileRepository, never()).save(any(UserProfile.class));
+    }
+
+    @Test
+    @DisplayName("Update avatar — success")
+    void updateAvatar_success() {
+        MockMultipartFile avatar = new MockMultipartFile("avatar", "avatar.webp", "image/webp", "image".getBytes());
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
+        when(fileService.uploadFile(avatar, "avatars")).thenReturn("http://localhost:9000/pcparts/avatars/avatar.webp");
         when(userProfileRepository.save(any(UserProfile.class))).thenReturn(testProfile);
 
-        userService.updateProfile("1", dto);
+        UserProfileDto result = userService.updateAvatar("1", avatar);
 
-        assertThat(testProfile.getFullName()).isEqualTo("Partial Update");
-        assertThat(testProfile.getGender()).isEqualTo("MALE"); // unchanged
+        assertThat(result.getAvatarUrl()).isEqualTo("http://localhost:9000/pcparts/avatars/avatar.webp");
+        verify(fileService).uploadFile(avatar, "avatars");
+        verify(userProfileRepository).save(testProfile);
+    }
+
+    @Test
+    @DisplayName("Update avatar — invalid content type throws")
+    void updateAvatar_invalidType() {
+        MockMultipartFile avatar = new MockMultipartFile("avatar", "avatar.pdf", "application/pdf", "pdf".getBytes());
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
+
+        assertThatThrownBy(() -> userService.updateAvatar("1", avatar))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Chỉ chấp nhận ảnh JPG, PNG, WEBP");
+
+        verify(fileService, never()).uploadFile(any(), any());
+    }
+
+    @Test
+    @DisplayName("Update avatar — file larger than 2MB throws")
+    void updateAvatar_tooLarge() {
+        MockMultipartFile avatar = new MockMultipartFile(
+                "avatar",
+                "avatar.png",
+                "image/png",
+                new byte[(2 * 1024 * 1024) + 1]
+        );
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testProfile));
+
+        assertThatThrownBy(() -> userService.updateAvatar("1", avatar))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Ảnh đại diện tối đa 2MB");
+
+        verify(fileService, never()).uploadFile(any(), any());
     }
 
     // === CHANGE PASSWORD ===
