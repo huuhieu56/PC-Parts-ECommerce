@@ -288,6 +288,7 @@ graph TD
     ForgotPassword["Quên mật khẩu /auth/forgot-password"]
     ResetPassword["Đặt lại mật khẩu /auth/reset-password?token=..."]
     Profile["Profile /profile"]
+    Addresses["Sổ địa chỉ /profile/addresses"]
     Orders["Đơn hàng /orders"]
     OrderDetail["Chi tiết ĐH /orders/[id]"]
     Warranty["Bảo hành /warranty"]
@@ -299,7 +300,9 @@ graph TD
     BuildPC --> Cart
     Cart --> Checkout -->|"Cần đăng nhập"| Auth --> Checkout
     Checkout --> OrderSuccess
+    Profile --> Addresses
     Profile --> Orders --> OrderDetail
+    Checkout -->|"Thêm địa chỉ mới"| Addresses
     OrderDetail --> Returns
     Orders --> Warranty
     Orders --> Returns
@@ -657,9 +660,9 @@ graph TD
 │                                │  G.Skill DDR5     x2      │
 │  2️⃣ PHƯƠNG THỨC THANH TOÁN     │  4.980.000đ              │
 │  ○ COD (Thanh toán khi nhận)   │                           │
-│  ○ VNPay                       │  Tạm tính: 20.960.000   │
-│  ○ MoMo                        │  Giảm giá:   -500.000   │
-│  ○ Chuyển khoản ngân hàng      │  Ship:          30.000   │
+│  ○ MoMo                        │  Tạm tính: 20.960.000   │
+│                                │  Giảm giá:   -500.000   │
+│                                │  Ship:          30.000   │
 │                                │  ────────────────────     │
 │  3️⃣ GHI CHÚ                    │  TỔNG:    20.490.000đ    │
 │  [Ghi chú cho người giao hàng] │                           │
@@ -669,9 +672,48 @@ graph TD
 └────────────────────────────────────────────────────────────┘
 ```
 
-### 4.7. Quên / Thiết lập lại mật khẩu
+**Hành vi địa chỉ trong Checkout:**
+- Address mặc định được chọn sẵn nếu Customer đã có Address.
+- Nút `[+ Thêm địa chỉ mới]` mở modal dùng cùng form với `/profile/addresses`; sau khi lưu thành công, Address mới được chọn cho đơn hiện tại.
+- Nếu chưa chọn Address, nút đặt hàng trả lỗi inline "Vui lòng chọn địa chỉ giao hàng".
+- Nếu Address ngoài vùng giao hàng hỗ trợ, hiển thị lỗi inline "Địa chỉ nằm ngoài vùng giao hàng hỗ trợ".
+- Phương thức thanh toán chỉ gồm COD và MoMo theo requirement hiện tại.
 
-#### 4.7.1. Quên mật khẩu (`/auth/forgot-password`)
+### 4.7. Sổ địa chỉ (`/profile/addresses`)
+
+```
+┌────────────────────────────────────────────────────────────┐
+│  TÀI KHOẢN CỦA TÔI                                         │
+├──────────────────────┬─────────────────────────────────────┤
+│  Hồ sơ               │  SỔ ĐỊA CHỈ                         │
+│  Sổ địa chỉ  ●       │  [+ Thêm địa chỉ]                    │
+│  Đơn hàng            │                                     │
+│  Bảo hành            │  ┌────────────────────────────────┐ │
+│  Đổi trả             │  │ Nhà        [Mặc định]          │ │
+│                      │  │ Nguyễn Văn A - 0901234567      │ │
+│                      │  │ 123 Xuân Thủy, Dịch Vọng,      │ │
+│                      │  │ Cầu Giấy, Hà Nội               │ │
+│                      │  │ [Sửa] [Xóa]                    │ │
+│                      │  └────────────────────────────────┘ │
+│                      │  ┌────────────────────────────────┐ │
+│                      │  │ Cơ quan                         │ │
+│                      │  │ Nguyễn Văn A - 0901234567      │ │
+│                      │  │ ...                             │ │
+│                      │  │ [Sửa] [Đặt mặc định] [Xóa]     │ │
+│                      │  └────────────────────────────────┘ │
+└──────────────────────┴─────────────────────────────────────┘
+```
+
+**Form thêm/sửa địa chỉ:**
+- Fields: `label`, `receiverName`, `receiverPhone`, `province`, `district`, `ward`, `street`, `isDefault`.
+- `province` mặc định là Hà Nội; `district` chỉ hiển thị quận/huyện/thị xã đang hỗ trợ.
+- Khi tạo Address đầu tiên, checkbox mặc định được bật và disabled.
+- Khi xóa Address duy nhất, hiển thị lỗi "Bạn cần tạo địa chỉ mới trước khi xóa".
+- Khi đặt mặc định, card mới có badge `[Mặc định]`, badge ở card cũ biến mất.
+
+### 4.8. Quên / Thiết lập lại mật khẩu
+
+#### 4.8.1. Quên mật khẩu (`/auth/forgot-password`)
 
 ```
 ┌────────────────────────────────────────────────────────────┐
@@ -698,7 +740,7 @@ graph TD
 - Submit gọi `POST /auth/forgot-password`.
 - Luôn hiển thị message trung tính: **"Nếu email tồn tại, liên kết đặt lại mật khẩu đã được gửi"**.
 
-#### 4.7.2. Thiết lập lại mật khẩu (`/auth/reset-password?token=...`)
+#### 4.8.2. Thiết lập lại mật khẩu (`/auth/reset-password?token=...`)
 
 ```
 ┌────────────────────────────────────────────────────────────┐
@@ -727,7 +769,7 @@ graph TD
 **API mapping:**
 - Submit gọi `POST /auth/reset-password` với `{token, newPassword, confirmPassword}`.
 
-#### 4.7.3. Message & State Rules (UC-CUS-15)
+#### 4.8.3. Message & State Rules (UC-CUS-15)
 
 | Tình huống | Hiển thị UI |
 |:-----------|:------------|
@@ -741,7 +783,7 @@ graph TD
 - Trong lúc submit: disable button + spinner.
 - Không cho submit lặp khi request đang pending.
 
-#### 4.7.4. Responsive behavior
+#### 4.8.4. Responsive behavior
 
 | Thành phần | Mobile (<640px) | Desktop (>=1024px) |
 |:-----------|:----------------|:-------------------|
@@ -750,7 +792,7 @@ graph TD
 | CTA button | Full width | Full width |
 | Error/success message | Inline, font size 14px | Inline, font size 14px |
 
-### 4.8. Yêu cầu đổi trả (`/orders/[id]` → modal/form)
+### 4.9. Yêu cầu đổi trả (`/orders/[id]` → modal/form)
 
 Nút **Yêu cầu đổi trả** chỉ hiển thị trong chi tiết đơn hàng khi Order ở trạng thái "Hoàn thành" và sản phẩm còn trong thời hạn ReturnPolicy.
 
@@ -800,7 +842,7 @@ Message rules:
 | Sản phẩm không áp dụng đổi trả | Disable nút đổi trả, tooltip nêu lý do |
 | Ảnh sai định dạng/quá dung lượng | Inline error cạnh uploader |
 
-### 4.9. Danh sách đổi trả của Customer (`/returns`)
+### 4.10. Danh sách đổi trả của Customer (`/returns`)
 
 ```
 ┌────────────────────────────────────────────────────────────┐

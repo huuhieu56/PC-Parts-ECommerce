@@ -11,7 +11,7 @@ skinparam usecase {
 title UC-CUS-02: Tạo đơn hàng và thanh toán
 
 actor "Khách hàng\n(Customer)" as Customer
-actor "Cổng thanh toán\n(VNPay/MoMo)" as PayGW
+actor "Cổng thanh toán\n(MoMo)" as PayGW
 
 rectangle "Hệ thống PC Parts E-Commerce" {
   usecase "Tạo đơn hàng\nvà thanh toán" as UC_CHECKOUT

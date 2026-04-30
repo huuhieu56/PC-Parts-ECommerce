@@ -10,48 +10,56 @@ participant "MoMo Gateway" as Pay
 Customer -> FE : Nhấn "Đặt hàng"
 FE -> BE : POST /api/v1/orders\n{address_id, payment_method, coupon_code?}
 BE -> BE : Validate JWT
+BE -> DB : SELECT Address\nWHERE id = address_id\nAND user_id = currentUser
 
-opt Có coupon_code
-    BE -> DB : SELECT Coupon WHERE code = ?
-    BE -> BE : Validate (còn hạn,\nchưa max_uses, chưa dùng bởi user)
-end
+alt Thiếu hoặc không tìm thấy Address
+    BE --> FE : 400/404\n{Vui lòng chọn địa chỉ giao hàng}
+else Address ngoài vùng giao hàng
+    BE --> FE : 400 Bad Request\n{Địa chỉ ngoài vùng hỗ trợ}
+else Address hợp lệ
 
-BE -> DB : SELECT Cart_Item + Inventory JOIN
-loop Mỗi Cart_Item
-    BE -> BE : Kiểm tra Inventory.quantity\n>= requested_qty
-end
-
-alt Hết hàng
-    BE --> FE : 409 Conflict\n{sản phẩm hết hàng}
-else Đủ hàng
-    BE -> DB : INSERT Order (status=PENDING)
-    BE -> DB : INSERT Order_Detail[]\n(snapshot đơn giá)
-    BE -> DB : INSERT Payment + Shipping\n+ Order_Status_History
-
-    loop Trừ kho
-        BE -> DB : UPDATE Inventory\nSET quantity -= ?
-        BE -> DB : INSERT Inventory_Log\n(type=SELL)
+    opt Có coupon_code
+        BE -> DB : SELECT Coupon WHERE code = ?
+        BE -> BE : Validate (còn hạn,\nchưa max_uses, chưa dùng bởi user)
     end
 
-    opt Có Coupon
-        BE -> DB : INSERT Coupon_Usage,\nUPDATE Coupon.used_count
+    BE -> DB : SELECT Cart_Item + Inventory JOIN
+    loop Mỗi Cart_Item
+        BE -> BE : Kiểm tra Inventory.quantity\n>= requested_qty
     end
 
-    BE -> DB : DELETE Cart_Item (đã đặt)
+    alt Hết hàng
+        BE --> FE : 409 Conflict\n{sản phẩm hết hàng}
+    else Đủ hàng
+        BE -> DB : INSERT Order (status=PENDING)
+        BE -> DB : INSERT Order_Detail[]\n(snapshot đơn giá)
+        BE -> DB : INSERT Payment + Shipping\n+ Order_Status_History
 
-    alt Thanh toán Online (MoMo)
-        BE -> Pay : Tạo payment URL
-        Pay --> BE : Payment URL
-        BE --> FE : 200 {orderId, paymentUrl}
-        FE --> Customer : Redirect sang cổng thanh toán
-        Customer -> Pay : Thanh toán
-        Pay -> BE : IPN Callback\n{transactionId, status}
-        BE -> DB : UPDATE Payment\nSET status=SUCCESS
-    else COD
-        BE --> FE : 201 {orderId}
+        loop Trừ kho
+            BE -> DB : UPDATE Inventory\nSET quantity -= ?
+            BE -> DB : INSERT Inventory_Log\n(type=SELL)
+        end
+
+        opt Có Coupon
+            BE -> DB : INSERT Coupon_Usage,\nUPDATE Coupon.used_count
+        end
+
+        BE -> DB : DELETE Cart_Item (đã đặt)
+
+        alt Thanh toán Online (MoMo)
+            BE -> Pay : Tạo payment URL
+            Pay --> BE : Payment URL
+            BE --> FE : 200 {orderId, paymentUrl}
+            FE --> Customer : Redirect sang cổng thanh toán
+            Customer -> Pay : Thanh toán
+            Pay -> BE : IPN Callback\n{transactionId, status}
+            BE -> DB : UPDATE Payment\nSET status=SUCCESS
+        else COD
+            BE --> FE : 201 {orderId}
+        end
+
+        FE --> Customer : Hiển thị "Đặt hàng thành công"
     end
-
-    FE --> Customer : Hiển thị "Đặt hàng thành công"
 end
 
 @enduml

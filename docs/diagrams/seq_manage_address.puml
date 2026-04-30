@@ -1,0 +1,68 @@
+@startuml seq_manage_address
+title Hình 3.15a — Sequence Diagram — Quản lý địa chỉ giao hàng (UC-CUS-12)
+
+actor Customer
+participant "Next.js" as FE
+participant "Spring Boot" as BE
+database "PostgreSQL" as DB
+
+Customer -> FE : Mở "Sổ địa chỉ"
+FE -> BE : GET /api/v1/users/addresses
+BE -> BE : Validate JWT
+BE -> DB : SELECT Address\nWHERE user_id = currentUser\nORDER BY is_default DESC, updated_at DESC
+DB --> BE : Address[]
+BE --> FE : 200 AddressResponse[]
+FE --> Customer : Hiển thị danh sách Address
+
+alt Thêm địa chỉ mới
+    Customer -> FE : Nhập AddressRequest
+    FE -> BE : POST /api/v1/users/addresses
+    BE -> BE : Validate payload\n+ vùng giao hàng
+    BE -> DB : COUNT Address\nWHERE user_id = currentUser
+    alt Address đầu tiên hoặc request isDefault=true
+        BE -> DB : UPDATE Address\nSET is_default=false\nWHERE user_id=currentUser
+    end
+    BE -> DB : INSERT Address
+    DB --> BE : Address
+    BE --> FE : 201 AddressResponse
+else Sửa địa chỉ
+    Customer -> FE : Sửa Address
+    FE -> BE : PUT /api/v1/users/addresses/{id}
+    BE -> BE : Validate payload\n+ vùng giao hàng
+    BE -> DB : SELECT Address\nWHERE id=? AND user_id=currentUser
+    alt Không tìm thấy
+        BE --> FE : 404 Không tìm thấy địa chỉ
+    else Tìm thấy
+        BE -> DB : UPDATE Address
+        DB --> BE : Address
+        BE --> FE : 200 AddressResponse
+    end
+else Đặt làm mặc định
+    Customer -> FE : Chọn "Đặt mặc định"
+    FE -> BE : PATCH /api/v1/users/addresses/{id}/default
+    BE -> DB : SELECT Address\nWHERE id=? AND user_id=currentUser
+    alt Không tìm thấy
+        BE --> FE : 404 Không tìm thấy địa chỉ
+    else Tìm thấy
+        BE -> DB : UPDATE Address\nSET is_default=false\nWHERE user_id=currentUser
+        BE -> DB : UPDATE Address\nSET is_default=true\nWHERE id=?
+        BE --> FE : 200 AddressResponse
+    end
+else Xóa địa chỉ
+    Customer -> FE : Xác nhận xóa
+    FE -> BE : DELETE /api/v1/users/addresses/{id}
+    BE -> DB : SELECT Address\nWHERE id=? AND user_id=currentUser
+    alt Không tìm thấy
+        BE --> FE : 404 Không tìm thấy địa chỉ
+    else Là Address duy nhất
+        BE --> FE : 400 Bạn cần tạo địa chỉ mới trước khi xóa
+    else Đã dùng trong Order
+        BE -> DB : Soft delete / ẩn khỏi sổ địa chỉ
+        BE --> FE : 204 No Content
+    else Có thể xóa
+        BE -> DB : DELETE Address
+        BE --> FE : 204 No Content
+    end
+end
+
+@enduml

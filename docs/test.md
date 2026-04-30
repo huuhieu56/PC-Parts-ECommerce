@@ -74,3 +74,14 @@
 - UC-CUS-15 trong `docs/requirement_analysis.md`.
 - API endpoint Auth và enum token trong `docs/software_design_document.md`.
 - Ma trận test tổng hợp ở `docs/design.md` (mục 3.4.1).
+
+## 7. Ghi chú cập nhật ngoài phạm vi MVP hiện tại
+
+UC-CUS-12 (Quản lý địa chỉ giao hàng) chưa thuộc phạm vi kiểm thử chi tiết của file MVP này. Test case chính thức cho UC-CUS-12 hiện được truy xuất trong `docs/design.md`, mục `3.4.1.1 Module Quản lý địa chỉ giao hàng (UC-CUS-12)`, với prefix `TC-ADDR-*`.
+
+Khi mở rộng phạm vi test spec sang UC-CUS-12, cần tạo section hoặc file test spec riêng bao phủ:
+- CRUD Address của Customer.
+- Đặt Address mặc định.
+- Ownership check cho Address của user khác.
+- Validation vùng giao hàng Hà Nội.
+- Checkout dùng `addressId` không thuộc user hoặc ngoài vùng hỗ trợ.
