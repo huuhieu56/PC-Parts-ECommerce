@@ -36,11 +36,36 @@ class ReturnRequest {
     - reason : String
     - status : ReturnStatus
     - refundAmount : BigDecimal
+    - rejectionReason : String
+    - adminNote : String
+    - resolvedBy : Account
+    - replacementOrder : Order
+    - images : List<ReturnImage>
     - resolvedAt : LocalDateTime
     - createdAt : LocalDateTime
     - updatedAt : LocalDateTime
     + approve() : void
     + reject(reason) : void
+}
+
+class ReturnPolicy {
+    - id : Long
+    - category : Category
+    - product : Product
+    - returnWindowDays : Integer
+    - allowExchange : Boolean
+    - allowRefund : Boolean
+    - excluded : Boolean
+    - conditions : String
+    - description : String
+    + isEligible(completedAt) : Boolean
+}
+
+class ReturnImage {
+    - id : Long
+    - returnRequest : ReturnRequest
+    - imageUrl : String
+    - createdAt : LocalDateTime
 }
 
 enum WarrantyStatus {
@@ -75,4 +100,8 @@ ReturnRequest --> ReturnStatus
 ReturnRequest --> User
 ReturnRequest --> Order
 ReturnRequest --> OrderDetail
+ReturnRequest --> Account : resolved by
+ReturnRequest "1" --> "*" ReturnImage : has evidence
+ReturnPolicy --> Category
+ReturnPolicy --> Product
 @enduml

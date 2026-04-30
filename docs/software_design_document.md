@@ -198,7 +198,7 @@ Hệ thống được thiết kế theo kiến trúc **Monolithic phân lớp (L
 
 ### 3.1. Tổng quan mô hình dữ liệu
 
-Hệ thống quản lý **33 thực thể (Entity)** chính, được nhóm thành **8 nhóm nghiệp vụ** như mô tả trong tài liệu SRS. Dưới đây là thiết kế lược đồ cơ sở dữ liệu chi tiết cho từng nhóm.
+Hệ thống quản lý **35 thực thể (Entity)** chính, được nhóm thành **8 nhóm nghiệp vụ** như mô tả trong tài liệu SRS. Dưới đây là thiết kế lược đồ cơ sở dữ liệu chi tiết cho từng nhóm.
 
 ### 3.2. Nhóm Phân quyền (Authentication & Authorization)
 
@@ -580,7 +580,21 @@ Hệ thống quản lý **33 thực thể (Entity)** chính, được nhóm thà
 | created\_at | TIMESTAMP | DEFAULT NOW() | Ngày tạo |
 | updated\_at | TIMESTAMP | DEFAULT NOW() | Ngày cập nhật |
 
-#### 3.8.3. Return (Đổi trả / Hoàn tiền)
+#### 3.8.3. Return\_Policy (Chính sách đổi trả)
+
+| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
+|:----|:--------------|:----------|:------|
+| id | BIGINT | PK, AUTO\_INCREMENT | Khóa chính |
+| category\_id | BIGINT | FK → Category(id), NULLABLE | Danh mục áp dụng |
+| product\_id | BIGINT | FK → Product(id), NULLABLE | Sản phẩm cụ thể (ưu tiên hơn Category) |
+| return\_window\_days | INT | NOT NULL | Số ngày được yêu cầu đổi trả |
+| allow\_exchange | BOOLEAN | DEFAULT TRUE | Cho phép đổi hàng |
+| allow\_refund | BOOLEAN | DEFAULT TRUE | Cho phép hoàn tiền |
+| excluded | BOOLEAN | DEFAULT FALSE | Không áp dụng đổi trả |
+| conditions | TEXT | NULLABLE | Điều kiện đổi trả |
+| description | TEXT | NULLABLE | Mô tả chính sách |
+
+#### 3.8.4. Return (Đổi trả / Hoàn tiền)
 
 | Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
 |:----|:--------------|:----------|:------|
@@ -592,9 +606,22 @@ Hệ thống quản lý **33 thực thể (Entity)** chính, được nhóm thà
 | reason | TEXT | NOT NULL | Lý do |
 | status | VARCHAR(20) | DEFAULT 'PENDING\_APPROVAL' | PENDING\_APPROVAL, APPROVED, REJECTED, COMPLETED |
 | refund\_amount | DECIMAL(15,2) | NULLABLE | Số tiền hoàn (nếu REFUND) |
+| rejection\_reason | TEXT | NULLABLE | Lý do từ chối |
+| admin\_note | TEXT | NULLABLE | Ghi chú xử lý nội bộ |
+| resolved\_by | BIGINT | FK → Account(id), NULLABLE | Admin/Sales xử lý |
+| replacement\_order\_id | BIGINT | FK → Order(id), NULLABLE | Đơn hàng thay thế nếu đổi hàng |
 | resolved\_at | TIMESTAMP | NULLABLE | Ngày giải quyết |
 | created\_at | TIMESTAMP | DEFAULT NOW() | Ngày tạo |
 | updated\_at | TIMESTAMP | DEFAULT NOW() | Ngày cập nhật |
+
+#### 3.8.5. Return\_Image (Ảnh minh chứng đổi trả)
+
+| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
+|:----|:--------------|:----------|:------|
+| id | BIGINT | PK, AUTO\_INCREMENT | Khóa chính |
+| return\_id | BIGINT | FK → Return(id), NOT NULL | Yêu cầu đổi trả |
+| image\_url | VARCHAR(500) | NOT NULL | URL ảnh lưu trên MinIO |
+| created\_at | TIMESTAMP | DEFAULT NOW() | Ngày upload |
 
 ### 3.9. Nhóm Thông báo (Notification)
 
@@ -641,8 +668,10 @@ Hệ thống quản lý **33 thực thể (Entity)** chính, được nhóm thà
 | Review ↔ Review\_Image | 1-N | Ảnh đính kèm |
 | Category/Product ↔ Warranty\_Policy | 1-N | Ưu tiên Product |
 | User ↔ Warranty\_Ticket | 1-N | Phiếu bảo hành |
+| Category/Product ↔ Return\_Policy | 1-N | Chính sách đổi trả, ưu tiên Product |
 | User ↔ Return | 1-N | Yêu cầu đổi trả |
 | Order\_Detail ↔ Return | 1-N | Đổi trả theo sản phẩm cụ thể |
+| Return ↔ Return\_Image | 1-N | Ảnh minh chứng đổi trả |
 | User ↔ Notification | 1-N | Một User nhận nhiều Notification |
 
 ---
@@ -771,7 +800,11 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 | POST | `/admin/warranty-policies` | Tạo chính sách BH | Admin |
 | PUT | `/admin/warranty-policies/{id}` | Cập nhật chính sách BH | Admin |
 | DELETE | `/admin/warranty-policies/{id}` | Xóa chính sách BH | Admin |
-| POST | `/returns` | Tạo yêu cầu đổi trả | Customer |
+| GET | `/admin/return-policies` | Danh sách chính sách đổi trả | Admin |
+| POST | `/admin/return-policies` | Tạo chính sách đổi trả | Admin |
+| PUT | `/admin/return-policies/{id}` | Cập nhật chính sách đổi trả | Admin |
+| DELETE | `/admin/return-policies/{id}` | Xóa chính sách đổi trả | Admin |
+| POST | `/returns` | Tạo yêu cầu đổi trả, hỗ trợ ảnh minh chứng multipart | Customer |
 | GET | `/returns` | Danh sách yêu cầu đổi trả (user) | Customer |
 | GET | `/admin/returns` | Quản lý đổi trả | Admin/Sales |
 | PATCH | `/admin/returns/{id}` | Duyệt/từ chối đổi trả | Admin/Sales |
@@ -920,9 +953,14 @@ Hệ thống sử dụng **RESTful API** với các quy ước sau:
 - State Machine phiếu BH: `RECEIVED → INSPECTING → RESOLVED/REJECTED`.
 
 **Quy tắc đổi trả:**
+- Return\_Policy ưu tiên Product > Category; nếu không có policy riêng thì dùng mặc định: linh kiện PC lắp ráp mới 30 ngày, nhóm thiết bị/phụ kiện/màn hình/laptop/ngoại vi 15 ngày.
+- Không áp dụng đổi trả nếu Return\_Policy.excluded = true hoặc sản phẩm thuộc nhóm bán nguyên seal đã bóc seal, tiêu hao, phần mềm/license, quà tặng khuyến mãi, Apple/sản phẩm hãng có chính sách riêng.
+- Customer chỉ được tạo yêu cầu khi Order thuộc chính họ, Order.status = COMPLETED, Order\_Detail thuộc Order, còn trong return\_window\_days và chưa có Return cùng Order\_Detail ở trạng thái PENDING\_APPROVAL/APPROVED.
+- Lý do đổi trả bắt buộc. Ảnh minh chứng tùy chọn, tối đa 5 ảnh JPG/PNG/WEBP, mỗi ảnh tối đa 5MB và lưu MinIO.
 - Duyệt + Hoàn tiền: Tạo Payment (status=REFUNDED), Inventory\_Log (type=RETURN).
 - Duyệt + Đổi hàng: Hoàn kho SP cũ, tạo Order mới cho SP thay thế.
-- Từ chối: Bắt buộc nhập lý do.
+- Từ chối: Bắt buộc nhập lý do từ chối.
+- State Machine đổi trả: `PENDING_APPROVAL → APPROVED → COMPLETED` hoặc `PENDING_APPROVAL → REJECTED`.
 
 ---
 
@@ -1046,7 +1084,7 @@ Ma trận dưới đây liên kết từ **Yêu cầu người dùng (UR)** tron
 | UR-USR-01 | Quản lý tài khoản | M11 | UC-AD-06 | Account, User, Role, Permission |
 | UR-WARPOL-01 | Chính sách bảo hành | M09 | UC-AD-09 | Warranty\_Policy |
 | UR-WAR-01 | Bảo hành | M09 | UC-CUS-10, UC-AD-09 | Warranty\_Ticket |
-| UR-RET-01 | Đổi trả & Hoàn tiền | M09 | UC-CUS-11, UC-AD-10 | Return, Payment, Inventory\_Log |
+| UR-RET-01 | Đổi trả & Hoàn tiền | M09 | UC-CUS-11, UC-AD-10 | Return\_Policy, Return, Return\_Image, Payment, Inventory\_Log |
 | UR-AD-05 | Thống kê doanh thu | M11 | UC-AD-05 | Order, Order\_Detail, Product, Category |
 
 ---
@@ -1267,24 +1305,37 @@ sequenceDiagram
     participant DB as PostgreSQL
 
     Customer->>FE: Tạo yêu cầu đổi trả
-    FE->>BE: POST /api/returns {order_id, order_detail_id, type, reason}
-    BE->>BE: Validate (đơn hàng COMPLETED, trong thời gian cho phép)
-    BE->>DB: INSERT Return (status=PENDING_APPROVAL)
-    BE-->>FE: 201 {returnId}
+    FE->>BE: POST /api/returns {order_id, order_detail_id, type, reason, images[]}
+    BE->>BE: Validate JWT (Customer)
+    BE->>DB: SELECT Order + Order_Detail
+    BE->>DB: SELECT Return_Policy (ưu tiên Product > Category)
+    BE->>BE: Validate COMPLETED, owner, còn hạn, không excluded, chưa có request trùng
+
+    alt Không hợp lệ
+        BE-->>FE: 400/403/409 {message}
+    else Hợp lệ
+        BE->>DB: INSERT Return (status=PENDING_APPROVAL)
+        opt Có ảnh minh chứng
+            BE->>DB: INSERT Return_Image (image_url)
+        end
+        BE-->>FE: 201 {returnId, status}
+    end
 
     Note over BE,DB: Admin/Sales duyệt
     
     alt Duyệt - REFUND
-        BE->>DB: UPDATE Return SET status=APPROVED
+        BE->>DB: UPDATE Return SET status=APPROVED, resolved_by=admin_id
         BE->>DB: INSERT Payment (status=REFUNDED, amount=refund_amount)
         BE->>DB: UPDATE Inventory SET quantity += ?
         BE->>DB: INSERT Inventory_Log (type=RETURN)
+        BE->>DB: UPDATE Return SET status=COMPLETED, resolved_at=NOW()
     else Duyệt - EXCHANGE
-        BE->>DB: UPDATE Return SET status=APPROVED
+        BE->>DB: UPDATE Return SET status=APPROVED, resolved_by=admin_id
         BE->>DB: UPDATE Inventory (hoàn kho SP cũ)
         BE->>DB: INSERT Order mới (SP thay thế)
+        BE->>DB: UPDATE Return SET status=COMPLETED, replacement_order_id=order_id, resolved_at=NOW()
     else Từ chối
-        BE->>DB: UPDATE Return SET status=REJECTED, note="Lý do"
+        BE->>DB: UPDATE Return SET status=REJECTED, rejection_reason="Lý do", resolved_at=NOW()
     end
 ```
 
@@ -1853,7 +1904,119 @@ classDiagram
 }
 ```
 
-### 11.5. Build PC
+### 11.5. Returns
+
+#### POST `/api/returns`
+
+Tạo yêu cầu đổi trả cho một dòng sản phẩm trong đơn hàng đã hoàn thành. Endpoint nhận `multipart/form-data` khi có ảnh minh chứng; nếu không có ảnh có thể gửi JSON cùng schema.
+
+**Request Body (JSON hoặc field `payload` trong multipart):**
+```json
+{
+  "orderId": 1001,
+  "orderDetailId": 5001,
+  "type": "REFUND",
+  "reason": "Sản phẩm lỗi kỹ thuật, không nhận nguồn"
+}
+```
+
+**Files (optional):**
+
+| Field | Quy định |
+|:------|:---------|
+| `images` | Tối đa 5 ảnh JPG/PNG/WEBP, mỗi ảnh tối đa 5MB |
+
+**Response 201:**
+```json
+{
+  "status": 201,
+  "message": "Yêu cầu đổi trả đã được gửi",
+  "data": {
+    "returnId": 77,
+    "orderId": 1001,
+    "orderDetailId": 5001,
+    "type": "REFUND",
+    "status": "PENDING_APPROVAL",
+    "imageUrls": [
+      "https://minio.domain.com/returns/77/image-1.webp"
+    ]
+  }
+}
+```
+
+**Response lỗi nghiệp vụ:**
+
+| HTTP | Tình huống | Message |
+|:-----|:-----------|:--------|
+| 400 | Order chưa hoàn thành | `Chỉ đổi trả đơn đã hoàn thành` |
+| 400 | Quá thời hạn đổi trả | `Đã quá thời hạn đổi trả cho sản phẩm này` |
+| 400 | Thiếu lý do | `Vui lòng nhập lý do đổi trả` |
+| 400 | Order_Detail không thuộc Order | `Sản phẩm không thuộc đơn hàng này` |
+| 400 | Sản phẩm thuộc nhóm loại trừ | `Sản phẩm này không áp dụng đổi trả` |
+| 400 | Ảnh sai định dạng/quá dung lượng | `Ảnh minh chứng chỉ nhận JPG/PNG/WEBP và tối đa 5MB/ảnh` |
+| 403 | Order không thuộc Customer | `Bạn không có quyền yêu cầu đổi trả đơn hàng này` |
+| 409 | Đã có yêu cầu đang chờ xử lý | `Sản phẩm này đã có yêu cầu đổi trả đang xử lý` |
+
+#### GET `/api/returns`
+
+**Response 200:**
+```json
+{
+  "status": 200,
+  "data": {
+    "content": [
+      {
+        "id": 77,
+        "orderId": 1001,
+        "orderDetailId": 5001,
+        "productName": "Nguồn Corsair RM850x",
+        "type": "REFUND",
+        "status": "PENDING_APPROVAL",
+        "reason": "Sản phẩm lỗi kỹ thuật, không nhận nguồn",
+        "createdAt": "2026-03-25T11:00:00+07:00"
+      }
+    ],
+    "page": 0,
+    "size": 20,
+    "totalElements": 1,
+    "totalPages": 1
+  }
+}
+```
+
+#### PATCH `/api/admin/returns/{id}`
+
+**Request Body:**
+```json
+{
+  "action": "APPROVE_REFUND",
+  "refundAmount": 2490000,
+  "replacementProductId": null,
+  "rejectionReason": null,
+  "adminNote": "Lỗi được xác nhận do nhà sản xuất"
+}
+```
+
+**Action values:** `APPROVE_REFUND`, `APPROVE_EXCHANGE`, `REJECT`, `COMPLETE`.
+
+**Response 200:**
+```json
+{
+  "status": 200,
+  "message": "Yêu cầu đổi trả đã được cập nhật",
+  "data": {
+    "returnId": 77,
+    "status": "COMPLETED",
+    "refundPaymentId": 8801,
+    "replacementOrderId": null,
+    "resolvedAt": "2026-03-26T09:30:00+07:00"
+  }
+}
+```
+
+> Khi `action=REJECT`, `rejectionReason` là bắt buộc. Khi `action=APPROVE_EXCHANGE`, `replacementProductId` là bắt buộc và phải còn hàng.
+
+### 11.6. Build PC
 
 #### POST `/api/build-pc/check-compatibility`
 
@@ -1893,7 +2056,7 @@ classDiagram
 }
 ```
 
-### 11.6. Error Response (chuẩn chung)
+### 11.7. Error Response (chuẩn chung)
 
 ```json
 {

@@ -49,6 +49,19 @@ entity "WARRANTY_TICKET" as warranty_ticket {
     * updated_at : timestamp
 }
 
+entity "RETURN_POLICY" as return_policy {
+    * id : bigint <<PK>>
+    --
+    category_id : bigint <<FK>>
+    product_id : bigint <<FK>>
+    * return_window_days : int
+    * allow_exchange : boolean
+    * allow_refund : boolean
+    * excluded : boolean
+    conditions : text
+    description : text
+}
+
 entity "RETURN_REQUEST" as return_req {
     * id : bigint <<PK>>
     --
@@ -59,12 +72,26 @@ entity "RETURN_REQUEST" as return_req {
     * reason : text
     * status : varchar
     refund_amount : decimal
+    rejection_reason : text
+    admin_note : text
+    resolved_by : bigint <<FK>>
+    replacement_order_id : bigint <<FK>>
     resolved_at : timestamp
     * created_at : timestamp
     * updated_at : timestamp
 }
 
+entity "RETURN_IMAGE" as return_img {
+    * id : bigint <<PK>>
+    --
+    * return_id : bigint <<FK>>
+    * image_url : varchar
+    * created_at : timestamp
+}
+
 review ||--o{ review_img : "has images"
 warranty_policy ||--o{ warranty_ticket : "governs"
+return_policy ||--o{ return_req : "applies to"
+return_req ||--o{ return_img : "has evidence"
 
 @enduml

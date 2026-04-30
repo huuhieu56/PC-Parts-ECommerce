@@ -20,6 +20,7 @@ rectangle "Hệ thống PC Parts E-Commerce" {
   usecase "Duyệt + Hoàn tiền\n(refund_amount, Payment\nRefunded, hoàn kho)" as UC_REFUND
   usecase "Duyệt + Đổi hàng\n(hoàn kho cũ,\ntạo Order mới)" as UC_EXCHANGE
   usecase "Từ chối\n(nhập lý do)" as UC_REJECT
+  usecase "Hoàn tất xử lý\n(COMPLETED)" as UC_COMPLETE
   usecase "Cập nhật Return.status\nvà resolved_at" as UC_UPDATE
   usecase "Từ chối không nhập\nlý do → Báo lỗi" as UC_ERR_REASON
   usecase "SP thay thế hết hàng\n→ Báo lỗi" as UC_ERR_STOCK
@@ -34,6 +35,7 @@ UC_RET ..> UC_UPDATE : <<include>>
 UC_RET ..> UC_REFUND : <<extend>>
 UC_RET ..> UC_EXCHANGE : <<extend>>
 UC_RET ..> UC_REJECT : <<extend>>
+UC_RET ..> UC_COMPLETE : <<include>>
 UC_REJECT ..> UC_ERR_REASON : <<extend>>
 UC_EXCHANGE ..> UC_ERR_STOCK : <<extend>>
 

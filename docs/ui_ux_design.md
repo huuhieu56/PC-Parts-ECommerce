@@ -300,6 +300,7 @@ graph TD
     Cart --> Checkout -->|"Cần đăng nhập"| Auth --> Checkout
     Checkout --> OrderSuccess
     Profile --> Orders --> OrderDetail
+    OrderDetail --> Returns
     Orders --> Warranty
     Orders --> Returns
     Home --> BuildPC
@@ -749,6 +750,76 @@ graph TD
 | CTA button | Full width | Full width |
 | Error/success message | Inline, font size 14px | Inline, font size 14px |
 
+### 4.8. Yêu cầu đổi trả (`/orders/[id]` → modal/form)
+
+Nút **Yêu cầu đổi trả** chỉ hiển thị trong chi tiết đơn hàng khi Order ở trạng thái "Hoàn thành" và sản phẩm còn trong thời hạn ReturnPolicy.
+
+```
+┌────────────────────────────────────────────────────────────┐
+│  Chi tiết đơn hàng #1001                                   │
+├────────────────────────────────────────────────────────────┤
+│  Sản phẩm                                                  │
+│  ┌─────┬──────────────────────────────┬────────┬────────┐ │
+│  │[IMG]│ Nguồn Corsair RM850x         │ x1     │2.490.000│ │
+│  │     │ Bảo hành: 36 tháng           │        │         │ │
+│  │     │ Còn hạn đổi trả: 12 ngày     │        │[Đổi trả]│ │
+│  └─────┴──────────────────────────────┴────────┴────────┘ │
+└────────────────────────────────────────────────────────────┘
+```
+
+Form đổi trả mở bằng `Dialog` trên desktop và `Sheet` trên mobile:
+
+```
+┌──────────────────────────────────────────────┐
+│  Yêu cầu đổi trả                             │
+├──────────────────────────────────────────────┤
+│  Sản phẩm: Nguồn Corsair RM850x              │
+│  Chính sách: Linh kiện PC - đổi trả 30 ngày  │
+│                                              │
+│  Loại yêu cầu                                │
+│  ○ Đổi hàng                                  │
+│  ○ Hoàn tiền                                 │
+│                                              │
+│  Lý do đổi trả *                             │
+│  [ Mô tả lỗi kỹ thuật / tình trạng sản phẩm ]│
+│                                              │
+│  Ảnh minh chứng                              │
+│  [ + Tải ảnh ] JPG/PNG/WEBP, tối đa 5 ảnh    │
+│                                              │
+│  [Hủy]                         [Gửi yêu cầu] │
+└──────────────────────────────────────────────┘
+```
+
+Message rules:
+
+| Tình huống | Hiển thị UI |
+|:-----------|:------------|
+| Gửi thành công | Toast success: "Yêu cầu đổi trả đã được gửi" và chuyển tới `/returns` |
+| Quá hạn đổi trả | Inline alert: "Đã quá thời hạn đổi trả cho sản phẩm này" |
+| Thiếu lý do | Inline error dưới textarea: "Vui lòng nhập lý do đổi trả" |
+| Sản phẩm không áp dụng đổi trả | Disable nút đổi trả, tooltip nêu lý do |
+| Ảnh sai định dạng/quá dung lượng | Inline error cạnh uploader |
+
+### 4.9. Danh sách đổi trả của Customer (`/returns`)
+
+```
+┌────────────────────────────────────────────────────────────┐
+│  Đổi trả                                                   │
+│  Tabs: [Tất cả] [Chờ duyệt] [Đã duyệt] [Hoàn tất] [Từ chối]│
+├────────────────────────────────────────────────────────────┤
+│  ┌────────┬─────────────────────┬────────┬──────────────┐ │
+│  │ Mã YC  │ Sản phẩm            │ Loại   │ Trạng thái   │ │
+│  ├────────┼─────────────────────┼────────┼──────────────┤ │
+│  │ #77    │ Nguồn Corsair RM850x│ Hoàn tiền│ Chờ duyệt  │ │
+│  │ #76    │ RAM DDR5 32GB       │ Đổi hàng │ Hoàn tất   │ │
+│  └────────┴─────────────────────┴────────┴──────────────┘ │
+│                                                            │
+│  Click row → xem lý do, ảnh minh chứng, phản hồi xử lý     │
+└────────────────────────────────────────────────────────────┘
+```
+
+Empty state: icon `RotateCcw` + "Bạn chưa có yêu cầu đổi trả nào".
+
 ---
 
 ## 5. Wireframes mô tả — Admin/CMS
@@ -837,7 +908,34 @@ graph TD
 
 > Wireframe dùng mã tắt do giới hạn không gian cột. Khi implement, dùng `Badge` component với text đầy đủ tiếng Việt ("Chờ xử lý", "Đã xác nhận", "Đang giao", ...) và mapping từ enum backend.
 
-### 5.4. Quản lý banner / slider (`/admin/banners`)
+### 5.4. Quản lý đổi trả (`/admin/returns`)
+
+```
+┌──────────┬─────────────────────────────────────────────────┐
+│ SIDEBAR  │  Quản lý đổi trả                                │
+│          │                                                  │
+│          │  Tabs: [Chờ duyệt] [Đã duyệt] [Hoàn tất] [Từ chối]│
+│          │  Bộ lọc: Loại [All ▼]  Ngày [____]  Tìm kiếm     │
+│          │                                                  │
+│          │  ┌────┬──────────┬────────────┬───────┬────────┐│
+│          │  │#YC │ Khách    │ Sản phẩm   │ Loại  │ TT     ││
+│          │  ├────┼──────────┼────────────┼───────┼────────┤│
+│          │  │77  │ NVA      │ RM850x     │Refund │Chờ duyệt││
+│          │  │76  │ TTB      │ DDR5 32GB  │Exchange│Hoàn tất││
+│          │  └────┴──────────┴────────────┴───────┴────────┘│
+│          │                                                  │
+│          │  Click row → chi tiết yêu cầu, ảnh minh chứng,  │
+│          │  Order/Order_Detail, lý do, lịch sử xử lý       │
+└──────────┴─────────────────────────────────────────────────┘
+```
+
+Chi tiết xử lý:
+- `APPROVE_REFUND`: nhập số tiền hoàn, xác nhận hoàn kho.
+- `APPROVE_EXCHANGE`: chọn sản phẩm thay thế còn hàng, xác nhận tạo Order mới.
+- `REJECT`: bắt buộc nhập lý do từ chối.
+- `COMPLETE`: đóng quy trình sau khi hoàn tiền/đổi hàng xong.
+
+### 5.5. Quản lý banner / slider (`/admin/banners`)
 
 ```
 ┌──────────┬─────────────────────────────────────────────────┐
