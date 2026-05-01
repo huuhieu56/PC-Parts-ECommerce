@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Cpu, Monitor, MemoryStick, HardDrive, Zap, ShoppingCart, ArrowRight, ChevronLeft, ChevronRight, Truck, Shield, Headphones, Check, Loader2 } from "lucide-react";
+import { Cpu, Monitor, MemoryStick, HardDrive, Zap, ChevronLeft, ChevronRight, Truck, Shield, Headphones } from "lucide-react";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useCartStore } from "@/stores/cart-store";
-import api, { getBanners } from "@/lib/api";
-import type { Banner } from "@/types";
+import { getBanners } from "@/lib/api";
+import type { Banner, Product } from "@/types";
+import ProductCard from "@/components/ProductCard";
+import type { DisplayProduct } from "@/components/ProductCard";
 import {
   HOME_BRAND_ROTATION_INTERVAL_MS,
   HOME_BRAND_VISIBLE_ITEM_COUNT,
@@ -20,30 +22,7 @@ import {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
 
-interface ProductDto {
-  id: number;
-  name: string;
-  sku: string;
-  slug: string;
-  originalPrice: number;
-  sellingPrice: number;
-  categoryName: string;
-  brandName: string;
-  images: { id: number; imageUrl: string; isPrimary: boolean; sortOrder: number }[];
-}
 
-interface DisplayProduct {
-  id: number;
-  name: string;
-  sku: string;
-  slug: string;
-  price: number;
-  oldPrice: number | null;
-  discount: number;
-  inStock: boolean;
-  image: string | null;
-  brandName: string;
-}
 
 const categoryColors = [
   "bg-blue-50 text-blue-600 border-blue-200",
@@ -76,104 +55,12 @@ interface CategoryDisplay {
   color: string;
 }
 
-const promoBanners = [
-  { title: "TBVP", sub: "Giảm tới 32%", gradient: "from-red-500 to-orange-400" },
-  { title: "MÀN HÌNH", sub: "Giảm 1 Triệu", gradient: "from-blue-500 to-cyan-400" },
-  { title: "GEAR", sub: "Giảm 50%", gradient: "from-fuchsia-500 to-purple-500" },
-];
+
 
 const defaultBrands = ["Intel", "AMD", "ASUS", "GIGABYTE", "MSI", "CORSAIR", "Kingston", "Samsung", "Western Digital", "NZXT"];
 
-function formatPrice(price: number): string {
-  return price.toLocaleString("vi-VN") + " đ";
-}
 
-function ProductCard({ product, onAddToCart }: { product: DisplayProduct; onAddToCart: (productId: number) => Promise<void> }) {
-  const [adding, setAdding] = useState(false);
-  const [added, setAdded] = useState(false);
-
-  const handleAddToCart = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (adding) return;
-    setAdding(true);
-    try {
-      await onAddToCart(product.id);
-      setAdded(true);
-      setTimeout(() => setAdded(false), 1500);
-    } catch { /* empty */ } finally {
-      setAdding(false);
-    }
-  };
-
-  return (
-    <div className="group bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden">
-      {/* Image */}
-      <div className="relative aspect-square bg-gray-50 p-4">
-        {product.image ? (
-          <img src={product.image} alt={product.name} className="w-full h-full object-contain rounded-md transition-transform duration-300 group-hover:scale-105" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-md flex items-center justify-center">
-            <Cpu className="w-12 h-12 text-gray-400" />
-          </div>
-        )}
-        {product.discount > 0 && (
-          <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded shadow-sm">
-            -{product.discount}%
-          </span>
-        )}
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center pb-3 gap-2">
-          <span className="bg-white/90 backdrop-blur-sm text-gray-700 text-xs px-3 py-1.5 rounded-md shadow-sm hover:bg-white transition-all cursor-pointer active:scale-95">
-            Xem chi tiết
-          </span>
-          <button onClick={async (e) => { e.preventDefault(); e.stopPropagation(); try { await api.post(`/wishlist/${product.id}`); } catch { /* need login */ } }} className="bg-white/90 backdrop-blur-sm text-gray-700 text-xs px-3 py-1.5 rounded-md shadow-sm hover:bg-white transition-all cursor-pointer active:scale-95">
-            ❤️ Thích
-          </button>
-        </div>
-      </div>
-      {/* Info */}
-      <div className="p-3">
-        <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1 leading-snug min-h-[2.5rem]">
-          {product.name}
-        </h3>
-        <p className="text-xs text-gray-400 mb-1">Mã SP: {product.sku}</p>
-        <p className="text-xs text-gray-500 mb-1.5">{product.brandName}</p>
-        <div className="mt-2">
-          {product.oldPrice && (
-            <p className="text-xs text-gray-400 line-through">{formatPrice(product.oldPrice)}</p>
-          )}
-          <p className="text-[#E31837] font-bold text-base">{formatPrice(product.price)}</p>
-        </div>
-        <div className="mt-2 flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <span className="text-xs text-green-600 flex items-center gap-0.5">✓ Còn hàng</span>
-          </div>
-          <button
-            onClick={handleAddToCart}
-            disabled={adding}
-            className={`w-8 h-8 rounded-md flex items-center justify-center transition-all duration-200 cursor-pointer active:scale-90 ${
-              added
-                ? "bg-green-500 text-white scale-110"
-                : "bg-blue-600 hover:bg-blue-700 hover:shadow-md text-white"
-            }`}
-            title="Thêm vào giỏ hàng"
-          >
-            {adding ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : added ? (
-              <Check className="w-4 h-4" />
-            ) : (
-              <ShoppingCart className="w-4 h-4" />
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function mapApiProduct(dto: ProductDto): DisplayProduct {
+function mapApiProduct(dto: Product): DisplayProduct {
   const discount = dto.originalPrice > dto.sellingPrice
     ? Math.round((1 - dto.sellingPrice / dto.originalPrice) * 100)
     : 0;
@@ -184,10 +71,9 @@ function mapApiProduct(dto: ProductDto): DisplayProduct {
     sku: dto.sku,
     slug: dto.slug,
     price: dto.sellingPrice,
-    oldPrice: dto.originalPrice > dto.sellingPrice ? dto.originalPrice : null,
-    discount,
-    inStock: true,
-    image: primaryImage?.imageUrl || null,
+    originalPrice: dto.originalPrice > dto.sellingPrice ? dto.originalPrice : null,
+    discountPercent: discount,
+    thumbnailUrl: primaryImage?.imageUrl || null,
     brandName: dto.brandName,
   };
 }
@@ -215,7 +101,7 @@ export default function HomePage() {
         if (res.ok) {
           const json = await res.json();
           const pageData = json.data || json;
-          const items: ProductDto[] = pageData.content || [];
+          const items: Product[] = pageData.content || [];
           setFeaturedProducts(items.map(mapApiProduct));
         }
       } catch {
@@ -428,35 +314,7 @@ export default function HomePage() {
               />
             </Link>
           ) : (
-            <div className="order-1 xl:order-2 relative flex min-h-[320px] overflow-hidden rounded-2xl bg-gradient-to-r from-[#1A4B9C] to-[#2563EB] text-white xl:h-full xl:min-h-0">
-              <div className="flex-1 p-8 flex flex-col justify-center">
-                <span className="text-amber-400 text-sm font-semibold mb-2 uppercase tracking-wide">Sản phẩm HOT</span>
-                <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-3">
-                  Linh kiện chính hãng<br />
-                  <span className="text-amber-400">Giá tốt nhất</span>
-                </h1>
-                <p className="text-white/80 mb-6 text-sm">
-                  CPU, GPU, RAM, SSD từ Intel, AMD, NVIDIA — Bảo hành chính hãng
-                </p>
-                <div className="flex gap-3">
-                  <Link
-                    href="/products"
-                    className="bg-[#E31837] hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all shadow-lg active:scale-95 cursor-pointer"
-                  >
-                    MUA NGAY
-                  </Link>
-                  <Link
-                    href="/build-pc"
-                    className="bg-white/15 hover:bg-white/25 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all backdrop-blur-sm border border-white/20 active:scale-95 cursor-pointer"
-                  >
-                    BUILD PC
-                  </Link>
-                </div>
-              </div>
-              <div className="hidden md:flex items-center justify-center pr-8 opacity-30">
-                <Cpu className="w-48 h-48" />
-              </div>
-            </div>
+            <div className="order-1 xl:order-2 relative min-h-[320px] overflow-hidden rounded-2xl bg-gray-200 animate-pulse xl:h-full xl:min-h-0" />
           )}
 
           <div className="order-3 flex flex-col gap-4 xl:h-full xl:min-h-0">
@@ -467,24 +325,8 @@ export default function HomePage() {
             ) : (
               <div
                 key={`side-placeholder-${index}`}
-                className={`flex-1 rounded-2xl overflow-hidden text-white p-5 flex flex-col justify-center min-h-[130px] xl:min-h-0 ${
-                  index === 0
-                    ? "bg-gradient-to-r from-emerald-500 to-teal-500"
-                    : index === 1
-                      ? "bg-gradient-to-r from-orange-500 to-red-500"
-                      : "bg-gradient-to-r from-fuchsia-500 to-purple-500"
-                }`}
-              >
-                <p className="text-sm font-semibold opacity-90 mb-1">
-                  {index === 0 ? "BUILD PC" : index === 1 ? "LAPTOP" : "GEAR"}
-                </p>
-                <p className="text-2xl font-bold">
-                  {index === 0 ? "Giảm lên đến 30tr" : index === 1 ? "Giảm thêm 1 Triệu" : "Quà tặng tới 50%"}
-                </p>
-                <Link href={index === 0 ? "/build-pc" : "/products"} className="text-sm mt-2 flex items-center gap-1 underline underline-offset-4 hover:opacity-80 transition-opacity">
-                  {index === 0 ? "Xây dựng ngay" : "Xem ngay"} <ArrowRight className="w-3 h-3" />
-                </Link>
-              </div>
+                className="flex-1 rounded-2xl overflow-hidden bg-gray-200 animate-pulse min-h-[130px] xl:min-h-0"
+              />
             ))}
           </div>
         </div>
@@ -534,14 +376,11 @@ export default function HomePage() {
             >
               <img src={banner.imageUrl} alt={banner.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
             </Link>
-          )) : promoBanners.map((b) => (
+          )) : Array.from({ length: 3 }).map((_, i) => (
             <div
-              key={b.title}
-              className={`bg-gradient-to-r ${b.gradient} rounded-xl text-white p-6 flex flex-col justify-center hover:shadow-lg transition-all cursor-pointer active:scale-[0.98]`}
-            >
-              <p className="text-sm font-semibold opacity-90">{b.title}</p>
-              <p className="text-2xl font-bold">{b.sub}</p>
-            </div>
+              key={`promo-skeleton-${i}`}
+              className="rounded-xl bg-gray-200 animate-pulse min-h-[120px]"
+            />
           ))}
         </div>
       </section>
@@ -579,9 +418,7 @@ export default function HomePage() {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {featuredProducts.slice(0, 10).map((product) => (
-                  <Link key={product.id} href={`/products/${product.slug}`}>
-                    <ProductCard product={product} onAddToCart={handleAddToCart} />
-                  </Link>
+                  <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
                 ))}
               </div>
             )}

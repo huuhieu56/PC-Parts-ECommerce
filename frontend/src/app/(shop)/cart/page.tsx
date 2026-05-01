@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { formatPrice } from "@/lib/utils";
 import { ShoppingCart, Trash2, Minus, Plus, ChevronRight, Tag, Cpu } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCartStore } from "@/stores/cart-store";
 import api from "@/lib/api";
 
-function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 export default function CartPage() {
   const { items, totalPrice, totalItems, loading, fetchCart, updateItem, removeItem } = useCartStore();

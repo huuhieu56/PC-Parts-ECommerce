@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { TrendingUp, Package, Users, DollarSign, BarChart3, ShoppingCart } from "lucide-react";
 import api from "@/lib/api";
+import { formatPrice } from "@/lib/utils";
 
-function formatPrice(p: number): string { return p >= 1000000 ? (p / 1000000).toFixed(1) + "tr" : p.toLocaleString("vi-VN") + " đ"; }
+function formatCompactPrice(p: number): string { return p >= 1000000 ? (p / 1000000).toFixed(1) + "tr" : formatPrice(p); }
 
 interface DashboardStats { totalRevenue: number; totalOrders: number; totalProducts: number; totalCustomers: number; recentOrders: Array<{ id: number; orderNumber: string; customerName: string; totalAmount: number; status: string; createdAt: string }>; revenueByDay: Array<{ date: string; revenue: number }>; topProducts: Array<{ name: string; soldCount: number; revenue: number }>; }
 
@@ -50,7 +51,7 @@ export default function AdminStatisticsPage() {
           {/* Stat Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             {[
-              { label: "Tổng doanh thu", value: formatPrice(stats?.totalRevenue || 0), icon: DollarSign, color: "text-green-600 bg-green-100" },
+              { label: "Tổng doanh thu", value: formatCompactPrice(stats?.totalRevenue || 0), icon: DollarSign, color: "text-green-600 bg-green-100" },
               { label: "Đơn hàng", value: String(stats?.totalOrders || 0), icon: ShoppingCart, color: "text-blue-600 bg-blue-100" },
               { label: "Sản phẩm", value: String(stats?.totalProducts || 0), icon: Package, color: "text-purple-600 bg-purple-100" },
               { label: "Khách hàng", value: String(stats?.totalCustomers || 0), icon: Users, color: "text-amber-600 bg-amber-100" },
@@ -81,7 +82,7 @@ export default function AdminStatisticsPage() {
                 <div className="flex items-end gap-1 h-48">
                   {stats.revenueByDay.map((d, i) => (
                     <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                      <span className="text-[10px] text-gray-400 whitespace-nowrap">{formatPrice(d.revenue)}</span>
+                      <span className="text-[10px] text-gray-400 whitespace-nowrap">{formatCompactPrice(d.revenue)}</span>
                       <div className="w-full bg-blue-500 rounded-t-sm transition-all hover:bg-blue-600"
                         style={{ height: `${(d.revenue / maxRevenue) * 160}px`, minHeight: "4px" }} />
                       <span className="text-[10px] text-gray-500 whitespace-nowrap">{new Date(d.date).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })}</span>
@@ -108,7 +109,7 @@ export default function AdminStatisticsPage() {
                         <p className="text-sm text-gray-900 truncate">{p.name}</p>
                         <p className="text-xs text-gray-500">Đã bán: {p.soldCount}</p>
                       </div>
-                      <span className="text-sm font-medium text-gray-900">{formatPrice(p.revenue)}</span>
+                      <span className="text-sm font-medium text-gray-900">{formatCompactPrice(p.revenue)}</span>
                     </div>
                   ))}
                 </div>

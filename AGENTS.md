@@ -1,194 +1,73 @@
-# PC Parts E-Commerce — Agent Context
+# AGENTS.md
 
-## Tài liệu dự án
-- Requirement Analysis: docs/requirement_analysis.md
-- Software Design: docs/software_design_document.md
-- System Architecture: docs/system_architecture_design.md
-- UI/UX Design: docs/ui_ux_design.md
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
-> Trước khi bắt đầu bất kỳ task nào, đọc toàn bộ docs/ để hiểu đúng yêu cầu.
-> Test phải được viết dựa theo tài liệu trong docs/, không được tự suy luận.
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
-## Tech Stack
-- Frontend: Next.js (App Router) + TypeScript + Tailwind CSS + shadcn/ui
-- Backend: Spring Boot (Java) + PostgreSQL + Redis
-- Auth: Spring Security + JWT
-- File Storage: MinIO
-- Payment: MoMo SDK
-- CI/CD: GitHub Actions + Docker + Docker Compose + Nginx
-- Monitoring: Prometheus + Grafana + ELK Stack
+## 1. Think Before Coding
 
-## Môi trường: Linux
-- Shell: bash / zsh
-- Đường dẫn dùng dấu `/`
-- Dùng các lệnh Linux tiêu chuẩn: `rm -rf`, `mkdir -p`, `cp -r`, `ls`, `cat`, `mv`, `chmod`, `chown`, v.v.
-- Quản lý process: `ps aux`, `kill`, `htop`
-- Tìm kiếm: `find`, `grep -r`, `fd`, `rg`
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
 
-## Chạy Server (Dev Mode)
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
 
-### Infrastructure — chạy qua Docker Compose
-- Chỉ chạy **PostgreSQL, Redis, MinIO** qua Docker:
-  ```bash
-  docker compose up -d
-  ```
-- Dừng: `docker compose down`
-- Xem log: `docker compose logs -f [service-name]`
-- Nginx, Backend, Frontend đã được comment out trong `docker-compose.yml`
+## 2. Simplicity First
 
-### Backend — chạy trực tiếp trên host
-```bash
-./bin/run-backend-dev
+**Minimum code that solves the problem. Nothing speculative.**
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+
+## 3. Surgical Changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
+
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+
+The test: Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
 ```
-- Script tự load `.env`, init SDKMAN (Java 21), chạy `./mvnw spring-boot:run -DskipTests`
-- Backend chạy trên `http://localhost:8080`
-
-### Frontend — chạy trực tiếp trên host
-```bash
-./bin/run-frontend-dev
-```
-- Script tự load `.env`, chạy `npm run dev`
-- Frontend chạy trên `http://localhost:3000`
-- API calls trỏ thẳng đến `http://localhost:8080` (set `NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1`)
-
-> **Lưu ý:** Không dùng Nginx reverse proxy trong dev mode. Frontend và Backend được truy cập trực tiếp qua port riêng.
-
-## Quản lý Database (QUAN TRỌNG)
-- **Flyway checksum lỗi?** KHÔNG sửa checksum. Xóa volume rồi tạo lại:
-  ```bash
-  docker compose down
-  docker volume rm pc-parts-ecommerce_postgres_data  # hoặc tên volume tương ứng
-  docker compose up -d
-  ```
-  Migration sẽ tự chạy lại từ đầu. Dữ liệu dev không quan trọng.
-- **Sửa migration file?** Luôn xóa volume và chạy lại, KHÔNG bao giờ sửa checksum trong DB.
-
-## Seed Data & Tạo Tài Khoản Test (QUAN TRỌNG)
-
-### Nguyên tắc seed data
-- **Dữ liệu tĩnh** (roles, categories, products, brands, attributes, inventory, coupons, suppliers, v.v.) → dùng file `.sql` trong Flyway migration.
-- **Tài khoản test** (ADMIN, SALES, WAREHOUSE, CUSTOMER) → **BẮT BUỘC dùng script `bin/seed-data`**, KHÔNG hardcode bcrypt hash trong SQL.
-  - **Lý do:** Password hash phụ thuộc vào `BCryptPasswordEncoder` strength config và môi trường runtime. Mỗi lần `.env` thay đổi hoặc môi trường khác nhau (dev/staging/prod), hash sẽ khác → hardcode hash trong SQL sẽ sai, không đăng nhập được.
-
-### Script `bin/seed-data`
-
-Script gọi REST API để đăng ký tài khoản, sau đó update role và thêm dữ liệu mẫu trong DB. Flow:
-1. Đợi backend healthy (timeout 120s)
-2. Gọi `POST /api/v1/auth/register` cho từng tài khoản
-3. Update `role_id` trong DB cho các tài khoản cần role đặc biệt (ADMIN, SALES, WAREHOUSE)
-4. Thêm địa chỉ mẫu cho customer
-
-### Cách dùng
-```bash
-# Sau khi docker compose up -d và đợi backend healthy:
-./bin/seed-data
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
 ```
 
-### Tài khoản test hiện tại
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
-| Role | Email | Password | Ghi chú |
-|------|-------|----------|---------|
-| ADMIN | admin@pcparts.com | Admin@123 | Script → update role ADMIN |
-| SALES | sales@pcparts.com | Sales@123 | Script → update role SALES |
-| WAREHOUSE | warehouse@pcparts.com | Warehouse@123 | Script → update role WAREHOUSE |
-| CUSTOMER | customer@pcparts.com | Customer@123 | Script (mặc định role CUSTOMER) |
+---
 
-> **DB Schema:** `account` (id, email, password_hash, role_id) + `user_profile` (id, account_id, full_name, phone) + `role` (id, name)
->
-> **Quy trình sau khi reset DB:**
-> 1. `docker compose up -d` (đợi backend healthy)
-> 2. `./bin/seed-data`
-> 3. Xác nhận đăng nhập thành công với từng tài khoản
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
 
-## Quy tắc Test (QUAN TRỌNG)
-- Test phải được viết DỰA THEO tài liệu trong docs/, không tự suy luận
-- Một task chỉ được coi là HOÀN THÀNH khi tất cả test liên quan PASS
-- KHÔNG commit code khi test đang FAIL
-- Thứ tự bắt buộc: Viết test → Implement → Chạy test → Pass → Commit
-- Frontend test: `cd frontend && npm run test`
-- Backend test: `cd backend && ./mvnw test`
-- Nếu test fail sau 3 lần retry → dừng task đó, ghi vào HANDOFF.md, sang task tiếp theo
+---
 
-## Quy tắc Commit
-- Commit nhỏ, thường xuyên — sau mỗi unit nhỏ hoàn thành và test pass
-- KHÔNG gom nhiều feature vào 1 commit lớn
-- Format: `feat/fix/chore/test/docs: [mô tả ngắn gọn]`
-- Ví dụ:
-  - `feat: add Product entity and repository`
-  - `test: add unit tests for ProductService`
-  - `fix: handle null pointer in CartService`
-- KHÔNG git push — chỉ commit local
+To execute tasks effectively, follow these guidelines:
 
-## Quy tắc Overnight
-- Đọc AGENTS.md và toàn bộ docs/ trước khi bắt đầu
-- Ghi tiến độ vào PROGRESS.md mỗi 30 phút (thời gian, task đang làm, % hoàn thành)
-- Nếu bị block >15 phút → skip, ghi rõ lý do vào HANDOFF.md, chuyển task tiếp theo
-- Khi xong toàn bộ: tạo HANDOFF.md gồm:
-  - Đã hoàn thành gì (kèm commit hash)
-  - Còn pending gì
-  - Blocker gặp phải
-  - Bước tiếp theo đề xuất
+1. Context: Analyze HANDOFF.md, PROGRESS.md, and /docs to understand the project state.
 
-## Coding Standards
-- TypeScript bắt buộc, KHÔNG dùng `any`
-- Mọi function/service mới phải có unit test tương ứng
-- Chạy lint trước mỗi commit: `npm run lint` (frontend)
-- Java code phải có Javadoc cho public methods
-
-## Project Summary (Agent-generated)
-
-> Auto-generated after reading all files in `docs/`.
-
-### 1. Dự án là gì?
-
-**PC Parts E-Commerce** là website thương mại điện tử chuyên bán linh kiện máy tính, nhắm đến thị trường Việt Nam. Hệ thống được thiết kế theo kiến trúc **Modular Monolith** (Spring Boot backend + Next.js frontend), với khả năng mở rộng sang Microservices trong tương lai.
-
-**Đặc điểm nổi bật:**
-- Tính năng **Build PC** cho phép người dùng tự ráp cấu hình, tính giá, xuất báo giá — **không cần đăng nhập**. Chỉ yêu cầu đăng nhập khi kiểm tra tương thích AI hoặc đặt hàng.
-- Tích hợp **LLM (AI)** để kiểm tra tương thích linh kiện (provider-agnostic qua abstraction layer).
-- Thanh toán qua **MoMo, COD**.
-- Quản lý kho với **audit trail** đầy đủ qua `Inventory_Log`.
-- 5 vai trò người dùng: Guest, Customer, Admin, Sales Staff, Warehouse Staff.
-
-### 2. Các module/tính năng chính
-
-| Module | Mô tả |
-|--------|--------|
-| **M01 – Auth & RBAC** | Đăng ký, đăng nhập, JWT + Refresh Token, phân quyền theo vai trò |
-| **M02 – Product Catalog** | CRUD sản phẩm, danh mục, thuộc tính động (EAV), tìm kiếm/lọc, SEO |
-| **M03 – Shopping** | Giỏ hàng (merge guest→customer khi đăng nhập), Wishlist |
-| **M04 – Order & Payment** | Tạo đơn, thanh toán MoMo/COD, theo dõi trạng thái đơn hàng |
-| **M05 – Build PC** | Chọn linh kiện, tính giá, kiểm tra tương thích AI, xuất báo giá |
-| **M06 – Inventory** | Quản lý tồn kho, audit log cho mọi biến động kho |
-| **M07 – Coupon** | Tạo/quản lý mã giảm giá, áp dụng cho đơn hàng |
-| **M08 – Review & Rating** | Đánh giá sản phẩm, duyệt đánh giá (admin) |
-| **M09 – Warranty & Returns** | Yêu cầu bảo hành/đổi trả, theo dõi trạng thái |
-| **M10 – Notification** | Thông báo email/in-app về đơn hàng, khuyến mãi |
-| **M11 – Dashboard & Analytics** | Thống kê doanh thu, sản phẩm bán chạy, báo cáo cho Admin |
-
-### 3. Thứ tự triển khai (theo phase)
-
-#### Phase 1 — Nền tảng (Foundation)
-1. **Thiết lập môi trường**: Docker Compose (PostgreSQL, Redis, MinIO, Nginx), project scaffold
-2. **Database schema**: Migration bằng Flyway/Liquibase theo ERD trong SDD
-3. **M01 – Auth & RBAC**: JWT, refresh token, đăng ký/đăng nhập, phân quyền — nền tảng cho mọi module khác
-
-#### Phase 2 — Core Commerce
-4. **M02 – Product Catalog**: Entity, thuộc tính động, CRUD, tìm kiếm/lọc, upload ảnh (MinIO)
-5. **M03 – Shopping**: Giỏ hàng (Redis cho guest, DB cho customer), merge logic, Wishlist
-6. **M06 – Inventory**: Quản lý tồn kho, audit log
-
-#### Phase 3 — Transactions
-7. **M04 – Order & Payment**: Luồng đặt hàng, tích hợp MoMo, COD
-8. **M07 – Coupon**: Mã giảm giá, validation, áp dụng cho đơn hàng
-
-#### Phase 4 — Advanced Features
-9. **M05 – Build PC**: Chọn linh kiện, tính tương thích, tích hợp LLM, xuất báo giá
-10. **M08 – Review & Rating**: Đánh giá, duyệt đánh giá
-11. **M09 – Warranty & Returns**: Yêu cầu bảo hành/đổi trả
-
-#### Phase 5 — Polish & Operations
-12. **M10 – Notification**: Email/in-app notification
-13. **M11 – Dashboard & Analytics**: Thống kê, báo cáo
-14. **Frontend hoàn thiện**: Responsive design, SEO, animations, accessibility
-15. **CI/CD & Monitoring**: GitHub Actions, Prometheus, Grafana, ELK Stack
+2. Knowledge: Use the resources in .agents/skills/ to guide your implementation.

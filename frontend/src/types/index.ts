@@ -17,6 +17,10 @@ export interface PageResponse<T> {
   totalElements: number;
   totalPages: number;
   last: boolean;
+  first: boolean;
+  hasNext: boolean;
+  hasPrevious: boolean;
+  empty: boolean;
 }
 
 // --- Auth ---

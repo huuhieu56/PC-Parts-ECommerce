@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatPrice } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { ChevronRight, ShoppingCart, Truck, MapPin, Cpu, Tag } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -8,7 +9,6 @@ import { useCartStore } from "@/stores/cart-store";
 import { useAuthStore } from "@/stores/auth-store";
 import api from "@/lib/api";
 
-function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 // Vietnamese phone number validation regex
 const VIETNAM_PHONE_REGEX = /^(0|84|\+84)(3|5|7|8|9)[0-9]{8}$/;

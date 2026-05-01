@@ -2,41 +2,14 @@
 
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Cpu, ShoppingCart, Filter, X, ChevronRight, SlidersHorizontal, Check, Loader2, ChevronDown } from "lucide-react";
+import { Cpu, Filter, X, ChevronRight, SlidersHorizontal, Loader2, ChevronDown } from "lucide-react";
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useCartStore } from "@/stores/cart-store";
-
-interface ProductDto {
-  id: number;
-  name: string;
-  slug: string;
-  sku: string;
-  sellingPrice: number;
-  originalPrice: number;
-  categoryId: number;
-  categoryName: string;
-  brandId: number;
-  brandName: string;
-  condition: string;
-  status: string;
-  images: { id: number; imageUrl: string; isPrimary: boolean; sortOrder: number }[];
-  attributes: { attributeId: number; attributeName: string; value: string }[];
-}
-
-interface DisplayProduct {
-  id: number;
-  name: string;
-  slug: string;
-  sku: string;
-  price: number;
-  originalPrice: number | null;
-  categoryId: number;
-  categoryName: string;
-  brandId: number;
-  brandName: string;
-  discountPercent: number;
-  thumbnailUrl: string | null;
-}
+import { formatPrice } from "@/lib/utils";
+import Pagination from "@/components/Pagination";
+import ProductCard from "@/components/ProductCard";
+import type { DisplayProduct } from "@/components/ProductCard";
+import type { Product } from "@/types";
 
 interface CategoryDto {
   id: number;
@@ -79,11 +52,9 @@ const priceRanges = [
   { label: "Trên 20 triệu", min: 20000000, max: Infinity },
 ];
 
-function formatPrice(price: number): string {
-  return price.toLocaleString("vi-VN") + " đ";
-}
 
-function mapProduct(dto: ProductDto): DisplayProduct {
+
+function mapProduct(dto: Product): DisplayProduct {
   const discount = dto.originalPrice > dto.sellingPrice
     ? Math.round((1 - dto.sellingPrice / dto.originalPrice) * 100)
     : 0;
@@ -95,80 +66,13 @@ function mapProduct(dto: ProductDto): DisplayProduct {
     sku: dto.sku,
     price: dto.sellingPrice,
     originalPrice: dto.originalPrice > dto.sellingPrice ? dto.originalPrice : null,
-    categoryId: dto.categoryId,
-    categoryName: dto.categoryName,
-    brandId: dto.brandId,
     brandName: dto.brandName,
     discountPercent: discount,
     thumbnailUrl: primaryImage?.imageUrl || null,
   };
 }
 
-function ProductCard({ product, onAddToCart }: { product: DisplayProduct; onAddToCart: (id: number) => Promise<void> }) {
-  const [adding, setAdding] = useState(false);
-  const [added, setAdded] = useState(false);
 
-  const handleAdd = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (adding) return;
-    setAdding(true);
-    try {
-      await onAddToCart(product.id);
-      setAdded(true);
-      setTimeout(() => setAdded(false), 1500);
-    } catch { /* empty */ } finally {
-      setAdding(false);
-    }
-  };
-
-  return (
-    <Link href={`/products/${product.slug}`} className="block group">
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden h-full flex flex-col">
-        <div className="relative aspect-square bg-gray-50 p-4">
-          {product.thumbnailUrl ? (
-            <img src={product.thumbnailUrl} alt={product.name} className="w-full h-full object-contain rounded-md transition-transform duration-300 group-hover:scale-105" />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-md flex items-center justify-center">
-              <Cpu className="w-10 h-10 text-gray-400" />
-            </div>
-          )}
-          {product.discountPercent > 0 && (
-            <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded shadow-sm">
-              -{product.discountPercent}%
-            </span>
-          )}
-        </div>
-        <div className="p-3 flex-1 flex flex-col">
-          <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1 leading-snug min-h-[2.5rem]">
-            {product.name}
-          </h3>
-          <p className="text-xs text-gray-400 mb-1">Mã SP: {product.sku}</p>
-          <p className="text-xs text-gray-500 mb-2">{product.brandName}</p>
-          <div className="mt-auto">
-            {product.originalPrice && (
-              <p className="text-xs text-gray-400 line-through">{formatPrice(product.originalPrice)}</p>
-            )}
-            <p className="text-[#E31837] font-bold text-base">{formatPrice(product.price)}</p>
-          </div>
-          <div className="mt-2 flex items-center justify-between">
-            <span className="text-xs flex items-center gap-0.5 text-green-600">✓ Còn hàng</span>
-            <button
-              onClick={handleAdd}
-              disabled={adding}
-              className={`w-7 h-7 rounded flex items-center justify-center transition-all duration-200 cursor-pointer active:scale-90 ${
-                added ? "bg-green-500 text-white scale-110" : "bg-blue-600 hover:bg-blue-700 hover:shadow-md text-white"
-              }`}
-              title="Thêm vào giỏ hàng"
-            >
-              {adding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : added ? <Check className="w-3.5 h-3.5" /> : <ShoppingCart className="w-3.5 h-3.5" />}
-            </button>
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
 
 function ProductsContent() {
   const searchParams = useSearchParams();
@@ -183,6 +87,8 @@ function ProductsContent() {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
+  const [hasPrevious, setHasPrevious] = useState(false);
   const PAGE_SIZE = 20;
 
   // Dynamic filter data from API
@@ -295,7 +201,7 @@ function ProductsContent() {
         if (res.ok) {
           const json = await res.json();
           const pageData = json.data || json;
-          const items: ProductDto[] = pageData.content || [];
+          const items: Product[] = pageData.content || [];
           let mapped = items.map(mapProduct);
           // Client-side sort by discount percentage for "discount" option
           if (sortBy === "discount") {
@@ -308,6 +214,8 @@ function ProductsContent() {
           setProducts(mapped);
           setTotalPages(pageData.totalPages || 0);
           setTotalElements(isSale ? mapped.length : (pageData.totalElements || items.length));
+          setHasNext(pageData.hasNext ?? false);
+          setHasPrevious(pageData.hasPrevious ?? false);
         }
       } catch {
         console.error("Failed to fetch products");
@@ -537,7 +445,6 @@ function ProductsContent() {
             <div className="flex items-center justify-between mb-4 gap-3">
               <h1 className="text-xl font-bold text-gray-900">
                 {isSale ? "🔥 Khuyến mãi" : keyword ? `Tìm kiếm: "${keyword}"` : flatCats.find(c => c.id === selectedCategoryId)?.name || categorySlug || "Tất cả sản phẩm"}
-                {!loading && <span className="text-sm font-normal text-gray-500 ml-2">({totalElements} sản phẩm)</span>}
               </h1>
               <div className="flex items-center gap-2">
                 <select
@@ -624,34 +531,16 @@ function ProductsContent() {
               </div>
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-8">
-                  <button
-                    onClick={() => { setCurrentPage(p => Math.max(0, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                    disabled={currentPage === 0}
-                    className="px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  >
-                    ← Trước
-                  </button>
-                  {Array.from({ length: totalPages }, (_, i) => i)
-                    .filter(p => p === 0 || p === totalPages - 1 || Math.abs(p - currentPage) <= 2)
-                    .map((p, idx, arr) => (
-                      <span key={p}>
-                        {idx > 0 && arr[idx - 1] !== p - 1 && <span className="text-gray-400 px-1">…</span>}
-                        <button
-                          onClick={() => { setCurrentPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                          className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${p === currentPage ? "bg-blue-600 text-white shadow-sm" : "border border-gray-200 hover:bg-gray-50 text-gray-700"}`}
-                        >
-                          {p + 1}
-                        </button>
-                      </span>
-                    ))}
-                  <button
-                    onClick={() => { setCurrentPage(p => Math.min(totalPages - 1, p + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                    disabled={currentPage >= totalPages - 1}
-                    className="px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Sau →
-                  </button>
+                <div className="mt-8 rounded-lg overflow-hidden shadow-sm">
+                  <Pagination
+                    page={currentPage}
+                    totalPages={totalPages}
+                    totalElements={totalElements}
+                    hasNext={hasNext}
+                    hasPrevious={hasPrevious}
+                    size={PAGE_SIZE}
+                    onPageChange={(p) => { setCurrentPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                  />
                 </div>
               )}
               </>

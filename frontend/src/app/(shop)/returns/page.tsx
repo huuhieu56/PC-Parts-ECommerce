@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatPrice } from "@/lib/utils";
 import { ChevronRight, RotateCcw, Plus, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
@@ -32,7 +33,6 @@ interface OrderItem {
   lineTotal: number;
 }
 
-function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 function formatDate(value: string): string {
   return value ? new Date(value).toLocaleDateString("vi-VN") : "—";

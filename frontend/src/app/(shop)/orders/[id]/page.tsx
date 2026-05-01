@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { formatPrice } from "@/lib/utils";
 import { use, useEffect, useState } from "react";
 import { ChevronRight, Package, Truck, CheckCircle } from "lucide-react";
 import api from "@/lib/api";
 
-function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
