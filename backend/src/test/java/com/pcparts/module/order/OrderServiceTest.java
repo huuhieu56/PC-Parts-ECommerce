@@ -12,8 +12,10 @@ import com.pcparts.module.auth.repository.UserProfileRepository;
 import com.pcparts.module.inventory.service.InventoryService;
 import com.pcparts.module.order.entity.*;
 import com.pcparts.module.order.repository.*;
+import com.pcparts.module.order.dto.CreateOrderRequest;
+import com.pcparts.module.order.dto.OrderDto;
+import com.pcparts.module.order.service.OrderMapper;
 import com.pcparts.module.order.service.OrderService;
-import com.pcparts.module.order.service.OrderService.*;
 import com.pcparts.module.product.entity.Product;
 import com.pcparts.module.shopping.entity.Cart;
 import com.pcparts.module.shopping.entity.CartItem;
@@ -58,6 +60,7 @@ class OrderServiceTest {
     @Mock private InventoryService inventoryService;
     @Mock private com.pcparts.module.order.repository.ShippingRepository shippingRepository;
     @Mock private com.pcparts.module.order.repository.CouponUsageRepository couponUsageRepository;
+    @Mock private OrderMapper orderMapper;
 
     @InjectMocks
     private OrderService orderService;
@@ -90,6 +93,23 @@ class OrderServiceTest {
         testOrder = Order.builder().id(200L).user(testUser).address(testAddress).subtotal(new BigDecimal("19980000"))
                 .discountAmount(BigDecimal.ZERO).totalAmount(new BigDecimal("19980000")).status("PENDING")
                 .createdAt(LocalDateTime.now()).build();
+
+        // Stub orderMapper.toDto to build a minimal DTO from the Order argument
+        lenient().when(orderMapper.toDto(any(Order.class))).thenAnswer(inv -> {
+            Order o = inv.getArgument(0);
+            List<OrderDto.OrderDetailDto> items = orderDetailRepository.findByOrderId(o.getId()).stream()
+                    .map(d -> OrderDto.OrderDetailDto.builder()
+                            .id(d.getId()).productId(d.getProduct().getId())
+                            .productName(d.getProduct().getName())
+                            .quantity(d.getQuantity()).unitPrice(d.getUnitPrice())
+                            .lineTotal(d.getLineTotal()).build())
+                    .collect(java.util.stream.Collectors.toList());
+            return OrderDto.builder()
+                    .id(o.getId()).status(o.getStatus())
+                    .subtotal(o.getSubtotal()).discountAmount(o.getDiscountAmount())
+                    .totalAmount(o.getTotalAmount()).itemCount(items.size())
+                    .items(items).build();
+        });
     }
 
     // === CREATE ORDER ===
