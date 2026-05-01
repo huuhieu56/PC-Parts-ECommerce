@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatPrice } from "@/lib/utils";
 import { ChevronRight, Package, Clock, ChevronDown } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import api from "@/lib/api";
@@ -8,7 +9,6 @@ import Pagination from "@/components/Pagination";
 
 interface Order { id: number; orderNumber: string; status: string; totalAmount: number; createdAt: string; itemCount: number; }
 interface PageData { content: Order[]; page: number; totalPages: number; totalElements: number; hasNext: boolean; hasPrevious: boolean; size: number; }
-function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-amber-100 text-amber-700",

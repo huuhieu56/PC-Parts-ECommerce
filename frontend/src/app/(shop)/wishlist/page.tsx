@@ -5,6 +5,7 @@ import { ChevronRight, Heart, ShoppingCart, Trash2, Cpu } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
 import { useCartStore } from "@/stores/cart-store";
+import { formatPrice } from "@/lib/utils";
 
 // Backend WishlistItemDto fields: productId, productName, sellingPrice, slug, status
 interface WishlistItem {
@@ -14,10 +15,7 @@ interface WishlistItem {
   slug: string;
   status: string;
 }
-function formatPrice(p: number | undefined | null): string {
-  if (p == null) return "0 đ";
-  return p.toLocaleString("vi-VN") + " đ";
-}
+
 
 export default function WishlistPage() {
   const [items, setItems] = useState<WishlistItem[]>([]);

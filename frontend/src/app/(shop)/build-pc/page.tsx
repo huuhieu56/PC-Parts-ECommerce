@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import api from "@/lib/api";
 import { useCartStore } from "@/stores/cart-store";
 import { useRouter } from "next/navigation";
+import { formatPrice } from "@/lib/utils";
 
 const slots = [
   { id: 1, name: "BỘ VI XỬ LÝ", label: "Bộ vi xử lý", category: "CPU" },
@@ -28,7 +29,7 @@ interface ProductItem {
 }
 interface SelectedItem { slotId: number; productId: number; name: string; price: number; imageUrl?: string; }
 
-function formatPrice(p: number): string { return p.toLocaleString("vi-VN"); }
+
 
 export default function BuildPCPage() {
   const [selected, setSelected] = useState<SelectedItem[]>([]);
@@ -179,7 +180,7 @@ export default function BuildPCPage() {
           {/* Cost Bar Sticky */}
           <div className="bg-[#E31837] text-white rounded-lg px-6 py-3 flex items-center justify-between mb-4 shadow-sm print:hidden">
             <span className="font-semibold text-sm">Chi phí dự tính ({selected.length} linh kiện)</span>
-            <span className="font-bold text-lg">{formatPrice(total)} VNĐ</span>
+            <span className="font-bold text-lg">{formatPrice(total)}</span>
           </div>
 
           {/* Slots Table */}
@@ -206,10 +207,10 @@ export default function BuildPCPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-gray-900 font-medium truncate print:text-black print:whitespace-normal">{item.name}</p>
-                          <p className="text-sm text-[#E31837] font-bold print:hidden">{formatPrice(item.price)} đ</p>
+                          <p className="text-sm text-[#E31837] font-bold print:hidden">{formatPrice(item.price)}</p>
                         </div>
                         <div className="text-right w-32 hidden print:block">
-                           <p className="text-sm font-bold text-gray-900">{formatPrice(item.price)} đ</p>
+                           <p className="text-sm font-bold text-gray-900">{formatPrice(item.price)}</p>
                         </div>
                         <button onClick={() => openDialog(slot)} className="text-xs text-blue-600 hover:text-blue-700 px-2 py-1 print:hidden">Đổi</button>
                         <button onClick={() => removeItem(slot.id)} className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-600 transition-colors print:hidden">
@@ -230,7 +231,7 @@ export default function BuildPCPage() {
           {/* Cost Bar Bottom */}
           <div className="bg-[#E31837] print:bg-white text-white print:text-black rounded-lg px-6 py-3 flex items-center justify-between mb-2 print:border-2 print:border-gray-900 print:rounded-none">
             <span className="font-semibold text-sm print:text-lg">Tổng cộng</span>
-            <span className="font-bold text-lg print:text-2xl">{formatPrice(total)} VNĐ</span>
+            <span className="font-bold text-lg print:text-2xl">{formatPrice(total)}</span>
           </div>
           
           <div className="hidden print:block mt-8 float-right text-center w-64">
@@ -331,10 +332,10 @@ export default function BuildPCPage() {
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <span className="text-sm font-bold text-[#E31837] whitespace-nowrap">{formatPrice(p.sellingPrice)} đ</span>
+                        <span className="text-sm font-bold text-[#E31837] whitespace-nowrap">{formatPrice(p.sellingPrice)}</span>
                         {discount > 0 && (
                           <div className="flex items-center gap-1 justify-end">
-                            <span className="text-xs text-gray-400 line-through">{formatPrice(p.originalPrice)} đ</span>
+                            <span className="text-xs text-gray-400 line-through">{formatPrice(p.originalPrice)}</span>
                             <span className="text-xs bg-red-100 text-red-600 px-1 rounded">-{discount}%</span>
                           </div>
                         )}

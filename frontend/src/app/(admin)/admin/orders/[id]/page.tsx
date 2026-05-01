@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { formatPrice } from "@/lib/utils";
 import { use, useEffect, useState } from "react";
 import { ChevronRight, Package, Truck, CheckCircle, ArrowLeft } from "lucide-react";
 import api from "@/lib/api";
 
-function formatPrice(p: number | undefined | null): string { return (p ?? 0).toLocaleString("vi-VN") + " đ"; }
 
 const statusLabels: Record<string, string> = { PENDING: "Chờ xác nhận", CONFIRMED: "Đã xác nhận", SHIPPING: "Đang giao", COMPLETED: "Hoàn thành", CANCELLED: "Đã hủy" };
 const statusColors: Record<string, string> = { PENDING: "bg-amber-100 text-amber-700", CONFIRMED: "bg-blue-100 text-blue-700", SHIPPING: "bg-purple-100 text-purple-700", COMPLETED: "bg-green-100 text-green-700", CANCELLED: "bg-red-100 text-red-700" };

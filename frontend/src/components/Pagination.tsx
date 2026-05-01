@@ -58,16 +58,13 @@ export default function Pagination({ page, totalPages, totalElements, hasNext, h
   const to = Math.min((safePage + 1) * safeSize, safeTotalElements);
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-white">
-      <p className="text-sm text-gray-500">
-        Hiển thị <span className="font-medium text-gray-900">{from}</span>–<span className="font-medium text-gray-900">{to}</span> trong <span className="font-medium text-gray-900">{totalElements}</span> kết quả
-      </p>
+    <div className="flex items-center justify-center px-4 py-3 border-t border-gray-200 bg-white">
       <div className="flex items-center gap-1">
         {/* First */}
         <button
           onClick={() => onPageChange(0)}
           disabled={!hasPrevious}
-          className="w-8 h-8 flex items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
           title="Trang đầu"
         >
           <ChevronsLeft className="w-4 h-4" />
@@ -76,7 +73,7 @@ export default function Pagination({ page, totalPages, totalElements, hasNext, h
         <button
           onClick={() => onPageChange(safePage - 1)}
           disabled={!hasPrevious}
-          className="w-8 h-8 flex items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
           title="Trang trước"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -87,7 +84,7 @@ export default function Pagination({ page, totalPages, totalElements, hasNext, h
           <button
             key={p}
             onClick={() => onPageChange(p)}
-            className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
+            className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium cursor-pointer transition-colors ${
               p === safePage
                 ? "bg-blue-600 text-white shadow-sm"
                 : "text-gray-700 hover:bg-gray-100"
@@ -101,7 +98,7 @@ export default function Pagination({ page, totalPages, totalElements, hasNext, h
         <button
           onClick={() => onPageChange(safePage + 1)}
           disabled={!hasNext}
-          className="w-8 h-8 flex items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
           title="Trang sau"
         >
           <ChevronRight className="w-4 h-4" />
@@ -110,7 +107,7 @@ export default function Pagination({ page, totalPages, totalElements, hasNext, h
         <button
           onClick={() => onPageChange(safeTotalPages - 1)}
           disabled={!hasNext}
-          className="w-8 h-8 flex items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
           title="Trang cuối"
         >
           <ChevronsRight className="w-4 h-4" />

@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { formatPrice } from "@/lib/utils";
 import { Search, RotateCcw } from "lucide-react";
 import api from "@/lib/api";
 import Pagination from "@/components/Pagination";
 
 interface ReturnItem { id: number; orderNumber: string; customerName: string; productName: string; reason: string; type: string; status: string; refundAmount?: number; createdAt: string; }
 interface PageData { content: ReturnItem[]; page: number; totalPages: number; totalElements: number; hasNext: boolean; hasPrevious: boolean; size: number; }
-function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 const statusColors: Record<string, string> = {
   PENDING_APPROVAL: "bg-amber-100 text-amber-700", APPROVED: "bg-blue-100 text-blue-700",

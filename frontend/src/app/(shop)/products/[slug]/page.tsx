@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Cpu, Star, ShoppingCart, Heart, Phone, MapPin, ChevronRight, Shield, Truck, RotateCcw, Minus, Plus, Camera, X, Loader2 } from "lucide-react";
 import { useCartStore } from "@/stores/cart-store";
 import api from "@/lib/api";
+import { formatPrice } from "@/lib/utils";
 
 interface ProductDto {
   id: number;
@@ -90,9 +91,7 @@ function mapProductDto(dto: ProductDto): ProductDetail {
   };
 }
 
-function formatPrice(price: number): string {
-  return price.toLocaleString("vi-VN") + " đ";
-}
+
 
 function ReviewForm({ productId, onSubmitted }: { productId: number; onSubmitted: () => void }) {
   const [rating, setRating] = useState(0);

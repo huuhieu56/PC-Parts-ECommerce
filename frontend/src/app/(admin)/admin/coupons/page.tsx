@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatPrice } from "@/lib/utils";
 import { Plus, Search, Tag, Edit2, Trash2, X } from "lucide-react";
 import api from "@/lib/api";
 import Pagination from "@/components/Pagination";
 
-function formatPrice(p: number | undefined | null): string { return (p ?? 0).toLocaleString("vi-VN") + " đ"; }
 
 interface Coupon { id: number; code: string; discountType: string; discountValue: number; minOrderValue: number; maxDiscount: number; maxUses: number; usedCount: number; isActive: boolean; startDate: string; endDate: string; }
 

@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { formatPrice } from "@/lib/utils";
 import { useEffect, useState, useCallback } from "react";
 import { Plus, Search, Cpu } from "lucide-react";
 import api from "@/lib/api";
 import Pagination from "@/components/Pagination";
 
-function formatPrice(p: number | undefined | null): string { return (p ?? 0).toLocaleString("vi-VN") + " đ"; }
 
 interface Product { id: number; name: string; slug: string; sku: string; sellingPrice: number; categoryName: string; brandName: string; status: string; }
 interface PageData { content: Product[]; page: number; totalPages: number; totalElements: number; hasNext: boolean; hasPrevious: boolean; size: number; }

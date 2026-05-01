@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
 import { DollarSign, Package, ShoppingCart, Users, BarChart3, ArrowUpRight, TrendingUp } from "lucide-react";
 import api from "@/lib/api";
 
-function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 interface DashboardStats {
   totalRevenue: number;
