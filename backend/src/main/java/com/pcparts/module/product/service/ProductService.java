@@ -41,32 +41,48 @@ public class ProductService {
 
     /**
      * Lists products with pagination and dynamic filtering.
-     * Supports category, brand, keyword, price range, and attribute value filtering.
+     * Supports category, brand, keyword, price range, attribute value filtering, and sale filter.
      */
     @Transactional(readOnly = true)
     public PageResponse<ProductDto> listProducts(int page, int size, String sort,
                                                   Long categoryId, Long brandId, String keyword,
                                                   BigDecimal minPrice, BigDecimal maxPrice,
-                                                  List<Long> attributeValueIds) {
+                                                  List<Long> attributeValueIds, Boolean isSale) {
+        boolean isDiscountSort = false;
         Sort springSort;
         if (sort != null && !sort.isBlank()) {
             String[] parts = sort.split(",", 2);
             String field = parts[0].trim();
             Sort.Direction direction = (parts.length > 1 && parts[1].trim().equalsIgnoreCase("asc"))
                     ? Sort.Direction.ASC : Sort.Direction.DESC;
-            springSort = Sort.by(direction, field);
+            if ("discountPercent".equals(field)) {
+                // discountPercent is not a real column — handled via CriteriaBuilder below
+                isDiscountSort = true;
+                springSort = Sort.unsorted();
+            } else {
+                springSort = Sort.by(direction, field);
+            }
         } else {
             springSort = Sort.by(Sort.Direction.DESC, "createdAt");
         }
         Pageable pageable = PageRequest.of(page, size, springSort);
 
         Specification<Product> spec = ProductSpecification.buildFilter(
-                categoryId, brandId, keyword, minPrice, maxPrice, attributeValueIds);
+                categoryId, brandId, keyword, minPrice, maxPrice, attributeValueIds, isSale);
+
+        // Sort by discount amount (originalPrice - sellingPrice) DESC
+        if (isDiscountSort) {
+            spec = spec.and((root, query, cb) -> {
+                query.orderBy(cb.desc(cb.diff(root.get("originalPrice"), root.get("sellingPrice"))));
+                return cb.conjunction();
+            });
+        }
 
         Page<Product> productPage = productRepository.findAll(spec, pageable);
 
         return PageResponse.from(productPage, this::toDto);
     }
+
 
     /**
      * Gets available filter options for a given category.
@@ -76,7 +92,7 @@ public class ProductService {
     public ProductFilterDto getFiltersForCategory(Long categoryId) {
         // Get all active products in this category
         List<Product> products = productRepository.findAll(
-                ProductSpecification.buildFilter(categoryId, null, null, null, null, null));
+                ProductSpecification.buildFilter(categoryId, null, null, null, null, null, null));
 
         Set<Long> productIds = products.stream().map(Product::getId).collect(Collectors.toSet());
 

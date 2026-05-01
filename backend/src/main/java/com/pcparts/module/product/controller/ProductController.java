@@ -44,10 +44,11 @@ public class ProductController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
-            @RequestParam(required = false) List<Long> attributeValueIds) {
+            @RequestParam(required = false) List<Long> attributeValueIds,
+            @RequestParam(required = false) Boolean isSale) {
 
         PageResponse<ProductDto> result = productService.listProducts(
-                page, size, sort, categoryId, brandId, keyword, minPrice, maxPrice, attributeValueIds);
+                page, size, sort, categoryId, brandId, keyword, minPrice, maxPrice, attributeValueIds, isSale);
         return ResponseEntity.ok(ApiResponse.success("Danh sách sản phẩm", result));
     }
 

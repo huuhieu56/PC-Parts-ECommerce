@@ -172,7 +172,10 @@ function ProductsContent() {
         if (sortBy === "price-asc") params.set("sort", "sellingPrice,asc");
         else if (sortBy === "price-desc") params.set("sort", "sellingPrice,desc");
         else if (sortBy === "name-asc") params.set("sort", "name,asc");
-        else if (sortBy === "discount") params.set("sort", "originalPrice,desc");
+        else if (sortBy === "discount") params.set("sort", "discountPercent,desc");
+
+        // Sale filter (server-side)
+        if (isSale) params.set("isSale", "true");
 
         // If category slug is provided but no categoryId, try to find the ID
         if (categorySlug && !selectedCategoryId) {
@@ -202,18 +205,10 @@ function ProductsContent() {
           const json = await res.json();
           const pageData = json.data || json;
           const items: Product[] = pageData.content || [];
-          let mapped = items.map(mapProduct);
-          // Client-side sort by discount percentage for "discount" option
-          if (sortBy === "discount") {
-            mapped = mapped.sort((a, b) => b.discountPercent - a.discountPercent);
-          }
-          // Filter to only discounted products when sale=true
-          if (isSale) {
-            mapped = mapped.filter(p => p.discountPercent > 0);
-          }
+          const mapped = items.map(mapProduct);
           setProducts(mapped);
           setTotalPages(pageData.totalPages || 0);
-          setTotalElements(isSale ? mapped.length : (pageData.totalElements || items.length));
+          setTotalElements(pageData.totalElements || items.length);
           setHasNext(pageData.hasNext ?? false);
           setHasPrevious(pageData.hasPrevious ?? false);
         }

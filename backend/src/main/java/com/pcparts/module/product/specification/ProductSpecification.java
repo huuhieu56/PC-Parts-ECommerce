@@ -27,12 +27,13 @@ public class ProductSpecification {
      * @param minPrice          minimum selling price
      * @param maxPrice          maximum selling price
      * @param attributeValueIds filter by attribute value IDs (AND logic — product must have ALL)
+     * @param isSale            if true, only return products where sellingPrice < originalPrice
      * @return combined Specification
      */
     public static Specification<Product> buildFilter(
             Long categoryId, Long brandId, String keyword,
             BigDecimal minPrice, BigDecimal maxPrice,
-            List<Long> attributeValueIds) {
+            List<Long> attributeValueIds, Boolean isSale) {
 
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -65,6 +66,11 @@ public class ProductSpecification {
             }
             if (maxPrice != null) {
                 predicates.add(cb.lessThanOrEqualTo(root.get("sellingPrice"), maxPrice));
+            }
+
+            // Sale filter: only products with a discount
+            if (Boolean.TRUE.equals(isSale)) {
+                predicates.add(cb.lessThan(root.get("sellingPrice"), root.get("originalPrice")));
             }
 
             // Attribute value filter (AND logic: product must have ALL selected values)
