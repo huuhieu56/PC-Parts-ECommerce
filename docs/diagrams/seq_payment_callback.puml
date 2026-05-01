@@ -7,7 +7,7 @@ participant "MoMo Gateway" as Pay
 participant "Spring Boot\n(Backend)" as BE
 database "PostgreSQL" as DB
 
-note over Customer, DB : Sau khi tạo đơn (xem 3.2.10),\nCustomer được redirect sang cổng thanh toán
+note over Customer, DB : Sau khi tạo đơn (xem Hình 3.19),\nCustomer được redirect sang cổng thanh toán
 
 Customer -> Pay : Nhập thông tin thanh toán & xác nhận
 Pay -> Pay : Xử lý giao dịch

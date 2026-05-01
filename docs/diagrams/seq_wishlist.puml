@@ -8,25 +8,26 @@ database "PostgreSQL" as DB
 
 == Thêm vào Wishlist ==
 Customer -> FE : Nhấn icon ♡ trên sản phẩm
-FE -> BE : POST /api/v1/wishlist\n{productId}
-BE -> BE : Validate JWT → user_id
+FE -> BE : POST /api/v1/wishlist/{productId}
+BE -> BE : Validate JWT → accountId
+BE -> DB : INSERT Wishlist\n(account_id, product_id)
+BE --> FE : 200 {message:\n"Đã thêm vào danh sách yêu thích"}
+FE --> Customer : Icon ♥ chuyển sang đỏ
 
-BE -> DB : SELECT Wishlist\nWHERE user_id = ? AND product_id = ?
-alt Đã có trong Wishlist (toggle off)
-    BE -> DB : DELETE Wishlist\nWHERE user_id = ? AND product_id = ?
-    BE --> FE : 200 {action: "REMOVED"}
-    FE --> Customer : Icon ♡ chuyển về trắng
-else Chưa có (toggle on)
-    BE -> DB : INSERT Wishlist\n(user_id, product_id)
-    BE --> FE : 201 {action: "ADDED"}
-    FE --> Customer : Icon ♥ chuyển sang đỏ
-end
+== Xóa khỏi Wishlist ==
+Customer -> FE : Nhấn icon ♥ (bỏ thích)
+FE -> BE : DELETE /api/v1/wishlist/{productId}
+BE -> BE : Validate JWT → accountId
+BE -> DB : DELETE Wishlist\nWHERE account_id = ?\nAND product_id = ?
+BE --> FE : 200 {message:\n"Đã xóa khỏi danh sách yêu thích"}
+FE --> Customer : Icon ♡ chuyển về trắng
 
 == Xem danh sách Wishlist ==
 Customer -> FE : Mở trang Wishlist
-FE -> BE : GET /api/v1/wishlist?\npage=1&size=20
-BE -> DB : SELECT Wishlist JOIN Product\nJOIN Product_Image JOIN Inventory\nWHERE user_id = ?
-BE --> FE : 200 {wishlistItems[], totalItems}
-FE --> Customer : Hiển thị danh sách SP yêu thích\n(tên, ảnh, giá, tình trạng kho)
+FE -> BE : GET /api/v1/wishlist
+BE -> BE : Validate JWT → accountId
+BE -> DB : SELECT Wishlist JOIN Product\nWHERE account_id = ?
+BE --> FE : 200 {wishlistItems[]}
+FE --> Customer : Hiển thị danh sách SP yêu thích
 
 @enduml

@@ -240,6 +240,55 @@ public class OrderService {
     }
 
     /**
+     * Cancels an order (customer-facing). Only PENDING orders can be cancelled.
+     *
+     * @param orderId   the order to cancel
+     * @param accountId the account ID from JWT (auth.getName())
+     * @return cancelled order DTO
+     */
+    @Transactional
+    public OrderDto cancelOrder(Long orderId, Long accountId) {
+        UserProfile user = userProfileRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", accountId));
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
+
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new BusinessException("Bạn không có quyền hủy đơn hàng này", HttpStatus.FORBIDDEN);
+        }
+
+        if (!"PENDING".equals(order.getStatus())) {
+            throw new BusinessException(
+                    "Chỉ có thể hủy đơn hàng đang chờ xử lý", HttpStatus.BAD_REQUEST);
+        }
+
+        order.setStatus("CANCELLED");
+        orderRepository.save(order);
+
+        // Release stock
+        for (OrderDetail d : orderDetailRepository.findByOrderId(orderId)) {
+            inventoryService.releaseStock(d.getProduct().getId(), d.getQuantity());
+        }
+
+        // Refund coupon usage
+        if (order.getCoupon() != null) {
+            Coupon coupon = order.getCoupon();
+            coupon.setUsedCount(Math.max(0, coupon.getUsedCount() - 1));
+            couponRepository.save(coupon);
+        }
+
+        // Update payment status
+        paymentRepository.findByOrderId(orderId).ifPresent(payment -> {
+            payment.setStatus("CANCELLED");
+            paymentRepository.save(payment);
+        });
+
+        Account changedBy = accountRepository.findById(accountId).orElse(null);
+        logStatusChange(order, "PENDING", "CANCELLED", changedBy, "Khách hàng hủy đơn");
+        return orderMapper.toDto(order);
+    }
+
+    /**
      * Updates order status with state machine validation (BUG-02 fix).
      * Handles CANCELLED (BUG-21: release stock + refund coupon) and COMPLETED.
      */

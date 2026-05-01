@@ -2,28 +2,43 @@
 title Hình 3.24 — Sequence Diagram — Gửi yêu cầu bảo hành
 
 actor Customer
+actor "Admin/Sales" as Staff
 participant "Next.js" as FE
 participant "Spring Boot" as BE
 database "PostgreSQL" as DB
 
+== Customer tạo yêu cầu bảo hành ==
 Customer -> FE : Mở form bảo hành
-FE -> BE : POST /api/v1/warranty-tickets\n{product_id, order_id,\nserial_number, issue_description}
-BE -> BE : Validate JWT (Customer)
+FE -> BE : POST /api/v1/warranty\n{orderId, productId,\nissueDescription}
+BE -> BE : Validate JWT → accountId
 BE -> DB : SELECT Order_Detail\nWHERE order_id AND product_id
-BE -> DB : SELECT Warranty_Policy\n(ưu tiên Product > Category)
-BE -> BE : Kiểm tra còn hạn BH\n(order.created_at + duration_months > NOW)
-
-alt Hết hạn BH
-    BE --> FE : 400 {message: "Sản phẩm\nđã hết hạn bảo hành"}
-else Còn hạn
-    BE -> DB : INSERT Warranty_Ticket\n(status=RECEIVED)
-    BE --> FE : 201 {ticketId, status}
-    FE --> Customer : "Phiếu BH #xxx\nđã tạo thành công"
+BE -> BE : Validate ownership +\nwarranty policy
+alt Không hợp lệ / Hết hạn BH
+    BE --> FE : 400 {message}
+else Hợp lệ
+    BE -> DB : INSERT Warranty_Request\n(status=RECEIVED)
+    BE --> FE : 201 {warranty}
+    FE --> Customer : "Yêu cầu BH\nđã tạo thành công"
 end
 
-note over BE, DB : Phía Admin/Sales xử lý
-BE -> DB : UPDATE Warranty_Ticket\nSET status=PROCESSING
-BE -> DB : UPDATE Warranty_Ticket\nSET status=REPAIRED, resolution="..."
-BE -> DB : UPDATE Warranty_Ticket\nSET status=RETURNED
+== Customer xem yêu cầu ==
+Customer -> FE : Mở trang bảo hành
+FE -> BE : GET /api/v1/warranty\n?page=0&size=10
+BE -> BE : Validate JWT → accountId
+BE -> DB : SELECT Warranty_Request\nWHERE account_id = ?
+BE --> FE : 200 {warranties[] (paginated)}
+
+== Admin xem tất cả yêu cầu ==
+Staff -> FE : Mở trang quản lý bảo hành
+FE -> BE : GET /api/v1/warranty/admin\n?status=RECEIVED&page=0&size=20
+BE -> BE : Validate JWT + Authority\n(warranty.view)
+BE --> FE : 200 {warranties[] (paginated)}
+
+== Admin cập nhật trạng thái ==
+Staff -> FE : Xử lý yêu cầu bảo hành
+FE -> BE : PUT /api/v1/warranty/{id}/status\n?status=PROCESSING&resolution=...
+BE -> BE : Validate JWT + Authority\n(warranty.manage)
+BE -> DB : UPDATE Warranty_Request\nSET status = ?, resolution = ?
+BE --> FE : 200 {updatedWarranty}
 
 @enduml

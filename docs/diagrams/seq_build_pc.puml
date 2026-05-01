@@ -4,54 +4,23 @@ title Hình 3.27 — Sequence Diagram — Build PC + Kiểm tra tương thích A
 actor User
 participant "Next.js" as FE
 participant "Spring Boot" as BE
-database "PostgreSQL" as DB
-database "Redis" as Cache
 participant "LLM API" as LLM
 
 User -> FE : Mở trang Build PC
-FE -> BE : GET /api/v1/build-pc/categories
-BE --> FE : Danh sách slot\n(CPU, Main, RAM, ...)
+FE -> FE : Hiển thị giao diện chọn linh kiện\n(dùng dữ liệu từ API products\nvà categories đã có)
 
 loop Chọn linh kiện cho mỗi slot
-    User -> FE : Chọn danh mục slot
-    FE -> BE : GET /api/v1/build-pc/products?\ncategory={id}
-    BE -> DB : SELECT Product + Inventory WHERE ...
-    BE --> FE : Danh sách SP (có tồn kho)
-    User -> FE : Chọn sản phẩm
+    User -> FE : Chọn sản phẩm cho slot\n(CPU, Main, RAM, ...)
     FE -> FE : Cập nhật cấu hình,\ntính tổng giá
 end
 
-alt Chưa đăng nhập → Xuất báo giá
-    User -> FE : Nhấn "Xuất báo giá PDF"
-    FE -> BE : POST /api/v1/build-pc/export-quote\n{items[]}
-    BE -> BE : Generate PDF
-    BE --> FE : PDF file
-    FE --> User : Download PDF
-else Đã đăng nhập → Kiểm tra AI
-    User -> FE : Nhấn "Kiểm tra tương thích"
-    FE -> BE : POST /api/v1/build-pc/check-compatibility\n{items[]}
-    BE -> DB : SELECT Product_Attribute cho mỗi SP
-    BE -> BE : Build prompt với thông số kỹ thuật
-    BE -> LLM : Gửi prompt kiểm tra tương thích
-    LLM --> BE : Kết quả phân tích + gợi ý
-    BE --> FE : {compatible: true/false,\nanalysis, suggestions[]}
-    FE --> User : Hiển thị kết quả AI
-
-    opt Thêm vào giỏ
-        User -> FE : Nhấn "Thêm vào giỏ"
-        FE -> BE : POST /api/v1/build-pc/add-to-cart\n{items[]}
-        loop Mỗi linh kiện
-            BE -> DB : INSERT Cart_Item
-        end
-        BE --> FE : 200 OK
-    end
-else Chưa đăng nhập → Nhấn nút cần auth
-    User -> FE : Nhấn "Kiểm tra tương thích"\n/ "Thêm giỏ"
-    FE -> Cache : Lưu cấu hình tạm {session_id}
-    FE --> User : Redirect đăng nhập
-    User -> FE : Đăng nhập thành công
-    FE -> Cache : GET cấu hình tạm
-    FE --> User : Khôi phục cấu hình Build PC
-end
+User -> FE : Nhấn "Kiểm tra tương thích"
+FE -> BE : POST /api/v1/build-pc/check-compatibility\n{components[{productId, name,\ncategory, specs}]}
+BE -> BE : @PreAuthorize(isAuthenticated)
+BE -> BE : Build prompt với thông số\nkỹ thuật các linh kiện
+BE -> LLM : Gửi prompt kiểm tra tương thích
+LLM --> BE : Kết quả phân tích
+BE --> FE : 200 {compatible: true/false,\nanalysis, suggestions[]}
+FE --> User : Hiển thị kết quả AI\n(tương thích/không, phân tích chi tiết)
 
 @enduml

@@ -8,7 +8,7 @@ database "PostgreSQL" as DB
 
 == Xem cây danh mục ==
 Admin -> FE : Mở trang quản lý danh mục
-FE -> BE : GET /api/v1/admin/categories?tree=true
+FE -> BE : GET /api/v1/categories
 BE -> DB : SELECT Category\nORDER BY level, name
 BE -> BE : Build tree structure\n(parent-child)
 BE --> FE : 200 {categories[\n{id, name, children[]}]}
@@ -16,28 +16,35 @@ FE --> Admin : Hiển thị cây danh mục
 
 == Thêm danh mục ==
 Admin -> FE : Nhập tên, mô tả,\nchọn danh mục cha
-FE -> BE : POST /api/v1/admin/categories\n{name, description, parentId}
+FE -> BE : POST /api/v1/categories\n{name, description, parentId}
+BE -> BE : Validate JWT + Authority\n(category.create)
 BE -> DB : SELECT Category\nWHERE parent_id = ? → tính level
 BE -> DB : INSERT Category\n(name, description, parent_id, level)
 BE --> FE : 201 {category}
 
-== Quản lý thuộc tính (Attribute) theo danh mục ==
-Admin -> FE : Thêm thuộc tính cho\ndanh mục "CPU"
-FE -> BE : POST /api/v1/admin/categories/{id}/attributes\n{name: "Socket"}
-BE -> DB : INSERT Attribute\n(name, category_id)
-FE -> BE : POST /api/v1/admin/attributes/{id}/values\n{value: "LGA1700"}
-BE -> DB : INSERT Attribute_Value\n(attribute_id, value)
-BE --> FE : 201 {attribute, values[]}
+== Cập nhật danh mục ==
+Admin -> FE : Sửa thông tin danh mục
+FE -> BE : PUT /api/v1/categories/{id}\n{name, description, parentId}
+BE -> BE : Validate JWT + Authority\n(category.update)
+BE -> DB : UPDATE Category SET ...
+BE --> FE : 200 {updatedCategory}
 
-== Cập nhật / Xóa danh mục ==
-Admin -> FE : Sửa hoặc xóa danh mục
-FE -> BE : PUT|DELETE\n/api/v1/admin/categories/{id}
-BE -> DB : SELECT Product\nWHERE category_id = ?
-alt Có sản phẩm → không cho xóa
-    BE --> FE : 409 {message: "Danh mục\nđang có sản phẩm, không thể xóa"}
-else Không có sản phẩm
-    BE -> DB : DELETE Category WHERE id = ?
-    BE --> FE : 204 No Content
-end
+== Xóa danh mục ==
+Admin -> FE : Nhấn "Xóa"
+FE -> BE : DELETE /api/v1/categories/{id}
+BE -> BE : Validate JWT + Authority\n(category.delete)
+BE -> DB : DELETE Category WHERE id = ?
+BE --> FE : 200 {message:\n"Xóa danh mục thành công"}
+
+== Quản lý thuộc tính theo danh mục ==
+Admin -> FE : Mở tab thuộc tính
+FE -> BE : GET /api/v1/categories/{id}/attributes
+BE -> DB : SELECT Attribute JOIN Attribute_Value\nWHERE category_id = ?
+BE --> FE : 200 {attributes[]}
+
+Admin -> FE : Thêm thuộc tính mới
+FE -> BE : POST /api/v1/categories/{id}/attributes\n{name, values[]}
+BE -> DB : INSERT Attribute + Attribute_Value[]
+BE --> FE : 201 {attribute}
 
 @enduml

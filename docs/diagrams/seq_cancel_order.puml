@@ -7,36 +7,36 @@ participant "Spring Boot\n(Backend)" as BE
 database "PostgreSQL" as DB
 
 Customer -> FE : Nhấn "Hủy đơn hàng"
-FE -> BE : PATCH /api/v1/orders/{id}/cancel\n{reason?}
-BE -> BE : Validate JWT → user_id
+FE -> BE : PUT /api/v1/orders/{id}/cancel
+BE -> BE : Validate JWT → accountId
 
-BE -> DB : SELECT Orders\nWHERE id = ? AND user_id = ?
-DB --> BE : Order (status, coupon_id)
+BE -> DB : SELECT UserProfile\nWHERE account_id = ?
+BE -> DB : SELECT Orders WHERE id = ?
+DB --> BE : Order (status, user_id,\ncoupon_id, payment)
 
-alt Đơn không phải PENDING
-    BE --> FE : 400 {message: "Chỉ hủy được\nđơn hàng đang chờ xử lý"}
-else Đơn hàng PENDING
+BE -> BE : Kiểm tra quyền sở hữu:\norder.user_id == userProfile.id
+
+alt Không phải đơn của mình
+    BE --> FE : 403 {message:\n"Bạn không có quyền hủy đơn hàng này"}
+else Trạng thái != PENDING
+    BE --> FE : 400 {message:\n"Chỉ có thể hủy đơn hàng\nđang chờ xử lý"}
+else PENDING → CANCELLED ✓
     BE -> DB : UPDATE Orders\nSET status = 'CANCELLED'
-    BE -> DB : INSERT Order_Status_History\n(PENDING → CANCELLED, note=reason)
 
     loop Hoàn kho — mỗi Order_Detail
-        BE -> DB : SELECT Order_Detail\nWHERE order_id = ?
         BE -> DB : UPDATE Inventory\nSET quantity += order_detail.quantity
-        BE -> DB : INSERT Inventory_Log\n(type='CANCEL', +quantity,\nnote='Hủy đơn #id')
     end
 
     opt Có Coupon
         BE -> DB : UPDATE Coupon\nSET used_count -= 1
-        BE -> DB : DELETE Coupon_Usage\nWHERE order_id = ?
     end
 
-    opt Đã thanh toán Online
-        BE -> DB : UPDATE Payment\nSET status = 'REFUNDED'
-        note over BE : Trigger hoàn tiền\nqua MoMo API
+    opt Có Payment
+        BE -> DB : UPDATE Payment\nSET status = 'CANCELLED'
     end
 
-    BE -> DB : INSERT Notification\n(user_id, "Đơn hàng #id đã được hủy")
-    BE --> FE : 200 {message: "Hủy đơn hàng thành công"}
+    BE -> DB : INSERT Order_Status_History\n(PENDING → CANCELLED,\nnote="Khách hàng hủy đơn")
+    BE --> FE : 200 {updatedOrder}
     FE --> Customer : Cập nhật trạng thái đơn
 end
 

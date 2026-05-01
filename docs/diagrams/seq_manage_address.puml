@@ -56,9 +56,6 @@ else Xóa địa chỉ
         BE --> FE : 404 Không tìm thấy địa chỉ
     else Là Address duy nhất
         BE --> FE : 400 Bạn cần tạo địa chỉ mới trước khi xóa
-    else Đã dùng trong Order
-        BE -> DB : Soft delete / ẩn khỏi sổ địa chỉ
-        BE --> FE : 204 No Content
     else Có thể xóa
         BE -> DB : DELETE Address
         BE --> FE : 204 No Content

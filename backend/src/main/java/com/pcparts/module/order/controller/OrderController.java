@@ -64,6 +64,17 @@ public class OrderController {
     }
 
     /**
+     * Cancel order (customer). Only PENDING orders can be cancelled.
+     */
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<OrderDto>> cancelOrder(
+            Authentication auth, @PathVariable Long id) {
+        Long accountId = Long.parseLong(auth.getName());
+        OrderDto order = orderService.cancelOrder(id, accountId);
+        return ResponseEntity.ok(ApiResponse.success("Hủy đơn hàng thành công", order));
+    }
+
+    /**
      * Update order status (admin/sales).
      */
     @PutMapping("/{id}/status")
