@@ -9,43 +9,8 @@ import { useCartStore } from "@/stores/cart-store";
 import { useAuthStore } from "@/stores/auth-store";
 import api from "@/lib/api";
 
+import { VIETNAM_PHONE_REGEX, HANOI_DISTRICTS } from "@/lib/constants";
 
-// Vietnamese phone number validation regex
-const VIETNAM_PHONE_REGEX = /^(0|84|\+84)(3|5|7|8|9)[0-9]{8}$/;
-
-// Hanoi districts - 12 quận, 17 huyện, 1 thị xã
-const HANOI_DISTRICTS = [
-  "Ba Đình",
-  "Cầu Giấy",
-  "Đống Đa",
-  "Hai Bà Trưng",
-  "Hoàn Kiếm",
-  "Thanh Xuân",
-  "Hoàng Mai",
-  "Long Biên",
-  "Hà Đông",
-  "Tây Hồ",
-  "Nam Từ Liêm",
-  "Bắc Từ Liêm",
-  "Thanh Trì",
-  "Ba Vì",
-  "Đan Phượng",
-  "Gia Lâm",
-  "Đông Anh",
-  "Thường Tín",
-  "Thanh Oai",
-  "Chương Mỹ",
-  "Hoài Đức",
-  "Mỹ Đức",
-  "Phúc Thọ",
-  "Thạch Thất",
-  "Quốc Oai",
-  "Phú Xuyên",
-  "Ứng Hòa",
-  "Mê Linh",
-  "Sóc Sơn",
-  "Sơn Tây",
-];
 
 interface Address {
   id: number;
@@ -135,6 +100,10 @@ export default function CheckoutPage() {
       let discountAmount = 0;
       if (coupon.discountType === "PERCENTAGE") {
         discountAmount = Math.round(totalPrice * coupon.discountValue / 100);
+        // Respect backend's maxDiscount cap
+        if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
+          discountAmount = coupon.maxDiscount;
+        }
       } else {
         discountAmount = coupon.discountValue;
       }

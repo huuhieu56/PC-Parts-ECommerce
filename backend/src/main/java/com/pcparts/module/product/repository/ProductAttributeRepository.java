@@ -14,5 +14,7 @@ public interface ProductAttributeRepository extends JpaRepository<ProductAttribu
 
     List<ProductAttribute> findByProductId(Long productId);
 
+    List<ProductAttribute> findByProductIdIn(java.util.Collection<Long> productIds);
+
     void deleteByProductId(Long productId);
 }

@@ -5,44 +5,16 @@ import { Camera, ChevronRight, User, MapPin, Lock, Plus, Trash2, Edit2, Save, X 
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
 import { useAuthStore } from "@/stores/auth-store";
+import ChangePasswordTab from "@/components/ChangePasswordTab";
 
-const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-const VIETNAM_PHONE_REGEX = /^0\d{9}$/;
-const ALLOWED_AVATAR_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
-const SUPPORTED_PROVINCE = "Hà Nội";
-const HANOI_DISTRICTS = [
-  "Ba Đình",
-  "Cầu Giấy",
-  "Đống Đa",
-  "Hai Bà Trưng",
-  "Hoàn Kiếm",
-  "Thanh Xuân",
-  "Hoàng Mai",
-  "Long Biên",
-  "Hà Đông",
-  "Tây Hồ",
-  "Nam Từ Liêm",
-  "Bắc Từ Liêm",
-  "Thanh Trì",
-  "Ba Vì",
-  "Đan Phượng",
-  "Gia Lâm",
-  "Đông Anh",
-  "Thường Tín",
-  "Thanh Oai",
-  "Chương Mỹ",
-  "Hoài Đức",
-  "Mỹ Đức",
-  "Phúc Thọ",
-  "Thạch Thất",
-  "Quốc Oai",
-  "Phú Xuyên",
-  "Ứng Hòa",
-  "Mê Linh",
-  "Sóc Sơn",
-  "Sơn Tây",
-] as const;
+import {
+  VIETNAM_PHONE_REGEX,
+  ALLOWED_IMAGE_TYPES,
+  MAX_AVATAR_BYTES,
+  SUPPORTED_PROVINCE,
+  HANOI_DISTRICTS,
+  normalizeDistrict,
+} from "@/lib/constants";
 
 interface UserProfile {
   id: number;
@@ -78,9 +50,6 @@ const emptyAddressForm = (): AddressForm => ({
   street: "",
 });
 
-const normalizeDistrict = (value: string) =>
-  value.toLowerCase().replace("quận ", "").replace("huyện ", "").replace("thị xã ", "").trim();
-
 export default function ProfilePage() {
   const updateUser = useAuthStore((state) => state.updateUser);
   const [tab, setTab] = useState<"info" | "addresses" | "password">("info");
@@ -91,7 +60,6 @@ export default function ProfilePage() {
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editForm, setEditForm] = useState({ fullName: "", phone: "", dateOfBirth: "", gender: "" });
-  const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const [msg, setMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [addingAddress, setAddingAddress] = useState(false);
   const [editingAddressId, setEditingAddressId] = useState<number | null>(null);
@@ -181,7 +149,7 @@ export default function ProfilePage() {
   };
 
   const uploadAvatar = async (file: File) => {
-    if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
       showMessage("error", "Chỉ chấp nhận ảnh JPG, PNG, WEBP.");
       return;
     }
@@ -210,44 +178,7 @@ export default function ProfilePage() {
     }
   };
 
-  const changePassword = async () => {
-    if (!pwForm.currentPassword || !pwForm.newPassword || !pwForm.confirmPassword) {
-      setMsg({ type: "error", text: "Vui lòng nhập đầy đủ thông tin." });
-      setTimeout(() => setMsg(null), 3000);
-      return;
-    }
 
-    if (pwForm.newPassword !== pwForm.confirmPassword) {
-      setMsg({ type: "error", text: "Mật khẩu xác nhận không khớp." });
-      setTimeout(() => setMsg(null), 3000);
-      return;
-    }
-
-    if (pwForm.currentPassword === pwForm.newPassword) {
-      setMsg({ type: "error", text: "Mật khẩu mới phải khác mật khẩu cũ." });
-      setTimeout(() => setMsg(null), 3000);
-      return;
-    }
-
-    if (!STRONG_PASSWORD_REGEX.test(pwForm.newPassword)) {
-      setMsg({ type: "error", text: "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số." });
-      setTimeout(() => setMsg(null), 3000);
-      return;
-    }
-
-    try {
-      await api.put("/users/password", {
-        currentPassword: pwForm.currentPassword,
-        newPassword: pwForm.newPassword,
-        confirmPassword: pwForm.confirmPassword,
-      });
-      setPwForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      showMessage("success", "Đổi mật khẩu thành công!");
-    } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { message?: string } } };
-      showMessage("error", axiosError.response?.data?.message || "Đổi mật khẩu thất bại. Vui lòng thử lại.");
-    }
-  };
 
   const validateAddressForm = () => {
     const receiverName = addressForm.receiverName.trim();
@@ -634,28 +565,7 @@ export default function ProfilePage() {
             )}
 
             {tab === "password" && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-6">Đổi mật khẩu</h2>
-                <div className="max-w-md space-y-4">
-                  <div>
-                    <label htmlFor="current-password" className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu hiện tại</label>
-                    <input id="current-password" type="password" value={pwForm.currentPassword} onChange={(e) => setPwForm({ ...pwForm, currentPassword: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-                  </div>
-                  <div>
-                    <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới</label>
-                    <input id="new-password" type="password" value={pwForm.newPassword} onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-                    <p className="text-xs text-gray-500 mt-1">Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và số.</p>
-                  </div>
-                  <div>
-                    <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu mới</label>
-                    <input id="confirm-password" type="password" value={pwForm.confirmPassword} onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-                  </div>
-                  <button onClick={changePassword} className="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">Đổi mật khẩu</button>
-                </div>
-              </div>
+              <ChangePasswordTab showMessage={showMessage} />
             )}
           </div>
         </div>
