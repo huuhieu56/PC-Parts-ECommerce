@@ -17,6 +17,30 @@ const statusLabels: Record<string, string> = {
   PENDING_APPROVAL: "Chờ duyệt", APPROVED: "Đã duyệt", COMPLETED: "Hoàn thành", REJECTED: "Từ chối",
 };
 
+type RawPageData = Partial<PageData> & {
+  number?: number;
+  first?: boolean;
+  last?: boolean;
+};
+
+function normalizePageData(data: RawPageData, fallbackPageSize: number): PageData {
+  const content = Array.isArray(data.content) ? data.content : [];
+  const page = typeof data.page === "number" ? data.page : data.number ?? 0;
+  const size = typeof data.size === "number" && data.size > 0 ? data.size : fallbackPageSize;
+  const totalElements = typeof data.totalElements === "number" ? data.totalElements : content.length;
+  const totalPages = typeof data.totalPages === "number" ? data.totalPages : Math.ceil(totalElements / size);
+
+  return {
+    content,
+    page,
+    size,
+    totalElements,
+    totalPages,
+    hasNext: typeof data.hasNext === "boolean" ? data.hasNext : data.last === false,
+    hasPrevious: typeof data.hasPrevious === "boolean" ? data.hasPrevious : data.first === false,
+  };
+}
+
 export default function AdminReturnsPage() {
   const [pageData, setPageData] = useState<PageData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,7 +57,7 @@ export default function AdminReturnsPage() {
       if (statusFilter) params.set("status", statusFilter);
       const res = await api.get(`/returns?${params}`);
       const data = res.data.data || res.data;
-      setPageData(data);
+      setPageData(normalizePageData(data, pageSize));
     } catch { /* empty */ } finally { setLoading(false); }
   }, [statusFilter]);
 

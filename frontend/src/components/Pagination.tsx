@@ -29,14 +29,23 @@ interface PaginationProps {
  * ```
  */
 export default function Pagination({ page, totalPages, totalElements, hasNext, hasPrevious, onPageChange, size }: PaginationProps) {
-  if (totalElements === 0) return null;
+  const safeSize = Number.isFinite(size) && size && size > 0 ? size : 10;
+  const safeTotalElements = Number.isFinite(totalElements) && totalElements > 0 ? totalElements : 0;
+  const safeTotalPages = Number.isFinite(totalPages) && totalPages > 0
+    ? totalPages
+    : Math.ceil(safeTotalElements / safeSize);
+  const safePage = Number.isFinite(page) && page >= 0
+    ? Math.min(page, Math.max(safeTotalPages - 1, 0))
+    : 0;
+
+  if (safeTotalElements === 0 || safeTotalPages === 0) return null;
 
   // Generate visible page numbers (show max 5 around current)
   const getPageNumbers = (): number[] => {
     const pages: number[] = [];
     const maxVisible = 5;
-    let start = Math.max(0, page - Math.floor(maxVisible / 2));
-    const end = Math.min(totalPages - 1, start + maxVisible - 1);
+    let start = Math.max(0, safePage - Math.floor(maxVisible / 2));
+    const end = Math.min(safeTotalPages - 1, start + maxVisible - 1);
     if (end - start < maxVisible - 1) {
       start = Math.max(0, end - maxVisible + 1);
     }
@@ -45,8 +54,8 @@ export default function Pagination({ page, totalPages, totalElements, hasNext, h
   };
 
   const pageNumbers = getPageNumbers();
-  const from = page * (size || 10) + 1;
-  const to = Math.min((page + 1) * (size || 10), totalElements);
+  const from = safePage * safeSize + 1;
+  const to = Math.min((safePage + 1) * safeSize, safeTotalElements);
 
   return (
     <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-white">
@@ -65,7 +74,7 @@ export default function Pagination({ page, totalPages, totalElements, hasNext, h
         </button>
         {/* Prev */}
         <button
-          onClick={() => onPageChange(page - 1)}
+          onClick={() => onPageChange(safePage - 1)}
           disabled={!hasPrevious}
           className="w-8 h-8 flex items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           title="Trang trước"
@@ -79,7 +88,7 @@ export default function Pagination({ page, totalPages, totalElements, hasNext, h
             key={p}
             onClick={() => onPageChange(p)}
             className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
-              p === page
+              p === safePage
                 ? "bg-blue-600 text-white shadow-sm"
                 : "text-gray-700 hover:bg-gray-100"
             }`}
@@ -87,10 +96,10 @@ export default function Pagination({ page, totalPages, totalElements, hasNext, h
             {p + 1}
           </button>
         ))}
-        {pageNumbers[pageNumbers.length - 1] < totalPages - 1 && <span className="w-8 h-8 flex items-center justify-center text-gray-400 text-sm">…</span>}
+        {pageNumbers[pageNumbers.length - 1] < safeTotalPages - 1 && <span className="w-8 h-8 flex items-center justify-center text-gray-400 text-sm">…</span>}
         {/* Next */}
         <button
-          onClick={() => onPageChange(page + 1)}
+          onClick={() => onPageChange(safePage + 1)}
           disabled={!hasNext}
           className="w-8 h-8 flex items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           title="Trang sau"
@@ -99,7 +108,7 @@ export default function Pagination({ page, totalPages, totalElements, hasNext, h
         </button>
         {/* Last */}
         <button
-          onClick={() => onPageChange(totalPages - 1)}
+          onClick={() => onPageChange(safeTotalPages - 1)}
           disabled={!hasNext}
           className="w-8 h-8 flex items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           title="Trang cuối"
