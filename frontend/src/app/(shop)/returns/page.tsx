@@ -16,6 +16,22 @@ interface ReturnRequest {
   createdAt: string;
 }
 
+interface OrderSummary {
+  id: number;
+  orderNumber: string;
+  status: string;
+  totalAmount: number;
+  createdAt: string;
+}
+
+interface OrderItem {
+  id: number;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+}
+
 function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
 const statusColors: Record<string, string> = {
@@ -31,6 +47,8 @@ const statusLabels: Record<string, string> = {
 
 export default function ReturnsPage() {
   const [returns, setReturns] = useState<ReturnRequest[]>([]);
+  const [completedOrders, setCompletedOrders] = useState<OrderSummary[]>([]);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ orderId: "", orderDetailId: "", reason: "", type: "REFUND" });
@@ -48,11 +66,58 @@ export default function ReturnsPage() {
     fetch();
   }, []);
 
-  const submitReturn = async () => {
+  const loadCompletedOrders = async () => {
     try {
-      await api.post("/returns", form);
+      const res = await api.get("/orders?page=0&size=50");
+      const data = res.data.data || res.data;
+      const orders = ((data.content || data || []) as OrderSummary[])
+        .filter((order) => order.status === "COMPLETED");
+      setCompletedOrders(orders);
+    } catch {
+      setCompletedOrders([]);
+    }
+  };
+
+  const openReturnForm = async () => {
+    setShowForm(true);
+    setForm({ orderId: "", orderDetailId: "", reason: "", type: "REFUND" });
+    setOrderItems([]);
+    await loadCompletedOrders();
+  };
+
+  const selectOrder = async (orderId: string) => {
+    setForm((prev) => ({ ...prev, orderId, orderDetailId: "" }));
+    setOrderItems([]);
+    if (!orderId) {
+      return;
+    }
+
+    try {
+      const res = await api.get(`/orders/${orderId}`);
+      const data = res.data.data || res.data;
+      setOrderItems((data.items || []) as OrderItem[]);
+    } catch {
+      setMsg({ type: "error", text: "Không tải được sản phẩm trong đơn hàng." });
+      setTimeout(() => setMsg(null), 3000);
+    }
+  };
+
+  const submitReturn = async () => {
+    const orderId = Number(form.orderId);
+    const orderDetailId = Number(form.orderDetailId);
+    const reason = form.reason.trim();
+
+    if (!Number.isInteger(orderId) || orderId <= 0 || !Number.isInteger(orderDetailId) || orderDetailId <= 0 || !reason) {
+      setMsg({ type: "error", text: "Vui lòng chọn đơn hàng, sản phẩm và nhập lý do đổi trả." });
+      setTimeout(() => setMsg(null), 3000);
+      return;
+    }
+
+    try {
+      await api.post("/returns", { orderId, orderDetailId, reason, type: form.type });
       setShowForm(false);
       setForm({ orderId: "", orderDetailId: "", reason: "", type: "REFUND" });
+      setOrderItems([]);
       setMsg({ type: "success", text: "Yêu cầu đổi trả đã được gửi thành công!" });
       // reload
       const res = await api.get("/returns/my?page=0&size=20");
@@ -85,7 +150,7 @@ export default function ReturnsPage() {
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl font-bold text-gray-900">Yêu cầu đổi trả</h1>
-          <button onClick={() => setShowForm(true)} className="flex items-center gap-1.5 text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+          <button onClick={openReturnForm} className="flex items-center gap-1.5 text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
             <Plus className="w-4 h-4" /> Tạo yêu cầu
           </button>
         </div>
@@ -95,27 +160,47 @@ export default function ReturnsPage() {
             <h3 className="text-sm font-semibold text-gray-900 mb-4">Tạo yêu cầu đổi trả mới</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mã đơn hàng</label>
-                <input value={form.orderId} onChange={(e) => setForm({ ...form, orderId: e.target.value })} placeholder="VD: 1001"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                <label htmlFor="return-order" className="block text-sm font-medium text-gray-700 mb-1">Đơn hàng</label>
+                <select id="return-order" value={form.orderId} onChange={(e) => selectOrder(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                  <option value="">Chọn đơn hàng đã hoàn thành</option>
+                  {completedOrders.map((order) => (
+                    <option key={order.id} value={order.id}>
+                      {order.orderNumber || `ORD-${String(order.id).padStart(6, "0")}`} - {formatPrice(order.totalAmount)}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Loại yêu cầu</label>
+                <label htmlFor="return-type" className="block text-sm font-medium text-gray-700 mb-1">Loại yêu cầu</label>
                 <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                  id="return-type" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                   <option value="REFUND">Hoàn tiền</option>
                   <option value="EXCHANGE">Đổi hàng</option>
                 </select>
               </div>
               <div className="col-span-full">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Lý do</label>
+                <label htmlFor="return-item" className="block text-sm font-medium text-gray-700 mb-1">Sản phẩm</label>
+                <select id="return-item" value={form.orderDetailId} onChange={(e) => setForm({ ...form, orderDetailId: e.target.value })}
+                  disabled={!form.orderId}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-50 disabled:text-gray-400">
+                  <option value="">Chọn sản phẩm cần đổi trả</option>
+                  {orderItems.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.productName} x{item.quantity} - {formatPrice(item.lineTotal || item.unitPrice * item.quantity)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-span-full">
+                <label htmlFor="return-reason" className="block text-sm font-medium text-gray-700 mb-1">Lý do</label>
                 <textarea value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} rows={3} placeholder="Mô tả chi tiết lý do đổi trả..."
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                  id="return-reason" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
               </div>
             </div>
             <div className="flex gap-2 mt-4">
               <button onClick={submitReturn} className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Gửi yêu cầu</button>
-              <button onClick={() => setShowForm(false)} className="text-sm text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-100">Hủy</button>
+              <button onClick={() => { setShowForm(false); setOrderItems([]); }} className="text-sm text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-100">Hủy</button>
             </div>
           </div>
         )}
