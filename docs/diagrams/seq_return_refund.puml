@@ -6,45 +6,38 @@ actor "Admin/Sales" as Staff
 participant "Next.js" as FE
 participant "Spring Boot" as BE
 database "PostgreSQL" as DB
-collections "MinIO" as MinIO
 
+== Customer tạo yêu cầu đổi trả ==
 Customer -> FE : Tạo yêu cầu đổi trả
-FE -> BE : POST /api/v1/returns\n{order_id, order_detail_id,\ntype, reason, images[]}
-BE -> BE : Validate JWT (Customer)
+FE -> BE : POST /api/v1/returns\n{orderId, orderDetailId,\ntype, reason}
+BE -> BE : Validate JWT → accountId
 BE -> DB : SELECT Order + Order_Detail
-BE -> DB : SELECT Return_Policy\n(Product > Category)
-BE -> BE : Validate owner, COMPLETED,\nreturn window, not excluded,\nno duplicate pending request
-
+BE -> BE : Validate owner,\norder status, return policy
 alt Không hợp lệ
     BE --> FE : 400/403/409 {message}
 else Hợp lệ
-    opt Có ảnh minh chứng
-        BE -> MinIO : Upload images
-    end
-    BE -> DB : INSERT Return\n(status=PENDING_APPROVAL)
-    opt Có ảnh minh chứng
-        BE -> DB : INSERT Return_Image\n(image_url)
-    end
-    BE --> FE : 201 {returnId, status}
+    BE -> DB : INSERT Return_Request\n(status=PENDING)
+    BE --> FE : 201 {return}
 end
 
-note over BE, DB : Admin/Sales duyệt
-Staff -> FE : Mở chi tiết yêu cầu đổi trả
-FE -> BE : PATCH /api/v1/admin/returns/{id}
+== Customer xem yêu cầu ==
+Customer -> FE : Mở trang đổi trả
+FE -> BE : GET /api/v1/returns/my\n?page=0&size=10
+BE -> BE : Validate JWT → accountId
+BE -> DB : SELECT Return_Request\nWHERE account_id = ?
+BE --> FE : 200 {returns[] (paginated)}
 
-alt Duyệt - REFUND
-    BE -> DB : UPDATE Return\nSET status=APPROVED,\nresolved_by=staff_id
-    BE -> DB : INSERT Payment\n(status=REFUNDED, amount=refund_amount)
-    BE -> DB : UPDATE Inventory\nSET quantity += ?
-    BE -> DB : INSERT Inventory_Log\n(type=RETURN)
-    BE -> DB : UPDATE Return\nSET status=COMPLETED,\nresolved_at=NOW()
-else Duyệt - EXCHANGE
-    BE -> DB : UPDATE Return\nSET status=APPROVED,\nresolved_by=staff_id
-    BE -> DB : UPDATE Inventory\n(hoàn kho SP cũ)
-    BE -> DB : INSERT Order mới\n(SP thay thế)
-    BE -> DB : UPDATE Return\nSET status=COMPLETED,\nreplacement_order_id=order_id,\nresolved_at=NOW()
-else Từ chối
-    BE -> DB : UPDATE Return\nSET status=REJECTED,\nrejection_reason="Lý do",\nresolved_at=NOW()
-end
+== Admin xem tất cả yêu cầu ==
+Staff -> FE : Mở trang quản lý đổi trả
+FE -> BE : GET /api/v1/returns\n?status=PENDING&page=0&size=10
+BE -> BE : Validate JWT + Authority\n(return.view / return.manage)
+BE --> FE : 200 {returns[] (paginated)}
+
+== Admin cập nhật trạng thái ==
+Staff -> FE : Duyệt / Từ chối yêu cầu
+FE -> BE : PUT /api/v1/returns/{id}/status\n?status=APPROVED&refundAmount=500000
+BE -> BE : Validate JWT + Authority\n(return.manage)
+BE -> DB : UPDATE Return_Request\nSET status = ?, refund_amount = ?
+BE --> FE : 200 {updatedReturn}
 
 @enduml

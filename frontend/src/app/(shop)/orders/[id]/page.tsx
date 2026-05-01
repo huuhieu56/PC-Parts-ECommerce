@@ -11,6 +11,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const { id } = use(params);
   const [order, setOrder] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     async function fetchOrder() {
@@ -25,6 +26,19 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
   if (loading) return <div className="bg-gray-50 min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>;
   if (!order) return <div className="bg-gray-50 min-h-screen flex items-center justify-center"><div className="text-center"><Package className="w-16 h-16 text-gray-300 mx-auto mb-4" /><h1 className="text-lg font-semibold text-gray-900">Không tìm thấy đơn hàng</h1><Link href="/orders" className="text-blue-600 text-sm mt-2 inline-block">← Quay lại</Link></div></div>;
+
+  const handleCancel = async () => {
+    if (!confirm("Bạn có chắc chắn muốn hủy đơn hàng này?")) return;
+    setCancelling(true);
+    try {
+      const res = await api.put(`/orders/${id}/cancel`);
+      const data = res.data.data || res.data;
+      setOrder(data);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Không thể hủy đơn hàng";
+      alert(msg);
+    } finally { setCancelling(false); }
+  };
 
   const status = (order.status as string) || "PENDING";
   const steps = ["PENDING", "CONFIRMED", "SHIPPING", "COMPLETED"];
@@ -60,6 +74,19 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             ))}
           </div>
         </div>
+        {status === "PENDING" && (
+          <div className="bg-white rounded-xl shadow-sm p-4 flex items-center justify-between">
+            <p className="text-sm text-gray-600">Đơn hàng đang chờ xác nhận. Bạn có thể hủy đơn nếu muốn.</p>
+            <button onClick={handleCancel} disabled={cancelling} className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors">
+              {cancelling ? "Đang hủy..." : "Hủy đơn hàng"}
+            </button>
+          </div>
+        )}
+        {status === "CANCELLED" && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <p className="text-sm text-red-700 font-medium">Đơn hàng đã bị hủy</p>
+          </div>
+        )}
         {/* Items */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2"><Package className="w-5 h-5 text-blue-600" /> Sản phẩm</h2>

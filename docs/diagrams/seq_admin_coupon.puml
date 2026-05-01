@@ -6,42 +6,40 @@ participant "Next.js\n(Admin CMS)" as FE
 participant "Spring Boot\n(Backend)" as BE
 database "PostgreSQL" as DB
 
+== Xem danh sách mã giảm giá ==
+Admin -> FE : Mở trang quản lý coupon
+FE -> BE : GET /api/v1/coupons
+BE -> BE : Validate JWT + Authority\n(coupon.create / coupon.update\n/ coupon.delete)
+BE -> DB : SELECT Coupon (tất cả)
+BE --> FE : 200 {coupons[]}
+FE --> Admin : Hiển thị danh sách\n(mã, loại, giá trị, thời hạn)
+
 == Tạo mã giảm giá ==
 Admin -> FE : Nhập thông tin coupon
-FE -> BE : POST /api/v1/admin/coupons\n{code, discountType, discountValue,\nminOrderValue, maxDiscount,\nmaxUses, startDate, endDate}
-BE -> BE : Validate JWT + Role\n(ADMIN | SALES)
-BE -> DB : SELECT Coupon WHERE code = ?
-alt Mã đã tồn tại
-    BE --> FE : 409 {message:\n"Mã giảm giá đã tồn tại"}
-else Hợp lệ
-    BE -> DB : INSERT Coupon\n(code, discount_type, discount_value,\nmin_order_value, max_discount,\nmax_uses, start_date, end_date)
-    BE --> FE : 201 {coupon}
-    FE --> Admin : Hiển thị coupon vừa tạo
-end
+FE -> BE : POST /api/v1/coupons\n{code, discountType, discountValue,\nminOrderValue, maxDiscount,\nmaxUses, startDate, endDate}
+BE -> BE : Validate JWT + Authority\n(coupon.create)
+BE -> DB : INSERT Coupon
+BE --> FE : 201 {coupon}
+FE --> Admin : Hiển thị coupon vừa tạo
 
 == Cập nhật mã giảm giá ==
 Admin -> FE : Sửa thông tin coupon
-FE -> BE : PUT /api/v1/admin/coupons/{id}\n{discountValue, endDate, maxUses, ...}
-BE -> DB : SELECT Coupon WHERE id = ?
+FE -> BE : PUT /api/v1/coupons/{id}\n{discountValue, endDate, ...}
+BE -> BE : Validate JWT + Authority\n(coupon.update)
 BE -> DB : UPDATE Coupon SET ...
 BE --> FE : 200 {updatedCoupon}
 
-== Xem danh sách & thống kê ==
-Admin -> FE : Mở trang quản lý coupon
-FE -> BE : GET /api/v1/admin/coupons?\npage=1&size=20&status=active
-BE -> DB : SELECT Coupon LEFT JOIN\n(SELECT coupon_id, COUNT(*)\nFROM Coupon_Usage\nGROUP BY coupon_id)
-BE --> FE : 200 {coupons[], totalItems}
-FE --> Admin : Hiển thị danh sách\n(mã, loại, giá trị,\nđã dùng/tối đa, thời hạn)
-
 == Xóa mã giảm giá ==
 Admin -> FE : Nhấn "Xóa"
-FE -> BE : DELETE /api/v1/admin/coupons/{id}
-BE -> DB : SELECT Coupon_Usage\nWHERE coupon_id = ?
-alt Đã có người sử dụng
-    BE --> FE : 409 {message:\n"Không thể xóa mã đã được sử dụng"}
-else Chưa ai sử dụng
-    BE -> DB : DELETE Coupon WHERE id = ?
-    BE --> FE : 204 No Content
-end
+FE -> BE : DELETE /api/v1/coupons/{id}
+BE -> BE : Validate JWT + Authority\n(coupon.delete)
+BE -> DB : DELETE Coupon WHERE id = ?
+BE --> FE : 200 {message:\n"Xóa thành công"}
+
+== Validate coupon (public) ==
+FE -> BE : GET /api/v1/coupons/validate\n?code=SUMMER2026&orderAmount=1000000
+BE -> DB : SELECT Coupon WHERE code = ?
+BE -> BE : Validate (còn hạn,\nchưa max_uses,\norderAmount >= minOrderValue)
+BE --> FE : 200 {coupon + discountAmount}
 
 @enduml

@@ -5,29 +5,31 @@ actor Customer
 participant "Next.js\n(Frontend)" as FE
 participant "Spring Boot\n(Backend)" as BE
 database "PostgreSQL" as DB
-database "Redis" as Cache
 
-== Luồng Refresh Token ==
-FE -> FE : Access Token hết hạn (15 phút)
+== Luồng Refresh Token (Rotation) ==
+FE -> FE : Access Token hết hạn
 FE -> BE : POST /api/v1/auth/refresh-token\n{refreshToken}
-BE -> DB : SELECT Token WHERE token_value = ?\nAND expires_at > NOW()
+BE -> BE : Validate JWT signature + expiry
+BE -> DB : SELECT Token\nWHERE token_value = ?\nAND token_type = 'REFRESH'
 
-alt Refresh Token hợp lệ
-    BE -> BE : Sinh Access Token mới
-    BE --> FE : 200 {accessToken}
-    FE -> FE : Cập nhật token trong store
+alt Refresh Token hợp lệ + chưa hết hạn
+    BE -> DB : DELETE Token\nWHERE account_id = ?\nAND token_type IN ('ACCESS','REFRESH')
+    BE -> BE : Sinh Access Token mới\n+ Refresh Token mới (rotation)
+    BE -> DB : INSERT Token (ACCESS)\n+ INSERT Token (REFRESH)
+    BE --> FE : 200 {accessToken,\nrefreshToken, user}
+    FE -> FE : Cập nhật cả 2 token\ntrong localStorage
 else Refresh Token hết hạn / không hợp lệ
     BE --> FE : 401 Unauthorized
-    FE -> FE : Xóa token, redirect đăng nhập
+    FE -> FE : Xóa token,\nredirect /login?expired=true
 end
 
 == Luồng Đăng xuất ==
 Customer -> FE : Nhấn "Đăng xuất"
-FE -> BE : POST /api/v1/auth/logout\n{refreshToken}
-BE -> DB : DELETE Token WHERE token_value = ?
-BE -> Cache : DEL session:{user_id}
-BE --> FE : 200 OK
-FE -> FE : Xóa token, xóa Zustand store
+FE -> BE : POST /api/v1/auth/logout\n(Bearer Token trong header)
+BE -> BE : Validate JWT → auth.getName()\n→ accountId
+BE -> DB : DELETE Token\nWHERE account_id = ?\n(xóa tất cả token)
+BE --> FE : 200 {message:\n"Đăng xuất thành công"}
+FE -> FE : Xóa localStorage\n(accessToken, refreshToken,\nauth-storage, cart-storage)
 FE --> Customer : Redirect về trang chủ
 
 @enduml

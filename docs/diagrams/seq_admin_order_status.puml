@@ -8,38 +8,41 @@ database "PostgreSQL" as DB
 
 == Xem danh sách đơn hàng ==
 Sales -> FE : Mở trang quản lý đơn hàng
-FE -> BE : GET /api/v1/admin/orders?\npage=1&size=20&status=PENDING
-BE -> BE : Validate JWT + Role\n(SALES | ADMIN)
-BE -> DB : SELECT Orders JOIN User_Profile\nJOIN Payment WHERE status = ?\nORDER BY created_at DESC
-BE --> FE : 200 {orders[], totalItems}
+FE -> BE : GET /api/v1/orders/admin\n?status=PENDING&page=0&size=20
+BE -> BE : Validate JWT + Authority\n(order.view)
+BE -> DB : SELECT Orders\nWHERE status = ?\nORDER BY created_at DESC
+BE --> FE : 200 {content[], page,\ntotalPages, totalElements}
 FE --> Sales : Hiển thị danh sách đơn
+
+== Xem chi tiết đơn hàng ==
+Sales -> FE : Nhấn vào đơn hàng
+FE -> BE : GET /api/v1/orders/admin/{id}
+BE -> BE : Validate JWT + Authority\n(order.view)
+BE -> DB : SELECT Orders + Details\nWHERE id = ?
+BE --> FE : 200 {order}
 
 == Xác nhận đơn hàng ==
 Sales -> FE : Nhấn "Xác nhận"\nđơn hàng PENDING
-FE -> BE : PATCH /api/v1/admin/orders/{id}/status\n{newStatus: "CONFIRMED", note?}
+FE -> BE : PUT /api/v1/orders/{id}/status\n?status=CONFIRMED
+BE -> BE : Validate JWT + Authority\n(order.update)
 BE -> DB : SELECT Orders WHERE id = ?
 BE -> BE : Validate transition\n(PENDING → CONFIRMED ✓)
 BE -> DB : UPDATE Orders\nSET status = 'CONFIRMED'
-BE -> DB : INSERT Order_Status_History\n(old='PENDING', new='CONFIRMED',\nchanged_by, note)
-BE -> DB : INSERT Notification\n(user_id, "Đơn hàng #id\nđã được xác nhận")
+BE -> DB : INSERT Order_Status_History
 BE --> FE : 200 {updatedOrder}
 
 == Chuyển trạng thái giao hàng ==
-Sales -> FE : Cập nhật tracking,\nchuyển SHIPPING
-FE -> BE : PATCH /api/v1/admin/orders/{id}/status\n{newStatus: "SHIPPING"}
+Sales -> FE : Chuyển SHIPPING
+FE -> BE : PUT /api/v1/orders/{id}/status\n?status=SHIPPING
 BE -> DB : UPDATE Orders\nSET status = 'SHIPPING'
-BE -> DB : UPDATE Shipping\nSET status = 'IN_TRANSIT',\ntracking_number = ?
-BE -> DB : INSERT Order_Status_History\n(CONFIRMED → SHIPPING)
-BE -> DB : INSERT Notification\n(user_id, "Đơn hàng #id đang được giao")
+BE -> DB : INSERT Order_Status_History
 BE --> FE : 200 {updatedOrder}
 
 == Hoàn thành đơn ==
 Sales -> FE : Xác nhận đã giao thành công
-FE -> BE : PATCH /api/v1/admin/orders/{id}/status\n{newStatus: "COMPLETED"}
+FE -> BE : PUT /api/v1/orders/{id}/status\n?status=COMPLETED
 BE -> DB : UPDATE Orders\nSET status = 'COMPLETED'
-BE -> DB : UPDATE Shipping\nSET status = 'DELIVERED',\ndelivered_date = NOW()
-BE -> DB : INSERT Order_Status_History\n(SHIPPING → COMPLETED)
-BE -> DB : INSERT Notification\n(user_id, "Đơn hàng #id\nđã giao thành công")
+BE -> DB : INSERT Order_Status_History
 BE --> FE : 200 {updatedOrder}
 
 @enduml

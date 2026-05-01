@@ -7,39 +7,42 @@ participant "Spring Boot\n(Backend)" as BE
 database "PostgreSQL" as DB
 participant "MinIO" as Storage
 
-== Viết đánh giá ==
-Customer -> FE : Nhập rating (1-5),\nnội dung, upload ảnh
-FE -> BE : POST /api/v1/reviews\n{productId, orderId, rating, content}
-BE -> BE : Validate JWT → user_id
+== Upload ảnh trước (nếu có) ==
+opt Có ảnh đánh giá
+    Customer -> FE : Chọn ảnh
+    FE -> BE : POST /api/v1/reviews/images\n(multipart/form-data, files[])
+    BE -> BE : Validate JWT
+    loop Mỗi file
+        BE -> Storage : PUT object\n(reviews/img_n.jpg)
+        Storage --> BE : Object URL
+    end
+    BE --> FE : 200 {imageUrls[]}
+    FE -> FE : Lưu danh sách imageUrls
+end
 
-BE -> DB : SELECT Order_Detail\nWHERE order_id = ? AND product_id = ?\nAND order.user_id = ?
+== Viết đánh giá ==
+Customer -> FE : Nhập rating (1-5),\nnội dung đánh giá
+FE -> BE : POST /api/v1/reviews\n{productId, orderId, rating,\ncontent, imageUrls[]?}
+BE -> BE : Validate JWT → accountId
+
+BE -> DB : SELECT Order_Detail\nWHERE order_id = ? AND product_id = ?\nAND order.account_id = ?
 alt Chưa mua sản phẩm này
     BE --> FE : 400 {message:\n"Bạn chưa mua sản phẩm này"}
-else Đã mua
-    BE -> DB : SELECT Review\nWHERE user_id = ? AND product_id = ?\nAND order_id = ?
-    alt Đã đánh giá rồi
-        BE --> FE : 409 {message:\n"Bạn đã đánh giá SP này cho đơn hàng này"}
-    else Chưa đánh giá
-        BE -> DB : INSERT Review\n(user_id, product_id, order_id, rating, content)
-        DB --> BE : review_id
-
-        opt Có ảnh đánh giá
-            loop Mỗi ảnh
-                FE -> BE : POST /api/v1/reviews/{id}/images\n(multipart)
-                BE -> Storage : PUT object\n(reviews/{review_id}/img_n.jpg)
-                BE -> DB : INSERT Review_Image\n(review_id, image_url)
-            end
-        end
-
-        BE --> FE : 201 {review}
-        FE --> Customer : Hiển thị đánh giá vừa tạo
+else Đã đánh giá rồi
+    BE --> FE : 409 {message:\n"Bạn đã đánh giá SP này"}
+else Hợp lệ
+    BE -> DB : INSERT Review\n(account_id, product_id,\norder_id, rating, content)
+    opt Có imageUrls
+        BE -> DB : INSERT Review_Image[]\n(review_id, image_url)
     end
+    BE --> FE : 201 {review}
+    FE --> Customer : Hiển thị đánh giá vừa tạo
 end
 
 == Chỉnh sửa đánh giá ==
 Customer -> FE : Sửa nội dung / rating
 FE -> BE : PUT /api/v1/reviews/{id}\n{rating, content}
-BE -> BE : Validate owner\n(review.user_id == current_user)
+BE -> BE : Validate owner\n(review.account_id == accountId)
 BE -> DB : UPDATE Review\nSET rating = ?, content = ?
 BE --> FE : 200 {updatedReview}
 
@@ -49,5 +52,10 @@ FE -> BE : DELETE /api/v1/reviews/{id}
 BE -> BE : Validate owner
 BE -> DB : DELETE Review WHERE id = ?\n(CASCADE xóa Review_Image)
 BE --> FE : 204 No Content
+
+== Xem đánh giá sản phẩm ==
+FE -> BE : GET /api/v1/reviews/product/{productId}\n?page=0&size=10
+BE -> DB : SELECT Review JOIN User_Profile\nWHERE product_id = ?
+BE --> FE : 200 {reviews[] (paginated)}
 
 @enduml

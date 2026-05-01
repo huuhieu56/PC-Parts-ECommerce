@@ -9,20 +9,17 @@ participant "MinIO" as Storage
 
 == Thêm sản phẩm mới ==
 Admin -> FE : Nhập thông tin SP + upload ảnh
-FE -> BE : POST /api/v1/admin/products\n{name, sku, slug, originalPrice,\nsellingPrice, description,\ncategoryId, brandId, condition, attributes[]}
-BE -> BE : Validate JWT + Role (ADMIN)
-BE -> DB : SELECT Product\nWHERE sku = ? OR slug = ?
-alt SKU/Slug trùng
-    BE --> FE : 409 {message:\n"SKU hoặc Slug đã tồn tại"}
+FE -> BE : POST /api/v1/products\n{name, sku, originalPrice,\nsellingPrice, description,\ncategoryId, brandId, condition}
+BE -> BE : Validate JWT + Authority\n(product.create)
+BE -> DB : SELECT Product\nWHERE sku = ?
+alt SKU trùng
+    BE --> FE : 409 {message:\n"SKU đã tồn tại"}
 else Hợp lệ
     BE -> DB : INSERT Product (...)
     DB --> BE : product_id
-    loop Mỗi thuộc tính
-        BE -> DB : INSERT Product_Attribute\n(product_id, attribute_id,\nattribute_value_id)
-    end
-    BE -> DB : INSERT Inventory\n(product_id, quantity=0, supplier_id)
+    BE -> DB : INSERT Inventory\n(product_id, quantity=0)
     loop Upload ảnh
-        FE -> BE : POST /api/v1/admin/products/{id}/images\n(multipart)
+        FE -> BE : POST /api/v1/products/{id}/images\n(multipart)
         BE -> Storage : PUT object\n(products/{product_id}/img_n.jpg)
         Storage --> BE : Object URL
         BE -> DB : INSERT Product_Image\n(product_id, image_url,\nis_primary, sort_order)
@@ -33,13 +30,15 @@ end
 
 == Cập nhật sản phẩm ==
 Admin -> FE : Sửa thông tin SP
-FE -> BE : PUT /api/v1/admin/products/{id}\n{name, sellingPrice, ...}
+FE -> BE : PUT /api/v1/products/{id}\n{name, sellingPrice, ...}
+BE -> BE : Validate JWT + Authority\n(product.update)
 BE -> DB : UPDATE Product SET ...
 BE --> FE : 200 {updatedProduct}
 
 == Xóa sản phẩm (soft delete) ==
 Admin -> FE : Nhấn "Ngừng bán"
-FE -> BE : DELETE /api/v1/admin/products/{id}
+FE -> BE : DELETE /api/v1/products/{id}
+BE -> BE : Validate JWT + Authority\n(product.delete)
 BE -> DB : SELECT Product WHERE id = ?
 BE -> DB : UPDATE Product\nSET status = 'INACTIVE'
 BE --> FE : 200 {message:\n"Sản phẩm đã ngừng bán"}

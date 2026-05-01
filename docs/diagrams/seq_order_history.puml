@@ -7,18 +7,17 @@ participant "Spring Boot\n(Backend)" as BE
 database "PostgreSQL" as DB
 
 Customer -> FE : Mở trang "Đơn hàng của tôi"
-FE -> BE : GET /api/v1/orders?\npage=1&size=10&status=ALL
-BE -> BE : Validate JWT → user_id
-BE -> DB : SELECT Orders WHERE user_id = ?\nORDER BY created_at DESC\nLIMIT 10 OFFSET 0
+FE -> BE : GET /api/v1/orders\n?page=0&size=10
+BE -> BE : Validate JWT → accountId
+BE -> DB : SELECT Orders WHERE account_id = ?\nORDER BY created_at DESC\nLIMIT 10 OFFSET 0
 DB --> BE : Orders list + total count
-BE --> FE : 200 {orders[], totalItems, totalPages}
+BE --> FE : 200 {content[], page,\ntotalPages, totalElements,\nhasNext, hasPrevious}
 FE --> Customer : Hiển thị danh sách đơn hàng\n(mã đơn, ngày, tổng tiền, trạng thái)
 
 Customer -> FE : Nhấn vào đơn hàng cụ thể
 FE -> BE : GET /api/v1/orders/{id}
-BE -> BE : Validate JWT → kiểm tra\norder.user_id == current_user
+BE -> BE : Validate JWT → kiểm tra\norder.account_id == accountId
 BE -> DB : SELECT Orders JOIN Order_Detail\nJOIN Product JOIN Payment JOIN Shipping\nWHERE orders.id = ?
-BE -> DB : SELECT Order_Status_History\nWHERE order_id = ?\nORDER BY created_at
 DB --> BE : Full order details
 BE --> FE : 200 {order, details[], payment,\nshipping, statusHistory[]}
 FE --> Customer : Hiển thị chi tiết đơn\n(sản phẩm, thanh toán,\nvận chuyển, lịch sử trạng thái)

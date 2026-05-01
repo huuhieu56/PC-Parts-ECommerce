@@ -8,27 +8,41 @@ participant "Next.js\n(Frontend)" as FE
 actor Customer
 
 == Trigger: Đơn hàng được tạo thành công ==
-BE -> DB : INSERT Notification\n(user_id, title="Đơn hàng mới",\nmessage="Đơn #id đã tạo", type='ORDER')
-BE -> DB : SELECT Account JOIN User_Profile\nWHERE id = user_id
+BE -> DB : INSERT Notification\n(account_id, title="Đơn hàng mới",\nmessage="Đơn #id đã tạo", type='ORDER')
 BE -> Email : Gửi email xác nhận đơn hàng\n(template: order_confirmation)
 Email --> Customer : Email: "Xác nhận đơn hàng #id"
 
 == Trigger: Trạng thái đơn thay đổi ==
-BE -> DB : INSERT Notification\n(user_id, title="Cập nhật đơn hàng",\nmessage="Đơn #id đang giao", type='ORDER')
+BE -> DB : INSERT Notification\n(account_id, title="Cập nhật đơn hàng",\nmessage="Đơn #id đang giao", type='ORDER')
 BE -> Email : Gửi email cập nhật trạng thái
 Email --> Customer : Email: "Đơn hàng #id\nđang được giao"
 
 == Customer xem thông báo ==
 Customer -> FE : Nhấn icon 🔔
-FE -> BE : GET /api/v1/notifications?\npage=1&size=20
-BE -> DB : SELECT Notification\nWHERE user_id = ?\nORDER BY created_at DESC
-BE --> FE : 200 {notifications[], unreadCount}
-FE --> Customer : Hiển thị danh sách thông báo\n(badge số chưa đọc)
+FE -> BE : GET /api/v1/notifications\n?page=0&size=20
+BE -> BE : Validate JWT → accountId
+BE -> DB : SELECT Notification\nWHERE account_id = ?\nORDER BY created_at DESC
+BE --> FE : 200 {notifications[] (paginated)}
+FE --> Customer : Hiển thị danh sách thông báo
 
+== Số thông báo chưa đọc ==
+FE -> BE : GET /api/v1/notifications/unread-count
+BE -> DB : SELECT COUNT(*)\nFROM Notification\nWHERE account_id = ?\nAND is_read = false
+BE --> FE : 200 {unreadCount}
+FE --> Customer : Hiển thị badge số chưa đọc
+
+== Đánh dấu đã đọc ==
 Customer -> FE : Nhấn vào thông báo
-FE -> BE : PATCH /api/v1/notifications/{id}/read
+FE -> BE : PUT /api/v1/notifications/{id}/read
+BE -> BE : Validate ownership\n(notification.account_id == accountId)
 BE -> DB : UPDATE Notification\nSET is_read = true WHERE id = ?
-BE --> FE : 200 OK
-FE --> Customer : Đánh dấu đã đọc,\nredirect đến link liên quan
+BE --> FE : 200 {notification}
+FE --> Customer : Đánh dấu đã đọc
+
+== Đánh dấu tất cả đã đọc ==
+Customer -> FE : Nhấn "Đọc tất cả"
+FE -> BE : PUT /api/v1/notifications/read-all
+BE -> DB : UPDATE Notification\nSET is_read = true\nWHERE account_id = ?\nAND is_read = false
+BE --> FE : 200 {count: n}
 
 @enduml
