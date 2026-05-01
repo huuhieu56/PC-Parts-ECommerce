@@ -32,6 +32,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -92,12 +93,9 @@ public class OrderService {
         Address address;
         if (request.getAddressId() != null) {
             // Use existing address
-            address = addressRepository.findById(request.getAddressId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Address", "id", request.getAddressId()));
-            // BUG-05 fix: validate Address belongs to this user
-            if (!address.getUser().getId().equals(user.getId())) {
-                throw new BusinessException("Địa chỉ không thuộc về tài khoản của bạn", HttpStatus.FORBIDDEN);
-            }
+            address = addressRepository.findByIdAndUserId(request.getAddressId(), user.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy địa chỉ giao hàng"));
+            validateSupportedShippingArea(address.getProvince(), address.getDistrict());
         } else if (request.getShippingAddress() != null) {
             // Create new address from inline shipping info
             ShippingAddressRequest sa = request.getShippingAddress();
@@ -105,19 +103,7 @@ public class OrderService {
             // Validate shipping area - currently only Hanoi is supported
             String province = sa.getProvince() != null ? sa.getProvince() : "";
             String district = sa.getDistrict() != null ? sa.getDistrict() : "";
-
-            if (!ValidationConstants.SUPPORTED_PROVINCE.equals(province)) {
-                throw new BusinessException(
-                    "Hiện tại chỉ hỗ trợ giao hàng tại " + ValidationConstants.SUPPORTED_PROVINCE,
-                    HttpStatus.BAD_REQUEST
-                );
-            }
-            if (!ValidationConstants.HANOI_DISTRICTS.contains(district)) {
-                throw new BusinessException(
-                    "Quận/Huyện không hợp lệ. Vui lòng chọn quận/huyện thuộc " + ValidationConstants.SUPPORTED_PROVINCE,
-                    HttpStatus.BAD_REQUEST
-                );
-            }
+            validateSupportedShippingArea(province, district);
 
             address = Address.builder()
                     .user(user)
@@ -132,7 +118,7 @@ public class OrderService {
                     .build();
             address = addressRepository.save(address);
         } else {
-            throw new BusinessException("Vui lòng cung cấp địa chỉ giao hàng", HttpStatus.BAD_REQUEST);
+            throw new BusinessException("Vui lòng chọn địa chỉ giao hàng", HttpStatus.BAD_REQUEST);
         }
 
         var cart = cartRepository.findByUserId(user.getId())
@@ -342,6 +328,30 @@ public class OrderService {
     private void logStatusChange(Order order, String from, String to, Account by, String note) {
         statusHistoryRepository.save(OrderStatusHistory.builder()
                 .order(order).oldStatus(from).newStatus(to).changedBy(by).note(note).build());
+    }
+
+    private void validateSupportedShippingArea(String province, String district) {
+        if (!ValidationConstants.SUPPORTED_PROVINCE.equals(province) || !isSupportedHanoiDistrict(district)) {
+            throw new BusinessException("Địa chỉ nằm ngoài vùng giao hàng hỗ trợ", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private boolean isSupportedHanoiDistrict(String district) {
+        if (district == null) {
+            return false;
+        }
+        String normalizedDistrict = normalizeDistrict(district);
+        return ValidationConstants.HANOI_DISTRICTS.stream()
+                .map(this::normalizeDistrict)
+                .anyMatch(normalizedDistrict::equals);
+    }
+
+    private String normalizeDistrict(String value) {
+        return value.toLowerCase(Locale.ROOT)
+                .replace("quận ", "")
+                .replace("huyện ", "")
+                .replace("thị xã ", "")
+                .trim();
     }
 
     private OrderDto toDto(Order order) {

@@ -48,7 +48,7 @@ class AddressServiceTest {
                 .role(Role.builder().id(4L).name("CUSTOMER").build()).isActive(true).build();
         testUser = UserProfile.builder().id(1L).account(testAccount).fullName("Test").phone("0901111111").build();
         testAddress = Address.builder().id(10L).user(testUser).label("Nhà").receiverName("Test")
-                .receiverPhone("0901111111").province("HCM").district("Q1").ward("P1").street("123 ABC").isDefault(true).build();
+                .receiverPhone("0901111111").province("Hà Nội").district("Cầu Giấy").ward("Dịch Vọng").street("123 ABC").isDefault(true).build();
     }
 
     // === GET ===
@@ -57,7 +57,7 @@ class AddressServiceTest {
     void getAddresses_success() {
         when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
-        when(addressRepository.findByUserIdOrderByIsDefaultDesc(1L)).thenReturn(List.of(testAddress));
+        when(addressRepository.findByUserIdOrderByIsDefaultDescUpdatedAtDesc(1L)).thenReturn(List.of(testAddress));
 
         List<AddressDto> result = addressService.getAddresses("1");
 
@@ -71,7 +71,7 @@ class AddressServiceTest {
     void getAddresses_empty() {
         when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
-        when(addressRepository.findByUserIdOrderByIsDefaultDesc(1L)).thenReturn(Collections.emptyList());
+        when(addressRepository.findByUserIdOrderByIsDefaultDescUpdatedAtDesc(1L)).thenReturn(Collections.emptyList());
 
         List<AddressDto> result = addressService.getAddresses("1");
         assertThat(result).isEmpty();
@@ -82,9 +82,10 @@ class AddressServiceTest {
     @DisplayName("Create address — success")
     void createAddress_success() {
         AddressDto dto = AddressDto.builder().label("Công ty").receiverName("Test").receiverPhone("0909999999")
-                .province("HCM").district("Q7").ward("P1").street("456 XYZ").isDefault(false).build();
+                .province("Hà Nội").district("Thanh Xuân").ward("P1").street("456 XYZ").isDefault(false).build();
         when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
+        when(addressRepository.findByUserIdOrderByIsDefaultDescUpdatedAtDesc(1L)).thenReturn(List.of(testAddress));
         when(addressRepository.save(any(Address.class))).thenAnswer(inv -> {
             Address a = inv.getArgument(0); a.setId(20L); return a;
         });
@@ -99,10 +100,10 @@ class AddressServiceTest {
     @DisplayName("Create address — sets default, unsets others")
     void createAddress_defaultUnsetsOthers() {
         AddressDto dto = AddressDto.builder().label("Nhà mới").receiverName("T").receiverPhone("0900000000")
-                .province("HN").district("CG").ward("P1").street("1 A").isDefault(true).build();
+                .province("Hà Nội").district("Cầu Giấy").ward("P1").street("1 A").isDefault(true).build();
         when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
-        when(addressRepository.findByUserIdOrderByIsDefaultDesc(1L)).thenReturn(List.of(testAddress));
+        when(addressRepository.findByUserIdOrderByIsDefaultDescUpdatedAtDesc(1L)).thenReturn(List.of(testAddress));
         when(addressRepository.save(any(Address.class))).thenAnswer(inv -> {
             Address a = inv.getArgument(0); if (a.getId() == null) a.setId(30L); return a;
         });
@@ -112,15 +113,47 @@ class AddressServiceTest {
         assertThat(testAddress.getIsDefault()).isFalse(); // old default unset
     }
 
+    @Test
+    @DisplayName("TC-ADDR-02: Create first address — automatically default")
+    void createAddress_firstAddressBecomesDefault() {
+        AddressDto dto = AddressDto.builder().label("Nhà").receiverName("Test").receiverPhone("0909999999")
+                .province("Hà Nội").district("Cầu Giấy").ward("Dịch Vọng").street("456 XYZ").isDefault(false).build();
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
+        when(addressRepository.findByUserIdOrderByIsDefaultDescUpdatedAtDesc(1L)).thenReturn(Collections.emptyList());
+        when(addressRepository.save(any(Address.class))).thenAnswer(inv -> {
+            Address a = inv.getArgument(0); a.setId(20L); return a;
+        });
+
+        AddressDto result = addressService.createAddress("1", dto);
+
+        assertThat(result.getIsDefault()).isTrue();
+    }
+
+    @Test
+    @DisplayName("TC-ADDR-06: Create address outside Hanoi — throws")
+    void createAddress_outsideSupportedProvinceThrows() {
+        AddressDto dto = AddressDto.builder().label("Nhà").receiverName("Test").receiverPhone("0909999999")
+                .province("Hồ Chí Minh").district("Quận 1").ward("P1").street("456 XYZ").build();
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
+
+        assertThatThrownBy(() -> addressService.createAddress("1", dto))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("ngoài vùng giao hàng");
+
+        verify(addressRepository, never()).save(any(Address.class));
+    }
+
     // === UPDATE ===
     @Test
     @DisplayName("Update address — success")
     void updateAddress_success() {
         AddressDto dto = AddressDto.builder().label("Nhà cập nhật").receiverName("Updated")
-                .receiverPhone("0908888888").province("HN").district("TX").ward("P2").street("789 DEF").isDefault(false).build();
+                .receiverPhone("0908888888").province("Hà Nội").district("Thanh Xuân").ward("P2").street("789 DEF").isDefault(false).build();
         when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
-        when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
+        when(addressRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(testAddress));
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
 
         AddressDto result = addressService.updateAddress("1", 10L, dto);
@@ -131,15 +164,12 @@ class AddressServiceTest {
     @Test
     @DisplayName("Update address — not own throws forbidden")
     void updateAddress_notOwn() {
-        UserProfile otherUser = UserProfile.builder().id(99L).build();
-        Address otherAddr = Address.builder().id(10L).user(otherUser).build();
         when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
-        when(addressRepository.findById(10L)).thenReturn(Optional.of(otherAddr));
+        when(addressRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> addressService.updateAddress("1", 10L, new AddressDto()))
-                .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("không có quyền");
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
@@ -147,7 +177,7 @@ class AddressServiceTest {
     void updateAddress_notFound() {
         when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
-        when(addressRepository.findById(999L)).thenReturn(Optional.empty());
+        when(addressRepository.findByIdAndUserId(999L, 1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> addressService.updateAddress("1", 999L, new AddressDto()))
                 .isInstanceOf(ResourceNotFoundException.class);
@@ -159,7 +189,8 @@ class AddressServiceTest {
     void deleteAddress_success() {
         when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
-        when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
+        when(addressRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(testAddress));
+        when(addressRepository.countByUserId(1L)).thenReturn(2L);
 
         addressService.deleteAddress("1", 10L);
 
@@ -167,16 +198,29 @@ class AddressServiceTest {
     }
 
     @Test
-    @DisplayName("Delete address — not own throws forbidden")
-    void deleteAddress_notOwn() {
-        UserProfile otherUser = UserProfile.builder().id(99L).build();
-        Address otherAddr = Address.builder().id(10L).user(otherUser).build();
+    @DisplayName("TC-ADDR-12: Delete only address — throws")
+    void deleteAddress_onlyAddressThrows() {
         when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
-        when(addressRepository.findById(10L)).thenReturn(Optional.of(otherAddr));
+        when(addressRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(testAddress));
+        when(addressRepository.countByUserId(1L)).thenReturn(1L);
 
         assertThatThrownBy(() -> addressService.deleteAddress("1", 10L))
-                .isInstanceOf(BusinessException.class);
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Bạn cần tạo địa chỉ mới trước khi xóa");
+
+        verify(addressRepository, never()).delete(any(Address.class));
+    }
+
+    @Test
+    @DisplayName("Delete address — not own throws forbidden")
+    void deleteAddress_notOwn() {
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
+        when(addressRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> addressService.deleteAddress("1", 10L))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
@@ -184,9 +228,28 @@ class AddressServiceTest {
     void deleteAddress_notFound() {
         when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
-        when(addressRepository.findById(999L)).thenReturn(Optional.empty());
+        when(addressRepository.findByIdAndUserId(999L, 1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> addressService.deleteAddress("1", 999L))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("TC-ADDR-09: Set default address — unsets previous default")
+    void setDefaultAddress_unsetsPreviousDefault() {
+        Address secondAddress = Address.builder().id(20L).user(testUser).label("Công ty")
+                .receiverName("Test").receiverPhone("0909999999").province("Hà Nội")
+                .district("Thanh Xuân").ward("P2").street("456 XYZ").isDefault(false).build();
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
+        when(addressRepository.findByIdAndUserId(20L, 1L)).thenReturn(Optional.of(secondAddress));
+        when(addressRepository.findByUserIdOrderByIsDefaultDescUpdatedAtDesc(1L)).thenReturn(List.of(testAddress, secondAddress));
+        when(addressRepository.save(any(Address.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        AddressDto result = addressService.setDefaultAddress("1", 20L);
+
+        assertThat(result.getIsDefault()).isTrue();
+        assertThat(testAddress.getIsDefault()).isFalse();
+        assertThat(secondAddress.getIsDefault()).isTrue();
     }
 }

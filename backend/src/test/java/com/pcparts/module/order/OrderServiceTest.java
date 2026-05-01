@@ -74,7 +74,16 @@ class OrderServiceTest {
         Role role = Role.builder().id(4L).name("CUSTOMER").build();
         Account account = Account.builder().id(1L).email("test@test.com").role(role).build();
         testUser = UserProfile.builder().id(1L).account(account).fullName("Test").phone("0901111111").build();
-        testAddress = Address.builder().id(10L).user(testUser).province("HCM").district("Q1").build();
+        testAddress = Address.builder()
+                .id(10L)
+                .user(testUser)
+                .receiverName("Test")
+                .receiverPhone("0901111111")
+                .province("Hà Nội")
+                .district("Cầu Giấy")
+                .ward("Dịch Vọng")
+                .street("123 ABC")
+                .build();
         testProduct = Product.builder().id(100L).name("Intel i7").sellingPrice(new BigDecimal("9990000")).build();
         testCart = Cart.builder().id(50L).user(testUser).build();
         testCartItem = CartItem.builder().id(1L).cart(testCart).product(testProduct).quantity(2).build();
@@ -89,7 +98,7 @@ class OrderServiceTest {
     void createOrder_success() {
         CreateOrderRequest req = CreateOrderRequest.builder().addressId(10L).note("Ship nhanh").paymentMethod("COD").build();
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
-        when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
+        when(addressRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(testAddress));
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.of(testCart));
         when(cartItemRepository.findByCartId(50L)).thenReturn(List.of(testCartItem));
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> {
@@ -116,7 +125,7 @@ class OrderServiceTest {
     void createOrder_emptyCart() {
         CreateOrderRequest req = CreateOrderRequest.builder().addressId(10L).paymentMethod("COD").build();
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
-        when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
+        when(addressRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(testAddress));
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.of(testCart));
         when(cartItemRepository.findByCartId(50L)).thenReturn(List.of());
 
@@ -130,7 +139,7 @@ class OrderServiceTest {
     void createOrder_noCart() {
         CreateOrderRequest req = CreateOrderRequest.builder().addressId(10L).paymentMethod("COD").build();
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
-        when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
+        when(addressRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(testAddress));
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> orderService.createOrder(1L, req))
@@ -147,7 +156,7 @@ class OrderServiceTest {
         CreateOrderRequest req = CreateOrderRequest.builder().addressId(10L).couponCode("SAVE10").paymentMethod("COD").build();
 
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
-        when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
+        when(addressRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(testAddress));
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.of(testCart));
         when(cartItemRepository.findByCartId(50L)).thenReturn(List.of(testCartItem));
         when(couponRepository.findByCode("SAVE10")).thenReturn(Optional.of(coupon));
@@ -170,7 +179,7 @@ class OrderServiceTest {
     void createOrder_invalidCoupon() {
         CreateOrderRequest req = CreateOrderRequest.builder().addressId(10L).couponCode("FAKE").paymentMethod("COD").build();
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
-        when(addressRepository.findById(10L)).thenReturn(Optional.of(testAddress));
+        when(addressRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(testAddress));
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.of(testCart));
         when(cartItemRepository.findByCartId(50L)).thenReturn(List.of(testCartItem));
         when(couponRepository.findByCode("FAKE")).thenReturn(Optional.empty());
@@ -178,6 +187,44 @@ class OrderServiceTest {
         assertThatThrownBy(() -> orderService.createOrder(1L, req))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("không hợp lệ");
+    }
+
+    @Test
+    @DisplayName("TC-ORD-ADDR-01: Create order — address not owned by current user")
+    void createOrder_addressNotOwnedByCurrentUserThrowsNotFound() {
+        CreateOrderRequest req = CreateOrderRequest.builder().addressId(99L).paymentMethod("COD").build();
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
+        when(addressRepository.findByIdAndUserId(99L, 1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> orderService.createOrder(1L, req))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Không tìm thấy địa chỉ giao hàng");
+
+        verify(orderRepository, never()).save(any(Order.class));
+    }
+
+    @Test
+    @DisplayName("TC-ORD-ADDR-02: Create order — address outside supported shipping area")
+    void createOrder_addressOutsideSupportedAreaThrows() {
+        Address unsupportedAddress = Address.builder()
+                .id(20L)
+                .user(testUser)
+                .receiverName("Test")
+                .receiverPhone("0901111111")
+                .province("Hồ Chí Minh")
+                .district("Quận 1")
+                .ward("Bến Nghé")
+                .street("1 ABC")
+                .build();
+        CreateOrderRequest req = CreateOrderRequest.builder().addressId(20L).paymentMethod("COD").build();
+        when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
+        when(addressRepository.findByIdAndUserId(20L, 1L)).thenReturn(Optional.of(unsupportedAddress));
+
+        assertThatThrownBy(() -> orderService.createOrder(1L, req))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("ngoài vùng giao hàng");
+
+        verify(orderRepository, never()).save(any(Order.class));
     }
 
     // === GET ORDER ===

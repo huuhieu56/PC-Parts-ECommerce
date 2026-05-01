@@ -56,6 +56,17 @@ public class AddressController {
     }
 
     /**
+     * PATCH /api/v1/users/addresses/{id}/default — Set an address as default.
+     */
+    @PatchMapping("/{id}/default")
+    public ResponseEntity<ApiResponse<AddressDto>> setDefaultAddress(
+            Authentication authentication,
+            @PathVariable Long id) {
+        AddressDto updated = addressService.setDefaultAddress(authentication.getName(), id);
+        return ResponseEntity.ok(ApiResponse.success("Đã đặt địa chỉ mặc định", updated));
+    }
+
+    /**
      * DELETE /api/v1/users/addresses/{id} — Delete an address.
      */
     @DeleteMapping("/{id}")
@@ -63,6 +74,6 @@ public class AddressController {
             Authentication authentication,
             @PathVariable Long id) {
         addressService.deleteAddress(authentication.getName(), id);
-        return ResponseEntity.ok(ApiResponse.success("Xóa địa chỉ thành công", null));
+        return ResponseEntity.noContent().build();
     }
 }
