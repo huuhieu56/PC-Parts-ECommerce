@@ -10,6 +10,39 @@ const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 const VIETNAM_PHONE_REGEX = /^0\d{9}$/;
 const ALLOWED_AVATAR_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+const SUPPORTED_PROVINCE = "Hà Nội";
+const HANOI_DISTRICTS = [
+  "Ba Đình",
+  "Cầu Giấy",
+  "Đống Đa",
+  "Hai Bà Trưng",
+  "Hoàn Kiếm",
+  "Thanh Xuân",
+  "Hoàng Mai",
+  "Long Biên",
+  "Hà Đông",
+  "Tây Hồ",
+  "Nam Từ Liêm",
+  "Bắc Từ Liêm",
+  "Thanh Trì",
+  "Ba Vì",
+  "Đan Phượng",
+  "Gia Lâm",
+  "Đông Anh",
+  "Thường Tín",
+  "Thanh Oai",
+  "Chương Mỹ",
+  "Hoài Đức",
+  "Mỹ Đức",
+  "Phúc Thọ",
+  "Thạch Thất",
+  "Quốc Oai",
+  "Phú Xuyên",
+  "Ứng Hòa",
+  "Mê Linh",
+  "Sóc Sơn",
+  "Sơn Tây",
+] as const;
 
 interface UserProfile {
   id: number;
@@ -33,6 +66,21 @@ interface Address {
   isDefault: boolean;
 }
 
+type AddressForm = Omit<Address, "id" | "isDefault">;
+
+const emptyAddressForm = (): AddressForm => ({
+  label: "",
+  receiverName: "",
+  receiverPhone: "",
+  province: SUPPORTED_PROVINCE,
+  district: "",
+  ward: "",
+  street: "",
+});
+
+const normalizeDistrict = (value: string) =>
+  value.toLowerCase().replace("quận ", "").replace("huyện ", "").replace("thị xã ", "").trim();
+
 export default function ProfilePage() {
   const updateUser = useAuthStore((state) => state.updateUser);
   const [tab, setTab] = useState<"info" | "addresses" | "password">("info");
@@ -46,7 +94,8 @@ export default function ProfilePage() {
   const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const [msg, setMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [addingAddress, setAddingAddress] = useState(false);
-  const [newAddr, setNewAddr] = useState({ label: "", receiverName: "", receiverPhone: "", province: "", district: "", ward: "", street: "" });
+  const [editingAddressId, setEditingAddressId] = useState<number | null>(null);
+  const [addressForm, setAddressForm] = useState<AddressForm>(emptyAddressForm);
 
   useEffect(() => {
     async function load() {
@@ -200,28 +249,132 @@ export default function ProfilePage() {
     }
   };
 
-  const addAddress = async () => {
+  const validateAddressForm = () => {
+    const receiverName = addressForm.receiverName.trim();
+    const receiverPhone = addressForm.receiverPhone.trim();
+    const province = addressForm.province.trim();
+    const district = addressForm.district.trim();
+    const ward = addressForm.ward.trim();
+    const street = addressForm.street.trim();
+
+    if (addressForm.label.trim().length > 50) {
+      showMessage("error", "Nhãn địa chỉ tối đa 50 ký tự.");
+      return false;
+    }
+    if (receiverName.length < 2 || receiverName.length > 100) {
+      showMessage("error", "Tên người nhận phải có độ dài 2-100 ký tự.");
+      return false;
+    }
+    if (!VIETNAM_PHONE_REGEX.test(receiverPhone)) {
+      showMessage("error", "SĐT người nhận không hợp lệ.");
+      return false;
+    }
+    if (province !== SUPPORTED_PROVINCE || !HANOI_DISTRICTS.some((d) => normalizeDistrict(d) === normalizeDistrict(district))) {
+      showMessage("error", "Địa chỉ nằm ngoài vùng giao hàng hỗ trợ.");
+      return false;
+    }
+    if (!ward) {
+      showMessage("error", "Phường/Xã không được để trống.");
+      return false;
+    }
+    if (street.length < 5 || street.length > 255) {
+      showMessage("error", "Số nhà, đường phải có độ dài 5-255 ký tự.");
+      return false;
+    }
+
+    return true;
+  };
+
+  const resetAddressEditor = () => {
+    setAddingAddress(false);
+    setEditingAddressId(null);
+    setAddressForm(emptyAddressForm());
+  };
+
+  const startAddAddress = () => {
+    setEditingAddressId(null);
+    setAddressForm(emptyAddressForm());
+    setAddingAddress(true);
+  };
+
+  const startEditAddress = (addr: Address) => {
+    setAddingAddress(true);
+    setEditingAddressId(addr.id);
+    setAddressForm({
+      label: addr.label || "",
+      receiverName: addr.receiverName,
+      receiverPhone: addr.receiverPhone,
+      province: addr.province || SUPPORTED_PROVINCE,
+      district: addr.district,
+      ward: addr.ward,
+      street: addr.street,
+    });
+  };
+
+  const saveAddress = async () => {
+    if (!validateAddressForm()) {
+      return;
+    }
+
+    const existingAddress = editingAddressId ? addresses.find((addr) => addr.id === editingAddressId) : null;
+    const payload = {
+      label: addressForm.label.trim() || null,
+      receiverName: addressForm.receiverName.trim(),
+      receiverPhone: addressForm.receiverPhone.trim(),
+      province: addressForm.province.trim(),
+      district: addressForm.district.trim(),
+      ward: addressForm.ward.trim(),
+      street: addressForm.street.trim(),
+      isDefault: existingAddress?.isDefault ?? addresses.length === 0,
+    };
+
     try {
-      const res = await api.post("/users/addresses", { ...newAddr, isDefault: addresses.length === 0 });
-      setAddresses((prev) => [...prev, res.data.data || res.data]);
-      setAddingAddress(false);
-      setNewAddr({ label: "", receiverName: "", receiverPhone: "", province: "", district: "", ward: "", street: "" });
-      showMessage("success", "Thêm địa chỉ thành công!");
-    } catch { showMessage("error", "Thêm địa chỉ thất bại."); }
+      if (editingAddressId) {
+        const res = await api.put(`/users/addresses/${editingAddressId}`, payload);
+        const updatedAddress = res.data.data || res.data;
+        setAddresses((prev) => prev.map((addr) => (addr.id === editingAddressId ? updatedAddress : addr)));
+        showMessage("success", "Cập nhật địa chỉ thành công!");
+      } else {
+        const res = await api.post("/users/addresses", payload);
+        const createdAddress = res.data.data || res.data;
+        setAddresses((prev) => [
+          ...prev.map((addr) => ({ ...addr, isDefault: createdAddress.isDefault ? false : addr.isDefault })),
+          createdAddress,
+        ]);
+        showMessage("success", "Thêm địa chỉ thành công!");
+      }
+      resetAddressEditor();
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } };
+      showMessage("error", axiosError.response?.data?.message || "Lưu địa chỉ thất bại.");
+    }
   };
 
   const deleteAddress = async (id: number) => {
+    if (addresses.length <= 1) {
+      showMessage("error", "Bạn cần tạo địa chỉ mới trước khi xóa.");
+      return;
+    }
+
     try {
       await api.delete(`/users/addresses/${id}`);
       setAddresses((prev) => prev.filter((a) => a.id !== id));
-    } catch { showMessage("error", "Xóa địa chỉ thất bại."); }
+      showMessage("success", "Xóa địa chỉ thành công!");
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } };
+      showMessage("error", axiosError.response?.data?.message || "Xóa địa chỉ thất bại.");
+    }
   };
 
   const setDefault = async (id: number) => {
     try {
-      await api.put(`/users/addresses/${id}/default`);
+      await api.patch(`/users/addresses/${id}/default`);
       setAddresses((prev) => prev.map((a) => ({ ...a, isDefault: a.id === id })));
-    } catch { /* ignore */ }
+      showMessage("success", "Đã đặt địa chỉ mặc định.");
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } };
+      showMessage("error", axiosError.response?.data?.message || "Đặt địa chỉ mặc định thất bại.");
+    }
   };
 
   const tabs = [
@@ -394,32 +547,53 @@ export default function ProfilePage() {
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-lg font-bold text-gray-900">Sổ địa chỉ</h2>
-                  <button onClick={() => setAddingAddress(true)} className="flex items-center gap-1.5 text-sm bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700">
+                  <button onClick={startAddAddress} className="flex items-center gap-1.5 text-sm bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700">
                     <Plus className="w-4 h-4" /> Thêm địa chỉ
                   </button>
                 </div>
                 {addingAddress && (
                   <div className="border border-blue-200 rounded-xl p-4 mb-4 bg-blue-50/30">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Thêm địa chỉ mới</h3>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">{editingAddressId ? "Sửa địa chỉ" : "Thêm địa chỉ mới"}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <input placeholder="Nhãn (VD: Nhà, Cơ quan)" value={newAddr.label} onChange={(e) => setNewAddr({ ...newAddr, label: e.target.value })}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                      <input placeholder="Tên người nhận" value={newAddr.receiverName} onChange={(e) => setNewAddr({ ...newAddr, receiverName: e.target.value })}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                      <input placeholder="SĐT người nhận" value={newAddr.receiverPhone} onChange={(e) => setNewAddr({ ...newAddr, receiverPhone: e.target.value })}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                      <input placeholder="Tỉnh/Thành phố" value={newAddr.province} onChange={(e) => setNewAddr({ ...newAddr, province: e.target.value })}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                      <input placeholder="Quận/Huyện" value={newAddr.district} onChange={(e) => setNewAddr({ ...newAddr, district: e.target.value })}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                      <input placeholder="Phường/Xã" value={newAddr.ward} onChange={(e) => setNewAddr({ ...newAddr, ward: e.target.value })}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                      <input placeholder="Số nhà, đường" value={newAddr.street} onChange={(e) => setNewAddr({ ...newAddr, street: e.target.value })}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm col-span-full" />
+                      <div>
+                        <label htmlFor="address-label" className="block text-xs font-medium text-gray-600 mb-1">Nhãn địa chỉ</label>
+                        <input id="address-label" placeholder="VD: Nhà, Cơ quan" value={addressForm.label} onChange={(e) => setAddressForm({ ...addressForm, label: e.target.value })}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                      </div>
+                      <div>
+                        <label htmlFor="address-receiver-name" className="block text-xs font-medium text-gray-600 mb-1">Tên người nhận</label>
+                        <input id="address-receiver-name" value={addressForm.receiverName} onChange={(e) => setAddressForm({ ...addressForm, receiverName: e.target.value })}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                      </div>
+                      <div>
+                        <label htmlFor="address-receiver-phone" className="block text-xs font-medium text-gray-600 mb-1">SĐT người nhận</label>
+                        <input id="address-receiver-phone" value={addressForm.receiverPhone} onChange={(e) => setAddressForm({ ...addressForm, receiverPhone: e.target.value })}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                      </div>
+                      <div>
+                        <label htmlFor="address-province" className="block text-xs font-medium text-gray-600 mb-1">Tỉnh/Thành phố</label>
+                        <input id="address-province" value={addressForm.province} onChange={(e) => setAddressForm({ ...addressForm, province: e.target.value })}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                      </div>
+                      <div>
+                        <label htmlFor="address-district" className="block text-xs font-medium text-gray-600 mb-1">Quận/Huyện</label>
+                        <input id="address-district" value={addressForm.district} onChange={(e) => setAddressForm({ ...addressForm, district: e.target.value })}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                      </div>
+                      <div>
+                        <label htmlFor="address-ward" className="block text-xs font-medium text-gray-600 mb-1">Phường/Xã</label>
+                        <input id="address-ward" value={addressForm.ward} onChange={(e) => setAddressForm({ ...addressForm, ward: e.target.value })}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label htmlFor="address-street" className="block text-xs font-medium text-gray-600 mb-1">Số nhà, đường</label>
+                        <input id="address-street" value={addressForm.street} onChange={(e) => setAddressForm({ ...addressForm, street: e.target.value })}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                      </div>
                     </div>
                     <div className="flex gap-2 mt-3">
-                      <button onClick={addAddress} className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Lưu</button>
-                      <button onClick={() => setAddingAddress(false)} className="text-sm text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-100">Hủy</button>
+                      <button onClick={saveAddress} className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Lưu</button>
+                      <button onClick={resetAddressEditor} className="text-sm text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-100">Hủy</button>
                     </div>
                   </div>
                 )}
@@ -445,6 +619,7 @@ export default function ProfilePage() {
                             {!addr.isDefault && (
                               <button onClick={() => setDefault(addr.id)} className="text-xs text-blue-600 hover:text-blue-700 px-2 py-1">Đặt mặc định</button>
                             )}
+                            <button onClick={() => startEditAddress(addr)} aria-label="Sửa địa chỉ" className="text-gray-400 hover:text-blue-600 p-1"><Edit2 className="w-4 h-4" /></button>
                             <button onClick={() => deleteAddress(addr.id)} aria-label="Xóa địa chỉ" className="text-gray-400 hover:text-red-500 p-1"><Trash2 className="w-4 h-4" /></button>
                           </div>
                         </div>

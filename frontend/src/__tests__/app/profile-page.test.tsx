@@ -16,6 +16,7 @@ vi.mock("@/lib/api", () => ({
   default: {
     get: vi.fn(),
     put: vi.fn(),
+    patch: vi.fn(),
     post: vi.fn(),
     delete: vi.fn(),
   },
@@ -23,7 +24,9 @@ vi.mock("@/lib/api", () => ({
 
 const mockedGet = vi.mocked(api.get);
 const mockedPut = vi.mocked(api.put);
+const mockedPatch = vi.mocked(api.patch);
 const mockedPost = vi.mocked(api.post);
+const mockedDelete = vi.mocked(api.delete);
 
 const profilePayload = {
   id: 1,
@@ -48,7 +51,9 @@ describe("ProfilePage", () => {
     localStorage.clear();
     mockedGet.mockReset();
     mockedPut.mockReset();
+    mockedPatch.mockReset();
     mockedPost.mockReset();
+    mockedDelete.mockReset();
     mockedGet.mockResolvedValue({ data: { data: profilePayload } });
   });
 
@@ -137,5 +142,198 @@ describe("ProfilePage", () => {
       expect(config).toEqual({ headers: { "Content-Type": "multipart/form-data" } });
       expect(useAuthStore.getState().user?.avatarUrl).toBe("http://localhost:9000/pcparts/avatars/avatar.webp");
     });
+  });
+
+  it("loads address book only after selecting the address tab", async () => {
+    mockedGet.mockImplementation((url: string) => {
+      if (url === "/users/addresses") {
+        return Promise.resolve({
+          data: {
+            data: [
+              {
+                id: 10,
+                label: "Nhà",
+                receiverName: "Nguyễn Văn A",
+                receiverPhone: "0901234567",
+                province: "Hà Nội",
+                district: "Cầu Giấy",
+                ward: "Dịch Vọng",
+                street: "123 Xuân Thủy",
+                isDefault: true,
+              },
+            ],
+          },
+        });
+      }
+      return Promise.resolve({ data: { data: profilePayload } });
+    });
+
+    render(<ProfilePage />);
+    await screen.findAllByText("Nguyễn Văn A");
+    fireEvent.click(screen.getByRole("button", { name: /Sổ địa chỉ/i }));
+
+    expect(await screen.findByText("123 Xuân Thủy, Dịch Vọng, Cầu Giấy, Hà Nội")).toBeInTheDocument();
+    expect(mockedGet).toHaveBeenCalledWith("/users/addresses");
+  });
+
+  it("sets a default address through PATCH /users/addresses/{id}/default", async () => {
+    mockedGet.mockImplementation((url: string) => {
+      if (url === "/users/addresses") {
+        return Promise.resolve({
+          data: {
+            data: [
+              {
+                id: 10,
+                label: "Nhà",
+                receiverName: "Nguyễn Văn A",
+                receiverPhone: "0901234567",
+                province: "Hà Nội",
+                district: "Cầu Giấy",
+                ward: "Dịch Vọng",
+                street: "123 Xuân Thủy",
+                isDefault: true,
+              },
+              {
+                id: 11,
+                label: "Cơ quan",
+                receiverName: "Nguyễn Văn A",
+                receiverPhone: "0901234567",
+                province: "Hà Nội",
+                district: "Thanh Xuân",
+                ward: "Nhân Chính",
+                street: "456 Nguyễn Trãi",
+                isDefault: false,
+              },
+            ],
+          },
+        });
+      }
+      return Promise.resolve({ data: { data: profilePayload } });
+    });
+    mockedPatch.mockResolvedValue({ data: { data: { id: 11, isDefault: true } } });
+
+    render(<ProfilePage />);
+    await screen.findAllByText("Nguyễn Văn A");
+    fireEvent.click(screen.getByRole("button", { name: /Sổ địa chỉ/i }));
+    await screen.findByText("Cơ quan");
+    fireEvent.click(screen.getByRole("button", { name: /Đặt mặc định/i }));
+
+    await waitFor(() => {
+      expect(mockedPatch).toHaveBeenCalledWith("/users/addresses/11/default");
+    });
+  });
+
+  it("rejects address outside Hanoi before sending create request", async () => {
+    mockedGet.mockImplementation((url: string) => {
+      if (url === "/users/addresses") {
+        return Promise.resolve({ data: { data: [] } });
+      }
+      return Promise.resolve({ data: { data: profilePayload } });
+    });
+
+    render(<ProfilePage />);
+    await screen.findAllByText("Nguyễn Văn A");
+    fireEvent.click(screen.getByRole("button", { name: /Sổ địa chỉ/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /Thêm địa chỉ/i }));
+    fireEvent.change(screen.getByLabelText("Tên người nhận"), { target: { value: "Nguyễn Văn A" } });
+    fireEvent.change(screen.getByLabelText("SĐT người nhận"), { target: { value: "0901234567" } });
+    fireEvent.change(screen.getByLabelText("Tỉnh/Thành phố"), { target: { value: "Hồ Chí Minh" } });
+    fireEvent.change(screen.getByLabelText("Quận/Huyện"), { target: { value: "Quận 1" } });
+    fireEvent.change(screen.getByLabelText("Phường/Xã"), { target: { value: "Bến Nghé" } });
+    fireEvent.change(screen.getByLabelText("Số nhà, đường"), { target: { value: "1 Lê Lợi" } });
+    fireEvent.click(screen.getByRole("button", { name: /^Lưu$/i }));
+
+    expect(await screen.findByText("Địa chỉ nằm ngoài vùng giao hàng hỗ trợ.")).toBeInTheDocument();
+    expect(mockedPost).not.toHaveBeenCalledWith("/users/addresses", expect.anything());
+  });
+
+  it("updates an existing address through PUT /users/addresses/{id}", async () => {
+    mockedGet.mockImplementation((url: string) => {
+      if (url === "/users/addresses") {
+        return Promise.resolve({
+          data: {
+            data: [
+              {
+                id: 10,
+                label: "Nhà",
+                receiverName: "Nguyễn Văn A",
+                receiverPhone: "0901234567",
+                province: "Hà Nội",
+                district: "Cầu Giấy",
+                ward: "Dịch Vọng",
+                street: "123 Xuân Thủy",
+                isDefault: true,
+              },
+            ],
+          },
+        });
+      }
+      return Promise.resolve({ data: { data: profilePayload } });
+    });
+    mockedPut.mockResolvedValue({
+      data: {
+        data: {
+          id: 10,
+          label: "Nhà mới",
+          receiverName: "Nguyễn Văn A",
+          receiverPhone: "0901234567",
+          province: "Hà Nội",
+          district: "Cầu Giấy",
+          ward: "Dịch Vọng",
+          street: "789 Xuân Thủy",
+          isDefault: true,
+        },
+      },
+    });
+
+    render(<ProfilePage />);
+    await screen.findAllByText("Nguyễn Văn A");
+    fireEvent.click(screen.getByRole("button", { name: /Sổ địa chỉ/i }));
+    await screen.findByText("123 Xuân Thủy, Dịch Vọng, Cầu Giấy, Hà Nội");
+    fireEvent.click(screen.getByRole("button", { name: /Sửa địa chỉ/i }));
+    fireEvent.change(screen.getByLabelText("Nhãn địa chỉ"), { target: { value: "Nhà mới" } });
+    fireEvent.change(screen.getByLabelText("Số nhà, đường"), { target: { value: "789 Xuân Thủy" } });
+    fireEvent.click(screen.getByRole("button", { name: /^Lưu$/i }));
+
+    await waitFor(() => {
+      expect(mockedPut).toHaveBeenCalledWith("/users/addresses/10", expect.objectContaining({
+        label: "Nhà mới",
+        street: "789 Xuân Thủy",
+      }));
+    });
+  });
+
+  it("does not delete the only address from the address book UI", async () => {
+    mockedGet.mockImplementation((url: string) => {
+      if (url === "/users/addresses") {
+        return Promise.resolve({
+          data: {
+            data: [
+              {
+                id: 10,
+                label: "Nhà",
+                receiverName: "Nguyễn Văn A",
+                receiverPhone: "0901234567",
+                province: "Hà Nội",
+                district: "Cầu Giấy",
+                ward: "Dịch Vọng",
+                street: "123 Xuân Thủy",
+                isDefault: true,
+              },
+            ],
+          },
+        });
+      }
+      return Promise.resolve({ data: { data: profilePayload } });
+    });
+
+    render(<ProfilePage />);
+    await screen.findAllByText("Nguyễn Văn A");
+    fireEvent.click(screen.getByRole("button", { name: /Sổ địa chỉ/i }));
+    await screen.findByText("123 Xuân Thủy, Dịch Vọng, Cầu Giấy, Hà Nội");
+    fireEvent.click(screen.getByRole("button", { name: /Xóa địa chỉ/i }));
+
+    expect(await screen.findByText("Bạn cần tạo địa chỉ mới trước khi xóa.")).toBeInTheDocument();
+    expect(mockedDelete).not.toHaveBeenCalled();
   });
 });

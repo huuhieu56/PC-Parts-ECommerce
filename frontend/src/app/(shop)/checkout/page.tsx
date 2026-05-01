@@ -15,40 +15,49 @@ const VIETNAM_PHONE_REGEX = /^(0|84|\+84)(3|5|7|8|9)[0-9]{8}$/;
 
 // Hanoi districts - 12 quận, 17 huyện, 1 thị xã
 const HANOI_DISTRICTS = [
-  // 12 Quận
-  "Quận Ba Đình",
-  "Quận Cầu Giấy",
-  "Quận Đống Đa",
-  "Quận Hai Bà Trưng",
-  "Quận Hoàn Kiếm",
-  "Quận Thanh Xuân",
-  "Quận Hoàng Mai",
-  "Quận Long Biên",
-  "Quận Hà Đông",
-  "Quận Tây Hồ",
-  "Quận Nam Từ Liêm",
-  "Quận Bắc Từ Liêm",
-  // 17 Huyện
-  "Huyện Thanh Trì",
-  "Huyện Ba Vì",
-  "Huyện Đan Phượng",
-  "Huyện Gia Lâm",
-  "Huyện Đông Anh",
-  "Huyện Thường Tín",
-  "Huyện Thanh Oai",
-  "Huyện Chương Mỹ",
-  "Huyện Hoài Đức",
-  "Huyện Mỹ Đức",
-  "Huyện Phúc Thọ",
-  "Huyện Thạch Thất",
-  "Huyện Quốc Oai",
-  "Huyện Phú Xuyên",
-  "Huyện Ứng Hòa",
-  "Huyện Mê Linh",
-  "Huyện Sóc Sơn",
-  // 1 Thị xã
-  "Thị xã Sơn Tây",
+  "Ba Đình",
+  "Cầu Giấy",
+  "Đống Đa",
+  "Hai Bà Trưng",
+  "Hoàn Kiếm",
+  "Thanh Xuân",
+  "Hoàng Mai",
+  "Long Biên",
+  "Hà Đông",
+  "Tây Hồ",
+  "Nam Từ Liêm",
+  "Bắc Từ Liêm",
+  "Thanh Trì",
+  "Ba Vì",
+  "Đan Phượng",
+  "Gia Lâm",
+  "Đông Anh",
+  "Thường Tín",
+  "Thanh Oai",
+  "Chương Mỹ",
+  "Hoài Đức",
+  "Mỹ Đức",
+  "Phúc Thọ",
+  "Thạch Thất",
+  "Quốc Oai",
+  "Phú Xuyên",
+  "Ứng Hòa",
+  "Mê Linh",
+  "Sóc Sơn",
+  "Sơn Tây",
 ];
+
+interface Address {
+  id: number;
+  label: string | null;
+  receiverName: string;
+  receiverPhone: string;
+  province: string;
+  district: string;
+  ward: string;
+  street: string;
+  isDefault: boolean;
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -57,13 +66,17 @@ export default function CheckoutPage() {
   const [mounted, setMounted] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState("");
+  const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
+  const [addingAddress, setAddingAddress] = useState(false);
 
   // Shipping form
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [province] = useState("Hà Nội"); // Currently only support Hanoi
-  const [district, setDistrict] = useState("Quận Ba Đình");
+  const [district, setDistrict] = useState("Ba Đình");
+  const [ward, setWard] = useState("");
   const [note, setNote] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("COD");
 
@@ -86,6 +99,27 @@ export default function CheckoutPage() {
       setPhone(user.phone || "");
     }
   }, [mounted, user]);
+
+  useEffect(() => {
+    if (!mounted || !isAuthenticated) {
+      return;
+    }
+
+    async function loadAddresses() {
+      try {
+        const res = await api.get("/users/addresses");
+        const addresses = (res.data.data || res.data || []) as Address[];
+        setSavedAddresses(addresses);
+        const defaultAddress = addresses.find((addr) => addr.isDefault) || addresses[0];
+        setSelectedAddressId(defaultAddress?.id ?? null);
+        setAddingAddress(addresses.length === 0);
+      } catch {
+        setAddingAddress(true);
+      }
+    }
+
+    loadAddresses();
+  }, [isAuthenticated, mounted]);
 
   const shipping = 30000;
   const total = totalPrice - discount + shipping;
@@ -124,32 +158,57 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (!fullName || !phone || !address) {
-      setError("Vui lòng điền đầy đủ thông tin giao hàng.");
-      return;
-    }
+    const shouldCreateAddress = addingAddress || selectedAddressId === null;
+    let orderAddressId = selectedAddressId;
 
-    if (!VIETNAM_PHONE_REGEX.test(phone)) {
-      setError("Số điện thoại không hợp lệ. Vui lòng nhập SĐT Việt Nam (VD: 0987654321)");
-      return;
+    if (shouldCreateAddress) {
+      if (!fullName || !phone || !address || !district || !ward) {
+        setError("Vui lòng điền đầy đủ thông tin giao hàng.");
+        return;
+      }
+
+      if (!VIETNAM_PHONE_REGEX.test(phone)) {
+        setError("Số điện thoại không hợp lệ. Vui lòng nhập SĐT Việt Nam (VD: 0987654321)");
+        return;
+      }
     }
 
     setPlacing(true);
     setError("");
 
     try {
+      if (shouldCreateAddress) {
+        const addressRes = await api.post("/users/addresses", {
+          label: "Checkout",
+          receiverName: fullName.trim(),
+          receiverPhone: phone.trim(),
+          province,
+          district,
+          ward: ward.trim(),
+          street: address.trim(),
+          isDefault: savedAddresses.length === 0,
+        });
+        const createdAddress = (addressRes.data.data || addressRes.data) as Address;
+        orderAddressId = createdAddress.id;
+        setSavedAddresses((prev) => [
+          ...prev.map((addr) => ({ ...addr, isDefault: createdAddress.isDefault ? false : addr.isDefault })),
+          createdAddress,
+        ]);
+        setSelectedAddressId(createdAddress.id);
+        setAddingAddress(false);
+      }
+
+      if (!orderAddressId) {
+        setError("Vui lòng chọn địa chỉ giao hàng.");
+        setPlacing(false);
+        return;
+      }
+
       const orderRequest = {
+        addressId: orderAddressId,
         paymentMethod,
         note: note || undefined,
         couponCode: appliedCouponCode || undefined,
-        shippingAddress: {
-          receiverName: fullName,
-          receiverPhone: phone,
-          province,
-          district,
-          ward: "",
-          street: address,
-        },
       };
 
       const res = await api.post("/orders", orderRequest);
@@ -225,13 +284,74 @@ export default function CheckoutPage() {
           <div className="lg:col-span-2 space-y-5">
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h2 className="font-semibold text-gray-900 flex items-center gap-2 mb-4"><MapPin className="w-5 h-5 text-blue-600" /> 1. Địa chỉ giao hàng</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label className="block text-sm text-gray-600 mb-1">Họ tên *</label><input value={fullName} onChange={e => setFullName(e.target.value)} className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Nguyễn Văn A" /></div>
-                <div><label className="block text-sm text-gray-600 mb-1">Số điện thoại *</label><input value={phone} onChange={e => setPhone(e.target.value)} className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="0912 345 678" /></div>
-                <div className="md:col-span-2"><label className="block text-sm text-gray-600 mb-1">Địa chỉ *</label><input value={address} onChange={e => setAddress(e.target.value)} className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="123 Đường ABC, Phường XYZ" /></div>
-                <div><label className="block text-sm text-gray-600 mb-1">Tỉnh/Thành phố</label><input value={province} disabled className="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-700 cursor-not-allowed" /><p className="text-xs text-gray-400 mt-1">Hiện tại chỉ hỗ trợ giao hàng tại Hà Nội</p></div>
-                <div><label className="block text-sm text-gray-600 mb-1">Quận/Huyện *</label><select value={district} onChange={e => setDistrict(e.target.value)} className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none">{HANOI_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}</select></div>
-              </div>
+              {savedAddresses.length > 0 && (
+                <div className="space-y-3 mb-4">
+                  {savedAddresses.map((addr) => (
+                    <label key={addr.id} className={`block rounded-lg border p-3 cursor-pointer ${selectedAddressId === addr.id && !addingAddress ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}>
+                      <div className="flex gap-3">
+                        <input
+                          type="radio"
+                          name="shipping-address"
+                          checked={selectedAddressId === addr.id && !addingAddress}
+                          onChange={() => {
+                            setSelectedAddressId(addr.id);
+                            setAddingAddress(false);
+                          }}
+                          className="mt-1 text-blue-600 focus:ring-blue-500"
+                        />
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-gray-900">{addr.label || "Địa chỉ"}</span>
+                            {addr.isDefault && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Mặc định</span>}
+                          </div>
+                          <p className="text-sm text-gray-700">{addr.receiverName} — {addr.receiverPhone}</p>
+                          <p className="text-sm text-gray-500">{addr.street}, {addr.ward}, {addr.district}, {addr.province}</p>
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAddingAddress(true);
+                      setSelectedAddressId(null);
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    + Thêm địa chỉ mới
+                  </button>
+                </div>
+              )}
+              {savedAddresses.length === 0 && <p className="text-sm text-gray-500 mb-4">Chưa có địa chỉ giao hàng</p>}
+              {(addingAddress || savedAddresses.length === 0) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="checkout-full-name" className="block text-sm text-gray-600 mb-1">Họ tên *</label>
+                    <input id="checkout-full-name" value={fullName} onChange={e => setFullName(e.target.value)} className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Nguyễn Văn A" />
+                  </div>
+                  <div>
+                    <label htmlFor="checkout-phone" className="block text-sm text-gray-600 mb-1">Số điện thoại *</label>
+                    <input id="checkout-phone" value={phone} onChange={e => setPhone(e.target.value)} className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="0912 345 678" />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label htmlFor="checkout-address" className="block text-sm text-gray-600 mb-1">Địa chỉ *</label>
+                    <input id="checkout-address" value={address} onChange={e => setAddress(e.target.value)} className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="123 Đường ABC" />
+                  </div>
+                  <div>
+                    <label htmlFor="checkout-province" className="block text-sm text-gray-600 mb-1">Tỉnh/Thành phố</label>
+                    <input id="checkout-province" value={province} disabled className="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-700 cursor-not-allowed" />
+                    <p className="text-xs text-gray-400 mt-1">Hiện tại chỉ hỗ trợ giao hàng tại Hà Nội</p>
+                  </div>
+                  <div>
+                    <label htmlFor="checkout-district" className="block text-sm text-gray-600 mb-1">Quận/Huyện *</label>
+                    <select id="checkout-district" value={district} onChange={e => setDistrict(e.target.value)} className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none">{HANOI_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}</select>
+                  </div>
+                  <div>
+                    <label htmlFor="checkout-ward" className="block text-sm text-gray-600 mb-1">Phường/Xã *</label>
+                    <input id="checkout-ward" value={ward} onChange={e => setWard(e.target.value)} className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Dịch Vọng" />
+                  </div>
+                </div>
+              )}
               <div className="mt-4"><label className="block text-sm text-gray-600 mb-1">Ghi chú</label><textarea value={note} onChange={e => setNote(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" rows={3} placeholder="Ghi chú cho đơn hàng (tùy chọn)" /></div>
             </div>
 
