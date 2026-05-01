@@ -152,6 +152,9 @@ jobs:
             export MINIO_PUBLIC_URL="${{ secrets.NEXT_PUBLIC_MINIO_URL }}"
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
+            echo "=== Reloading nginx (re-resolve upstream IPs) ==="
+            docker compose -f docker-compose.prod.yml restart nginx
+
             echo "=== Cleaning up tar files ==="
             rm -rf images/
 
