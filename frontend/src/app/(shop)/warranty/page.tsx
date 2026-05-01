@@ -16,7 +16,7 @@ export default function WarrantyPage() {
   useEffect(() => {
     async function fetchWarranty() {
       try {
-        const res = await api.get("/warranty/my");
+        const res = await api.get("/warranty");
         const data = res.data.data || res.data;
         setRequests(Array.isArray(data) ? data : (data.content || []));
       } catch { /* empty */ } finally { setLoading(false); }
