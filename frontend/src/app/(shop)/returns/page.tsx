@@ -39,7 +39,7 @@ export default function ReturnsPage() {
   useEffect(() => {
     async function fetch() {
       try {
-        const res = await api.get("/returns?page=0&size=20");
+        const res = await api.get("/returns/my?page=0&size=20");
         const data = res.data.data || res.data;
         setReturns(data.content || data || []);
       } catch { /* not logged in or no returns */ }
@@ -55,7 +55,7 @@ export default function ReturnsPage() {
       setForm({ orderId: "", orderDetailId: "", reason: "", type: "REFUND" });
       setMsg({ type: "success", text: "Yêu cầu đổi trả đã được gửi thành công!" });
       // reload
-      const res = await api.get("/returns?page=0&size=20");
+      const res = await api.get("/returns/my?page=0&size=20");
       const data = res.data.data || res.data;
       setReturns(data.content || data || []);
     } catch { setMsg({ type: "error", text: "Gửi yêu cầu thất bại." }); }

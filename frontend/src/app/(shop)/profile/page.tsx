@@ -445,6 +445,9 @@ export default function ProfilePage() {
                 <Link href="/warranty" className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
                   🛡️ Bảo hành
                 </Link>
+                <Link href="/returns" className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+                  ↩ Đổi trả
+                </Link>
                 <Link href="/wishlist" className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
                   ❤️ Yêu thích
                 </Link>

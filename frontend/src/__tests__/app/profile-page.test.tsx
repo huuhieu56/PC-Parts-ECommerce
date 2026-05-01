@@ -67,6 +67,7 @@ describe("ProfilePage", () => {
     expect(mockedGet).toHaveBeenCalledWith("/users/me");
     expect(mockedGet).not.toHaveBeenCalledWith("/users/addresses");
     expect(screen.getAllByText("customer@pcparts.com").length).toBeGreaterThan(0);
+    expect(screen.getByRole("link", { name: /Đổi trả/i })).toHaveAttribute("href", "/returns");
   });
 
   it("updates profile through /users/me with only editable profile fields", async () => {
