@@ -65,6 +65,13 @@ describe("ReturnsPage", () => {
             data: {
               content: [
                 {
+                  id: 2,
+                  orderNumber: "ORD-000002",
+                  status: "PENDING",
+                  totalAmount: 2000000,
+                  createdAt: "2026-05-02T10:00:00",
+                },
+                {
                   id: 1,
                   orderNumber: "ORD-000001",
                   status: "COMPLETED",
@@ -103,6 +110,8 @@ describe("ReturnsPage", () => {
     render(<ReturnsPage />);
 
     fireEvent.click(await screen.findByRole("button", { name: /Tạo yêu cầu/i }));
+    expect(await screen.findByRole("option", { name: /ORD-000001.*1\.000\.000 đ/i })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: /ORD-000002/i })).not.toBeInTheDocument();
     fireEvent.change(await screen.findByLabelText("Đơn hàng"), { target: { value: "1" } });
     fireEvent.change(await screen.findByLabelText("Sản phẩm"), { target: { value: "100" } });
     fireEvent.change(screen.getByLabelText("Lý do"), { target: { value: "Sản phẩm lỗi" } });

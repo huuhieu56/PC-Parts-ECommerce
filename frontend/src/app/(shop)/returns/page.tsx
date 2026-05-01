@@ -34,6 +34,10 @@ interface OrderItem {
 
 function formatPrice(p: number): string { return p.toLocaleString("vi-VN") + " đ"; }
 
+function formatDate(value: string): string {
+  return value ? new Date(value).toLocaleDateString("vi-VN") : "—";
+}
+
 const statusColors: Record<string, string> = {
   PENDING_APPROVAL: "bg-amber-100 text-amber-700",
   APPROVED: "bg-blue-100 text-blue-700",
@@ -71,7 +75,8 @@ export default function ReturnsPage() {
       const res = await api.get("/orders?page=0&size=50");
       const data = res.data.data || res.data;
       const orders = ((data.content || data || []) as OrderSummary[])
-        .filter((order) => order.status === "COMPLETED");
+        .filter((order) => order.status === "COMPLETED")
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setCompletedOrders(orders);
     } catch {
       setCompletedOrders([]);
@@ -166,10 +171,11 @@ export default function ReturnsPage() {
                   <option value="">Chọn đơn hàng đã hoàn thành</option>
                   {completedOrders.map((order) => (
                     <option key={order.id} value={order.id}>
-                      {order.orderNumber || `ORD-${String(order.id).padStart(6, "0")}`} - {formatPrice(order.totalAmount)}
+                      {order.orderNumber || `ORD-${String(order.id).padStart(6, "0")}`} - {formatDate(order.createdAt)} - {formatPrice(order.totalAmount)}
                     </option>
                   ))}
                 </select>
+                {completedOrders.length === 0 && <p className="text-xs text-gray-500 mt-1">Chưa có đơn hàng hoàn thành để đổi trả.</p>}
               </div>
               <div>
                 <label htmlFor="return-type" className="block text-sm font-medium text-gray-700 mb-1">Loại yêu cầu</label>
@@ -229,7 +235,7 @@ export default function ReturnsPage() {
                 <p className="text-sm text-gray-700 mb-1">{r.productName || "Sản phẩm"}</p>
                 <p className="text-sm text-gray-500 mb-2">Lý do: {r.reason}</p>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-1 text-gray-400"><Clock className="w-3.5 h-3.5" /> {new Date(r.createdAt).toLocaleDateString("vi-VN")}</span>
+                  <span className="flex items-center gap-1 text-gray-400"><Clock className="w-3.5 h-3.5" /> {formatDate(r.createdAt)}</span>
                   {r.refundAmount && <span className="font-bold text-[#E31837]">{formatPrice(r.refundAmount)}</span>}
                 </div>
               </div>
