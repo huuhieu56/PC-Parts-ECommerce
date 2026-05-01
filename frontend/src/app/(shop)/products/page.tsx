@@ -9,6 +9,7 @@ import { formatPrice } from "@/lib/utils";
 import Pagination from "@/components/Pagination";
 import ProductCard from "@/components/ProductCard";
 import type { DisplayProduct } from "@/components/ProductCard";
+import { mapToDisplayProduct } from "@/lib/mappers";
 import type { Product } from "@/types";
 
 interface CategoryDto {
@@ -53,24 +54,6 @@ const priceRanges = [
 ];
 
 
-
-function mapProduct(dto: Product): DisplayProduct {
-  const discount = dto.originalPrice > dto.sellingPrice
-    ? Math.round((1 - dto.sellingPrice / dto.originalPrice) * 100)
-    : 0;
-  const primaryImage = dto.images?.find((img) => img.isPrimary) || dto.images?.[0];
-  return {
-    id: dto.id,
-    name: dto.name,
-    slug: dto.slug,
-    sku: dto.sku,
-    price: dto.sellingPrice,
-    originalPrice: dto.originalPrice > dto.sellingPrice ? dto.originalPrice : null,
-    brandName: dto.brandName,
-    discountPercent: discount,
-    thumbnailUrl: primaryImage?.imageUrl || null,
-  };
-}
 
 
 
@@ -205,7 +188,7 @@ function ProductsContent() {
           const json = await res.json();
           const pageData = json.data || json;
           const items: Product[] = pageData.content || [];
-          const mapped = items.map(mapProduct);
+          const mapped = items.map(mapToDisplayProduct);
           setProducts(mapped);
           setTotalPages(pageData.totalPages || 0);
           setTotalElements(pageData.totalElements || items.length);

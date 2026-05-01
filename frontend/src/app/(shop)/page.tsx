@@ -8,6 +8,7 @@ import { getBanners } from "@/lib/api";
 import type { Banner, Product } from "@/types";
 import ProductCard from "@/components/ProductCard";
 import type { DisplayProduct } from "@/components/ProductCard";
+import { mapToDisplayProduct } from "@/lib/mappers";
 import {
   HOME_BRAND_ROTATION_INTERVAL_MS,
   HOME_BRAND_VISIBLE_ITEM_COUNT,
@@ -60,23 +61,6 @@ interface CategoryDisplay {
 const defaultBrands = ["Intel", "AMD", "ASUS", "GIGABYTE", "MSI", "CORSAIR", "Kingston", "Samsung", "Western Digital", "NZXT"];
 
 
-function mapApiProduct(dto: Product): DisplayProduct {
-  const discount = dto.originalPrice > dto.sellingPrice
-    ? Math.round((1 - dto.sellingPrice / dto.originalPrice) * 100)
-    : 0;
-  const primaryImage = dto.images?.find((img) => img.isPrimary) || dto.images?.[0];
-  return {
-    id: dto.id,
-    name: dto.name,
-    sku: dto.sku,
-    slug: dto.slug,
-    price: dto.sellingPrice,
-    originalPrice: dto.originalPrice > dto.sellingPrice ? dto.originalPrice : null,
-    discountPercent: discount,
-    thumbnailUrl: primaryImage?.imageUrl || null,
-    brandName: dto.brandName,
-  };
-}
 
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<DisplayProduct[]>([]);
@@ -102,7 +86,7 @@ export default function HomePage() {
           const json = await res.json();
           const pageData = json.data || json;
           const items: Product[] = pageData.content || [];
-          setFeaturedProducts(items.map(mapApiProduct));
+          setFeaturedProducts(items.map(mapToDisplayProduct));
         }
       } catch {
         console.error("Failed to fetch featured products");

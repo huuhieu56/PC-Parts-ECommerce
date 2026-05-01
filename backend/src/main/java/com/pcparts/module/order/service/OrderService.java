@@ -11,16 +11,15 @@ import com.pcparts.module.auth.repository.AccountRepository;
 import com.pcparts.module.auth.repository.AddressRepository;
 import com.pcparts.module.auth.repository.UserProfileRepository;
 import com.pcparts.module.inventory.service.InventoryService;
+import com.pcparts.module.order.dto.CreateOrderRequest;
+import com.pcparts.module.order.dto.OrderDto;
 import com.pcparts.module.order.entity.*;
 import com.pcparts.module.order.repository.*;
 import com.pcparts.module.product.entity.Product;
 import com.pcparts.module.shopping.entity.CartItem;
 import com.pcparts.module.shopping.repository.CartItemRepository;
 import com.pcparts.module.shopping.repository.CartRepository;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import lombok.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,9 +35,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.pcparts.common.constant.ValidationConstants.VIETNAM_PHONE_MESSAGE;
-import static com.pcparts.common.constant.ValidationConstants.VIETNAM_PHONE_REGEX;
 
 /**
  * Service for order operations: create, view, update status.
@@ -64,6 +60,7 @@ public class OrderService {
     private final AccountRepository accountRepository;
     private final AddressRepository addressRepository;
     private final InventoryService inventoryService;
+    private final OrderMapper orderMapper;
 
     /**
      * Valid order status transitions (State Machine — BUG-02 fix).
@@ -98,7 +95,7 @@ public class OrderService {
             validateSupportedShippingArea(address.getProvince(), address.getDistrict());
         } else if (request.getShippingAddress() != null) {
             // Create new address from inline shipping info
-            ShippingAddressRequest sa = request.getShippingAddress();
+            CreateOrderRequest.ShippingAddressRequest sa = request.getShippingAddress();
 
             // Validate shipping area - currently only Hanoi is supported
             String province = sa.getProvince() != null ? sa.getProvince() : "";
@@ -202,7 +199,7 @@ public class OrderService {
 
         logStatusChange(order, null, "PENDING", null, "Đơn hàng được tạo");
         cartItemRepository.deleteByCartId(cart.getId());
-        return toDto(order);
+        return orderMapper.toDto(order);
     }
 
     /**
@@ -217,7 +214,7 @@ public class OrderService {
         if (!order.getUser().getId().equals(user.getId())) {
             throw new BusinessException("Bạn không có quyền xem đơn hàng này", HttpStatus.FORBIDDEN);
         }
-        return toDto(order);
+        return orderMapper.toDto(order);
     }
 
     /**
@@ -227,7 +224,7 @@ public class OrderService {
     public OrderDto getOrderByIdAdmin(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
-        return toDto(order);
+        return orderMapper.toDto(order);
     }
 
     /**
@@ -238,7 +235,7 @@ public class OrderService {
         UserProfile user = userProfileRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", accountId));
         Page<Order> orders = orderRepository.findByUserIdOrderByCreatedAtDesc(user.getId(), PageRequest.of(page, size));
-        List<OrderDto> dtos = orders.getContent().stream().map(this::toDto).collect(Collectors.toList());
+        List<OrderDto> dtos = orders.getContent().stream().map(orderMapper::toDto).collect(Collectors.toList());
         return PageResponse.from(orders, dtos);
     }
 
@@ -287,7 +284,7 @@ public class OrderService {
         } catch (NumberFormatException ignored) {
         }
         logStatusChange(order, oldStatus, newStatus, changedBy, null);
-        return toDto(order);
+        return orderMapper.toDto(order);
     }
 
     /**
@@ -298,7 +295,7 @@ public class OrderService {
         Page<Order> orders = status != null && !status.isBlank()
                 ? orderRepository.findByStatusOrderByCreatedAtDesc(status, PageRequest.of(page, size))
                 : orderRepository.findAll(PageRequest.of(page, size));
-        List<OrderDto> dtos = orders.getContent().stream().map(this::toDto).collect(Collectors.toList());
+        List<OrderDto> dtos = orders.getContent().stream().map(orderMapper::toDto).collect(Collectors.toList());
         return PageResponse.from(orders, dtos);
     }
 
@@ -352,111 +349,5 @@ public class OrderService {
                 .replace("huyện ", "")
                 .replace("thị xã ", "")
                 .trim();
-    }
-
-    private OrderDto toDto(Order order) {
-        List<OrderDetailDto> detailDtos = orderDetailRepository.findByOrderId(order.getId()).stream()
-                .map(d -> OrderDetailDto.builder()
-                        .id(d.getId())
-                        .productId(d.getProduct().getId())
-                        .productName(d.getProduct().getName())
-                        .quantity(d.getQuantity())
-                        .unitPrice(d.getUnitPrice())
-                        .lineTotal(d.getLineTotal())
-                        .build())
-                .collect(Collectors.toList());
-        // Build shipping address from Address entity
-        Address addr = order.getAddress();
-        String recipientName = null;
-        String recipientPhone = null;
-        String shippingAddress = null;
-        if (addr != null) {
-            recipientName = addr.getReceiverName();
-            recipientPhone = addr.getReceiverPhone();
-            shippingAddress = String.join(", ",
-                    addr.getStreet() != null ? addr.getStreet() : "",
-                    addr.getWard() != null ? addr.getWard() : "",
-                    addr.getDistrict() != null ? addr.getDistrict() : "",
-                    addr.getProvince() != null ? addr.getProvince() : ""
-            ).replaceAll("^,\\s*|,\\s*$", "").replaceAll(",\\s*,", ",");
-        }
-
-        return OrderDto.builder()
-                .id(order.getId())
-                .orderNumber(String.format("ORD-%06d", order.getId()))
-                .subtotal(order.getSubtotal())
-                .discountAmount(order.getDiscountAmount())
-                .totalAmount(order.getTotalAmount())
-                .status(order.getStatus())
-                .note(order.getNote())
-                .recipientName(recipientName)
-                .recipientPhone(recipientPhone)
-                .shippingAddress(shippingAddress)
-                .paymentMethod("COD")
-                .paymentStatus("PENDING")
-                .createdAt(order.getCreatedAt() != null ? order.getCreatedAt().toString() : null)
-                .itemCount(detailDtos.size())
-                .items(detailDtos)
-                .build();
-    }
-
-    @Data @Builder @NoArgsConstructor @AllArgsConstructor
-    public static class CreateOrderRequest {
-        private Long addressId;
-        @Valid
-        private ShippingAddressRequest shippingAddress;
-        private String note;
-        private String couponCode;
-        private String paymentMethod;
-    }
-
-    @Data @Builder @NoArgsConstructor @AllArgsConstructor
-    public static class ShippingAddressRequest {
-        @NotBlank(message = "Tên người nhận không được để trống")
-        private String receiverName;
-
-        @NotBlank(message = "SĐT người nhận không được để trống")
-        @Pattern(regexp = VIETNAM_PHONE_REGEX, message = VIETNAM_PHONE_MESSAGE)
-        private String receiverPhone;
-
-        @NotBlank(message = "Tỉnh/Thành phố không được để trống")
-        private String province;
-
-        @NotBlank(message = "Quận/Huyện không được để trống")
-        private String district;
-
-        private String ward;
-
-        @NotBlank(message = "Địa chỉ không được để trống")
-        private String street;
-    }
-
-    @Data @Builder @NoArgsConstructor @AllArgsConstructor
-    public static class OrderDto {
-        private Long id;
-        private String orderNumber;
-        private BigDecimal subtotal;
-        private BigDecimal discountAmount;
-        private BigDecimal totalAmount;
-        private String status;
-        private String note;
-        private String recipientName;
-        private String recipientPhone;
-        private String shippingAddress;
-        private String paymentMethod;
-        private String paymentStatus;
-        private String createdAt;
-        private int itemCount;
-        private List<OrderDetailDto> items;
-    }
-
-    @Data @Builder @NoArgsConstructor @AllArgsConstructor
-    public static class OrderDetailDto {
-        private Long id;
-        private Long productId;
-        private String productName;
-        private Integer quantity;
-        private BigDecimal unitPrice;
-        private BigDecimal lineTotal;
     }
 }

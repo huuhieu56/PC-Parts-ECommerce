@@ -100,15 +100,16 @@ public class ProductService {
         List<Attribute> attributes = attributeRepository.findByCategoryId(categoryId);
         List<ProductFilterDto.AttributeFilterGroup> attrGroups = new ArrayList<>();
 
+        // Single batch query — replaces N+1 findAll() calls
+        List<ProductAttribute> allPa = productAttributeRepository.findByProductIdIn(productIds);
+
         for (Attribute attr : attributes) {
             List<AttributeValue> values = attributeValueRepository.findByAttributeId(attr.getId());
             List<ProductFilterDto.AttributeValueOption> valueOptions = new ArrayList<>();
 
             for (AttributeValue val : values) {
-                // Count products that have this attribute value
-                long count = productAttributeRepository.findAll().stream()
-                        .filter(pa -> productIds.contains(pa.getProduct().getId())
-                                && pa.getAttributeValue().getId().equals(val.getId()))
+                long count = allPa.stream()
+                        .filter(pa -> pa.getAttributeValue().getId().equals(val.getId()))
                         .count();
                 if (count > 0) {
                     valueOptions.add(ProductFilterDto.AttributeValueOption.builder()
