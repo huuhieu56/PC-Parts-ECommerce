@@ -6,6 +6,7 @@ import { Cpu, Filter, X, ChevronRight, SlidersHorizontal, Loader2, ChevronDown }
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useCartStore } from "@/stores/cart-store";
 import { formatPrice } from "@/lib/utils";
+import api from "@/lib/api";
 import Pagination from "@/components/Pagination";
 import ProductCard from "@/components/ProductCard";
 import type { DisplayProduct } from "@/components/ProductCard";
@@ -43,7 +44,7 @@ interface ProductFilterData {
   priceRange: { minPrice: number; maxPrice: number };
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
+
 
 const priceRanges = [
   { label: "Dưới 2 triệu", min: 0, max: 2000000 },
@@ -102,13 +103,12 @@ function ProductsContent() {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const res = await fetch(`${API_URL}/categories`);
-        if (res.ok) {
-          const json = await res.json();
-          const cats: CategoryDto[] = json.data || json || [];
-          setCategories(cats);
-        }
-      } catch { /* empty */ }
+        const res = await api.get("/categories");
+        const cats: CategoryDto[] = res.data.data || res.data || [];
+        setCategories(cats);
+      } catch (err) {
+        console.error("Failed to fetch categories", err);
+      }
     }
     fetchCategories();
   }, []);
@@ -123,15 +123,14 @@ function ProductsContent() {
     async function fetchFilters() {
       setLoadingFilters(true);
       try {
-        const res = await fetch(`${API_URL}/products/filters?categoryId=${effectiveCategoryId}`);
-        if (res.ok) {
-          const json = await res.json();
-          const data: ProductFilterData = json.data || json;
-          setFilterData(data);
-          // Auto-expand all attribute groups
-          setExpandedAttrs(new Set(data.attributes.map((a: AttributeFilterGroup) => a.attributeId)));
-        }
-      } catch { /* empty */ }
+        const res = await api.get("/products/filters", { params: { categoryId: effectiveCategoryId } });
+        const data: ProductFilterData = res.data.data || res.data;
+        setFilterData(data);
+        // Auto-expand all attribute groups
+        setExpandedAttrs(new Set(data.attributes.map((a: AttributeFilterGroup) => a.attributeId)));
+      } catch (err) {
+        console.error("Failed to fetch filters", err);
+      }
       setLoadingFilters(false);
     }
     fetchFilters();
@@ -183,20 +182,17 @@ function ProductsContent() {
           if (maxPrice !== Infinity) params.set("maxPrice", String(maxPrice));
         }
 
-        const res = await fetch(`${API_URL}/products?${params.toString()}`);
-        if (res.ok) {
-          const json = await res.json();
-          const pageData = json.data || json;
-          const items: Product[] = pageData.content || [];
-          const mapped = items.map(mapToDisplayProduct);
-          setProducts(mapped);
-          setTotalPages(pageData.totalPages || 0);
-          setTotalElements(pageData.totalElements || items.length);
-          setHasNext(pageData.hasNext ?? false);
-          setHasPrevious(pageData.hasPrevious ?? false);
-        }
-      } catch {
-        console.error("Failed to fetch products");
+        const res = await api.get("/products", { params: Object.fromEntries(params) });
+        const pageData = res.data.data || res.data;
+        const items: Product[] = pageData.content || [];
+        const mapped = items.map(mapToDisplayProduct);
+        setProducts(mapped);
+        setTotalPages(pageData.totalPages || 0);
+        setTotalElements(pageData.totalElements || items.length);
+        setHasNext(pageData.hasNext ?? false);
+        setHasPrevious(pageData.hasPrevious ?? false);
+      } catch (err) {
+        console.error("Failed to fetch products", err);
       } finally {
         setLoading(false);
       }

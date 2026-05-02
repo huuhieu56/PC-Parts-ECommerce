@@ -58,7 +58,10 @@ export default function Pagination({ page, totalPages, totalElements, hasNext, h
   const to = Math.min((safePage + 1) * safeSize, safeTotalElements);
 
   return (
-    <div className="flex items-center justify-center px-4 py-3 border-t border-gray-200 bg-white">
+    <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-white">
+      <span className="text-sm text-gray-500">
+        Hiển thị {from}–{to} trong {safeTotalElements} kết quả
+      </span>
       <div className="flex items-center gap-1">
         {/* First */}
         <button

@@ -83,8 +83,7 @@ public class OrderService {
     @Transactional
     public OrderDto createOrder(Long accountId, CreateOrderRequest request) {
         // BUG-13 fix: resolve accountId → UserProfile via findByAccountId
-        UserProfile user = userProfileRepository.findByAccountId(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", accountId));
+        UserProfile user = resolveUserProfile(accountId);
 
         // Resolve address: either from addressId or inline shippingAddress
         Address address;
@@ -207,8 +206,7 @@ public class OrderService {
      */
     @Transactional(readOnly = true)
     public OrderDto getOrderById(Long orderId, Long accountId) {
-        UserProfile user = userProfileRepository.findByAccountId(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", accountId));
+        UserProfile user = resolveUserProfile(accountId);
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
         if (!order.getUser().getId().equals(user.getId())) {
@@ -232,8 +230,7 @@ public class OrderService {
      */
     @Transactional(readOnly = true)
     public PageResponse<OrderDto> getMyOrders(Long accountId, int page, int size) {
-        UserProfile user = userProfileRepository.findByAccountId(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", accountId));
+        UserProfile user = resolveUserProfile(accountId);
         Page<Order> orders = orderRepository.findByUserIdOrderByCreatedAtDesc(user.getId(), PageRequest.of(page, size));
         List<OrderDto> dtos = orders.getContent().stream().map(orderMapper::toDto).collect(Collectors.toList());
         return PageResponse.from(orders, dtos);
@@ -248,8 +245,7 @@ public class OrderService {
      */
     @Transactional
     public OrderDto cancelOrder(Long orderId, Long accountId) {
-        UserProfile user = userProfileRepository.findByAccountId(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", accountId));
+        UserProfile user = resolveUserProfile(accountId);
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
 
@@ -398,5 +394,14 @@ public class OrderService {
                 .replace("huyện ", "")
                 .replace("thị xã ", "")
                 .trim();
+    }
+
+    /**
+     * Resolves an accountId (from JWT) to a UserProfile entity.
+     * Extracts the duplicated pattern used across createOrder, getOrderById, getMyOrders, cancelOrder.
+     */
+    private UserProfile resolveUserProfile(Long accountId) {
+        return userProfileRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", accountId));
     }
 }

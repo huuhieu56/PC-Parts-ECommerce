@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Cpu, Monitor, MemoryStick, HardDrive, Zap, ChevronLeft, ChevronRight, Truck, Shield, Headphones } from "lucide-react";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useCartStore } from "@/stores/cart-store";
-import { getBanners } from "@/lib/api";
+import api, { getBanners } from "@/lib/api";
 import type { Banner, Product } from "@/types";
 import ProductCard from "@/components/ProductCard";
 import type { DisplayProduct } from "@/components/ProductCard";
@@ -21,7 +21,7 @@ import {
   getPopupDismissStorageKey,
 } from "./homeBannerLayout";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
+
 
 
 
@@ -81,15 +81,12 @@ export default function HomePage() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await fetch(`${API_URL}/products?page=0&size=10&sort=createdAt`);
-        if (res.ok) {
-          const json = await res.json();
-          const pageData = json.data || json;
-          const items: Product[] = pageData.content || [];
-          setFeaturedProducts(items.map(mapToDisplayProduct));
-        }
-      } catch {
-        console.error("Failed to fetch featured products");
+        const res = await api.get("/products", { params: { page: 0, size: 10, sort: "createdAt" } });
+        const pageData = res.data.data || res.data;
+        const items: Product[] = pageData.content || [];
+        setFeaturedProducts(items.map(mapToDisplayProduct));
+      } catch (err) {
+        console.error("Failed to fetch featured products", err);
       } finally {
         setLoading(false);
       }
@@ -97,35 +94,33 @@ export default function HomePage() {
 
     async function fetchCategories() {
       try {
-        const res = await fetch(`${API_URL}/categories`);
-        if (res.ok) {
-          const json = await res.json();
-          const data = json.data || json;
-          const items = Array.isArray(data) ? data : (data.content || []);
-          if (items.length > 0) {
-            setCategories(items.map((c: { id: number; name: string; slug?: string }, idx: number) => ({
-              name: c.name,
-              icon: categoryIcons[idx % categoryIcons.length],
-              href: `/products?categoryId=${c.id}`,
-              color: categoryColors[idx % categoryColors.length],
-            })));
-          }
+        const res = await api.get("/categories");
+        const data = res.data.data || res.data;
+        const items = Array.isArray(data) ? data : (data.content || []);
+        if (items.length > 0) {
+          setCategories(items.map((c: { id: number; name: string; slug?: string }, idx: number) => ({
+            name: c.name,
+            icon: categoryIcons[idx % categoryIcons.length],
+            href: `/products?categoryId=${c.id}`,
+            color: categoryColors[idx % categoryColors.length],
+          })));
         }
-      } catch { /* fallback to defaults */ }
+      } catch (err) {
+        console.error("Failed to fetch categories", err);
+      }
     }
 
     async function fetchBrands() {
       try {
-        const res = await fetch(`${API_URL}/brands`);
-        if (res.ok) {
-          const json = await res.json();
-          const data = json.data || json;
-          const items = Array.isArray(data) ? data : (data.content || []);
-          if (items.length > 0) {
-            setBrands(items.map((b: { name: string }) => b.name));
-          }
+        const res = await api.get("/brands");
+        const data = res.data.data || res.data;
+        const items = Array.isArray(data) ? data : (data.content || []);
+        if (items.length > 0) {
+          setBrands(items.map((b: { name: string }) => b.name));
         }
-      } catch { /* fallback */ }
+      } catch (err) {
+        console.error("Failed to fetch brands", err);
+      }
     }
 
     async function fetchBanners() {

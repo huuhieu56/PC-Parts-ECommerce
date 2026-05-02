@@ -97,16 +97,8 @@ export default function CheckoutPage() {
     try {
       const res = await api.get(`/coupons/validate?code=${couponCode.trim()}&orderAmount=${totalPrice}`);
       const coupon = res.data.data || res.data;
-      let discountAmount = 0;
-      if (coupon.discountType === "PERCENTAGE") {
-        discountAmount = Math.round(totalPrice * coupon.discountValue / 100);
-        // Respect backend's maxDiscount cap
-        if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
-          discountAmount = coupon.maxDiscount;
-        }
-      } else {
-        discountAmount = coupon.discountValue;
-      }
+      // Use backend-computed discount (single source of truth — includes maxDiscount cap and subtotal cap)
+      const discountAmount = coupon.computedDiscount || 0;
       setDiscount(discountAmount);
       setCouponMsg(`Áp dụng thành công! Giảm ${formatPrice(discountAmount)}`);
       setCouponError(false);

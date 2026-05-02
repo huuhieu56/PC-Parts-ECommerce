@@ -37,8 +37,6 @@ interface ReviewDto {
   createdAt: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost/api/v1";
-
 function mapProductDto(dto: Product): ProductDetail {
   const discount = dto.originalPrice > dto.sellingPrice
     ? Math.round((1 - dto.sellingPrice / dto.originalPrice) * 100)
@@ -128,23 +126,20 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
     }
   };
 
-  // Fetch product
+  // Fetch product via axios so token injection and 401 handling are active
   useEffect(() => {
     async function fetchProduct() {
       setLoading(true);
       try {
-        const res = await fetch(`${API_URL}/products/${resolvedParams.slug}`);
-        if (res.ok) {
-          const json = await res.json();
-          const dto: Product = json.data || json;
-          const mapped = mapProductDto(dto);
-          setProduct(mapped);
+        const res = await api.get(`/products/${resolvedParams.slug}`);
+        const dto: Product = res.data.data || res.data;
+        const mapped = mapProductDto(dto);
+        setProduct(mapped);
 
-          // Fetch reviews for this product
-          fetchReviews(dto.id);
-          // Fetch related products (same category)
-          fetchRelatedProducts(dto.categoryId, dto.id);
-        }
+        // Fetch reviews for this product
+        fetchReviews(dto.id);
+        // Fetch related products (same category)
+        fetchRelatedProducts(dto.categoryId, dto.id);
       } catch {
         console.error("Failed to fetch product");
       } finally {
@@ -157,17 +152,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
   async function fetchReviews(productId: number) {
     setReviewsLoading(true);
     try {
-      const res = await fetch(`${API_URL}/reviews/product/${productId}?page=0&size=10`);
-      if (res.ok) {
-        const json = await res.json();
-        const page = json.data || json;
-        const items: ReviewDto[] = page.content || [];
-        setReviews(items);
-        setReviewCount(page.totalElements || items.length);
-        if (items.length > 0) {
-          const avg = items.reduce((sum, r) => sum + r.rating, 0) / items.length;
-          setAvgRating(Math.round(avg * 10) / 10);
-        }
+      const res = await api.get(`/reviews/product/${productId}?page=0&size=10`);
+      const page = res.data.data || res.data;
+      const items: ReviewDto[] = page.content || [];
+      setReviews(items);
+      setReviewCount(page.totalElements || items.length);
+      if (items.length > 0) {
+        const avg = items.reduce((sum, r) => sum + r.rating, 0) / items.length;
+        setAvgRating(Math.round(avg * 10) / 10);
       }
     } catch { /* reviews may not exist yet */ } finally {
       setReviewsLoading(false);
@@ -176,13 +168,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
 
   async function fetchRelatedProducts(categoryId: number, excludeId: number) {
     try {
-      const res = await fetch(`${API_URL}/products?categoryId=${categoryId}&size=5`);
-      if (res.ok) {
-        const json = await res.json();
-        const page = json.data || json;
-        const items: Product[] = (page.content || []).filter((p: Product) => p.id !== excludeId);
-        setRelatedProducts(items.slice(0, 5));
-      }
+      const res = await api.get(`/products?categoryId=${categoryId}&size=5`);
+      const page = res.data.data || res.data;
+      const items: Product[] = (page.content || []).filter((p: Product) => p.id !== excludeId);
+      setRelatedProducts(items.slice(0, 5));
     } catch { /* empty */ }
   }
 
