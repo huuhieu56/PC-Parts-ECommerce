@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, Plus, X, ShoppingCart, Cpu, Search, CheckCircle, FileText, CreditCard } from "lucide-react";
+import { ChevronRight, Plus, Minus, X, ShoppingCart, Cpu, Search, CheckCircle, FileText, CreditCard } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
 import { useCartStore } from "@/stores/cart-store";
 import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/utils";
+import { useProductFilters } from "@/hooks/useProductFilters";
+import ProductFilterSidebar from "@/components/ProductFilterSidebar";
 
 const slots = [
   { id: 1, name: "BỘ VI XỬ LÝ", label: "Bộ vi xử lý", category: "CPU" },
@@ -27,7 +29,7 @@ interface ProductItem {
   brandName?: string; status: string;
   images?: { id: number; imageUrl: string; isPrimary: boolean; sortOrder: number }[];
 }
-interface SelectedItem { slotId: number; productId: number; name: string; price: number; imageUrl?: string; }
+interface SelectedItem { slotId: number; productId: number; name: string; price: number; quantity: number; imageUrl?: string; }
 
 
 
@@ -45,9 +47,33 @@ export default function BuildPCPage() {
   const { addItem } = useCartStore();
   const router = useRouter();
 
-  const total = selected.reduce((s, i) => s + i.price, 0);
+  // Filter hook - scoped to the dialog slot's category
+  const dialogCategoryId = dialogSlot ? categories.find(c => c.name.toLowerCase() === dialogSlot.category.toLowerCase())?.id ?? null : null;
+  const {
+    filterData,
+    loadingFilters,
+    selectedAttrValues,
+    expandedAttrs,
+    selectedPriceRanges,
+    toggleAttrValue,
+    toggleExpandAttr,
+    togglePriceRange,
+    clearFilters,
+    buildFilterParams,
+    hasActiveFilters: hasFilterChanges,
+  } = useProductFilters(dialogCategoryId);
+
+  const total = selected.reduce((s, i) => s + i.price * i.quantity, 0);
   const removeItem = (slotId: number) => setSelected(selected.filter(i => i.slotId !== slotId));
   const getSelected = (slotId: number) => selected.find(i => i.slotId === slotId);
+
+  const incrementQuantity = (slotId: number) => {
+    setSelected(prev => prev.map(i => i.slotId === slotId ? { ...i, quantity: i.quantity + 1 } : i));
+  };
+
+  const decrementQuantity = (slotId: number) => {
+    setSelected(prev => prev.map(i => i.slotId === slotId && i.quantity > 1 ? { ...i, quantity: i.quantity - 1 } : i));
+  };
 
   useEffect(() => {
     async function fetchCatsAndBrands() {
@@ -74,7 +100,10 @@ export default function BuildPCPage() {
       else params.set("keyword", slot.category);
       if (kw) params.set("keyword", kw);
       if (brandId) params.set("brandId", brandId);
-      
+
+      // Apply attribute and price filters from the hook
+      buildFilterParams(params);
+
       const res = await api.get(`/products?${params}`);
       const data = res.data.data || res.data;
       setProducts(data.content || []);
@@ -87,8 +116,14 @@ export default function BuildPCPage() {
     setDialogSlot(slot);
     setSearchTerm("");
     setSelectedBrand("");
-    fetchProducts(slot, "", "");
+    clearFilters();
   };
+
+  // Fetch products when dialog opens or filters change
+  useEffect(() => {
+    if (!dialogSlot) return;
+    fetchProducts(dialogSlot, searchTerm, selectedBrand);
+  }, [dialogSlot, selectedAttrValues, selectedPriceRanges]);
 
   const selectProduct = (product: ProductItem) => {
     const primaryImg = product.images?.find(i => i.isPrimary) || product.images?.[0];
@@ -99,6 +134,7 @@ export default function BuildPCPage() {
         productId: product.id,
         name: product.name,
         price: product.sellingPrice,
+        quantity: 1,
         imageUrl: primaryImg?.imageUrl
       }];
     });
@@ -109,7 +145,7 @@ export default function BuildPCPage() {
 
   const addAllToCart = () => {
     selected.forEach(item => {
-      addItem(item.productId, 1);
+      addItem(item.productId, item.quantity);
     });
   };
 
@@ -209,9 +245,20 @@ export default function BuildPCPage() {
                           <p className="text-sm text-gray-900 font-medium truncate print:text-black print:whitespace-normal">{item.name}</p>
                           <p className="text-sm text-[#E31837] font-bold print:hidden">{formatPrice(item.price)}</p>
                         </div>
-                        <div className="text-right w-32 hidden print:block">
-                           <p className="text-sm font-bold text-gray-900">{formatPrice(item.price)}</p>
+                        {/* Quantity controls */}
+                        <div className="flex items-center gap-1 print:hidden">
+                          <button onClick={() => decrementQuantity(slot.id)} className="w-7 h-7 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 transition-colors disabled:opacity-40" disabled={item.quantity <= 1}>
+                            <Minus className="w-3.5 h-3.5" />
+                          </button>
+                          <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
+                          <button onClick={() => incrementQuantity(slot.id)} className="w-7 h-7 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 transition-colors">
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
                         </div>
+                        <div className="text-right w-32 hidden print:block">
+                           <p className="text-sm font-bold text-gray-900">{formatPrice(item.price * item.quantity)}</p>
+                        </div>
+                        <p className="text-sm font-bold text-gray-900 w-28 text-right print:hidden">{formatPrice(item.price * item.quantity)}</p>
                         <button onClick={() => openDialog(slot)} className="text-xs text-blue-600 hover:text-blue-700 px-2 py-1 print:hidden">Đổi</button>
                         <button onClick={() => removeItem(slot.id)} className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-600 transition-colors print:hidden">
                           <X className="w-4 h-4" />
@@ -283,34 +330,53 @@ export default function BuildPCPage() {
       {/* Product Selection Dialog */}
       {dialogSlot && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setDialogSlot(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between shrink-0">
               <h3 className="text-lg font-bold text-gray-900">Chọn {dialogSlot.label}</h3>
               <button onClick={() => setDialogSlot(null)} className="p-1 hover:bg-gray-100 rounded"><X className="w-5 h-5 text-gray-500" /></button>
             </div>
-            <div className="p-4 border-b border-gray-200">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input value={searchTerm} onChange={e => { setSearchTerm(e.target.value); fetchProducts(dialogSlot, e.target.value, selectedBrand); }} placeholder={`Tìm ${dialogSlot.label.toLowerCase()}...`}
-                    className="w-full h-10 pl-9 pr-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                </div>
-                <select value={selectedBrand} onChange={e => { setSelectedBrand(e.target.value); fetchProducts(dialogSlot, searchTerm, e.target.value); }}
-                  className="h-10 border border-gray-300 rounded-lg text-sm px-3 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white min-w-[150px]">
-                  <option value="">Tất cả thương hiệu</option>
-                  {brands.map(b => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
-                  ))}
-                </select>
+            <div className="flex flex-1 min-h-0">
+              {/* Filter sidebar */}
+              <div className="w-56 shrink-0 border-r border-gray-200 p-4 overflow-y-auto hidden sm:block">
+                <ProductFilterSidebar
+                  filterData={filterData}
+                  loadingFilters={loadingFilters}
+                  selectedAttrValues={selectedAttrValues}
+                  expandedAttrs={expandedAttrs}
+                  selectedPriceRanges={selectedPriceRanges}
+                  selectedBrandId={selectedBrand ? Number(selectedBrand) : null}
+                  toggleAttrValue={toggleAttrValue}
+                  toggleExpandAttr={toggleExpandAttr}
+                  togglePriceRange={togglePriceRange}
+                  onBrandChange={(brandId) => {
+                    const val = brandId === null ? "" : String(brandId);
+                    setSelectedBrand(val);
+                    fetchProducts(dialogSlot, searchTerm, val);
+                  }}
+                  onClearAll={() => {
+                    clearFilters();
+                    setSelectedBrand("");
+                    fetchProducts(dialogSlot, searchTerm, "");
+                  }}
+                  hasActiveFilters={hasFilterChanges || !!selectedBrand}
+                />
               </div>
-            </div>
-            <div className="overflow-y-auto max-h-[50vh] p-2">
-              {loadingProducts ? (
-                <div className="space-y-2 p-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse" />)}</div>
-              ) : filteredProducts.length === 0 ? (
-                <div className="p-8 text-center text-gray-400 text-sm">Không tìm thấy sản phẩm phù hợp</div>
-              ) : (
-                filteredProducts.map(p => {
+              {/* Product list */}
+              <div className="flex-1 flex flex-col min-h-0">
+                <div className="p-4 border-b border-gray-200 shrink-0">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input value={searchTerm} onChange={e => { setSearchTerm(e.target.value); fetchProducts(dialogSlot, e.target.value, selectedBrand); }} placeholder={`Tìm ${dialogSlot.label.toLowerCase()}...`}
+                      className="w-full h-10 pl-9 pr-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                  </div>
+                </div>
+                <div className="overflow-y-auto flex-1 p-2">
+                  {loadingProducts ? (
+                    <div className="space-y-2 p-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse" />)}</div>
+                  ) : filteredProducts.length === 0 ? (
+                    <div className="p-8 text-center text-gray-400 text-sm">Không tìm thấy sản phẩm phù hợp</div>
+                  ) : (
+                    filteredProducts.map(p => {
                   const primaryImg = p.images?.find(i => i.isPrimary) || p.images?.[0];
                   const inStock = p.status === "ACTIVE";
                   const discount = p.originalPrice > p.sellingPrice ? Math.round((1 - p.sellingPrice / p.originalPrice) * 100) : 0;
@@ -344,6 +410,8 @@ export default function BuildPCPage() {
                   );
                 })
               )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
