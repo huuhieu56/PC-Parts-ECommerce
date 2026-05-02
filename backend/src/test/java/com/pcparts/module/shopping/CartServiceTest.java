@@ -58,7 +58,7 @@ class CartServiceTest {
         testUser = UserProfile.builder().id(1L).fullName("Test User").phone("0901234567").build();
         testProduct = Product.builder().id(10L).name("Intel i7").sellingPrice(new BigDecimal("9990000")).status("ACTIVE").build();
         testCart = Cart.builder().id(100L).user(testUser).build();
-        testInventory = Inventory.builder().id(1L).quantity(100).build();
+        testInventory = Inventory.builder().id(1L).product(testProduct).quantity(100).build();
     }
 
     @Test
@@ -103,7 +103,7 @@ class CartServiceTest {
         when(cartItemRepository.findByCartId(100L)).thenReturn(List.of(
                 CartItem.builder().id(1L).cart(testCart).product(testProduct).quantity(2).build()
         ));
-        when(productImageRepository.findByProductIdOrderBySortOrderAsc(10L)).thenReturn(Collections.emptyList());
+        when(productImageRepository.findByProductIdInOrderBySortOrderAsc(any())).thenReturn(Collections.emptyList());
 
         CartDto result = cartService.addItem(1L, null, request);
 
@@ -124,7 +124,7 @@ class CartServiceTest {
         when(cartItemRepository.findByCartIdAndProductId(100L, 10L)).thenReturn(Optional.of(existing));
         when(cartItemRepository.save(existing)).thenReturn(existing);
         when(cartItemRepository.findByCartId(100L)).thenReturn(List.of(existing));
-        when(productImageRepository.findByProductIdOrderBySortOrderAsc(10L)).thenReturn(Collections.emptyList());
+        when(productImageRepository.findByProductIdInOrderBySortOrderAsc(any())).thenReturn(Collections.emptyList());
 
         cartService.addItem(1L, null, request);
 
@@ -175,13 +175,13 @@ class CartServiceTest {
         when(cartRepository.findBySessionId("sess-123")).thenReturn(Optional.of(guestCart));
         when(cartRepository.findByUserId(1L)).thenReturn(Optional.of(testCart));
         when(cartItemRepository.findByCartId(200L)).thenReturn(List.of(guestItem));
-        when(inventoryRepository.findByProductId(10L)).thenReturn(Optional.of(testInventory));
+        when(inventoryRepository.findByProductIdIn(any())).thenReturn(List.of(testInventory));
         when(cartItemRepository.findByCartIdAndProductId(100L, 10L)).thenReturn(Optional.empty());
         when(cartItemRepository.save(any(CartItem.class))).thenAnswer(inv -> inv.getArgument(0));
         when(cartItemRepository.findByCartId(100L)).thenReturn(List.of(
                 CartItem.builder().id(99L).cart(testCart).product(testProduct).quantity(3).build()
         ));
-        when(productImageRepository.findByProductIdOrderBySortOrderAsc(10L)).thenReturn(Collections.emptyList());
+        when(productImageRepository.findByProductIdInOrderBySortOrderAsc(any())).thenReturn(Collections.emptyList());
 
         CartDto result = cartService.mergeCart(1L, "sess-123");
 

@@ -50,8 +50,7 @@ public class ReviewService {
     @Transactional
     public ReviewDto createReview(Long accountId, ReviewRequest request) {
         // BUG-13 fix: resolve accountId → UserProfile
-        UserProfile user = userProfileRepository.findByAccountId(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", accountId));
+        UserProfile user = resolveUserProfile(accountId);
 
         if (reviewRepository.existsByUserIdAndProductId(user.getId(), request.getProductId())) {
             throw new BusinessException("Bạn đã đánh giá sản phẩm này rồi", HttpStatus.CONFLICT);
@@ -86,19 +85,12 @@ public class ReviewService {
                 throw new BusinessException("Sản phẩm này không có trong đơn hàng", HttpStatus.BAD_REQUEST);
             }
         } else {
-            // UC-CUS-07: If no orderId provided, auto-find a COMPLETED order containing this product
-            List<Order> completedOrders = orderRepository.findByUserIdAndStatus(user.getId(), "COMPLETED");
-            for (Order completedOrder : completedOrders) {
-                boolean productInOrder = orderDetailRepository.findByOrderId(completedOrder.getId()).stream()
-                        .anyMatch(d -> d.getProduct().getId().equals(product.getId()));
-                if (productInOrder) {
-                    order = completedOrder;
-                    break;
-                }
-            }
+            // UC-CUS-07: If no orderId provided, verify user has purchased this product in any COMPLETED order
+            boolean hasPurchased = orderDetailRepository.existsByOrderUserIdAndOrderStatusAndProductId(
+                    user.getId(), "COMPLETED", product.getId());
 
             // UC-CUS-07 Exception: User has not purchased this product
-            if (order == null) {
+            if (!hasPurchased) {
                 throw new BusinessException("Bạn cần mua sản phẩm này để đánh giá", HttpStatus.BAD_REQUEST);
             }
         }
@@ -140,7 +132,7 @@ public class ReviewService {
                 ? r.getImages().stream().map(ReviewImage::getImageUrl).collect(Collectors.toList())
                 : new ArrayList<>();
 
-        return ReviewDto.builder()
+         return ReviewDto.builder()
                 .id(r.getId())
                 .productId(r.getProduct().getId())
                 .customerName(r.getUser().getFullName()) // UC-CUS-07: Include customer name
@@ -149,6 +141,11 @@ public class ReviewService {
                 .images(imageUrls) // UC-CUS-07: Include review images
                 .createdAt(r.getCreatedAt() != null ? r.getCreatedAt().toString() : null)
                 .build();
+    }
+
+    private UserProfile resolveUserProfile(Long accountId) {
+        return userProfileRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", accountId));
     }
 
     @Data @Builder @NoArgsConstructor @AllArgsConstructor

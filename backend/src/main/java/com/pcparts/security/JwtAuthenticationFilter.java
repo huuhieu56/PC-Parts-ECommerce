@@ -16,11 +16,15 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * JWT authentication filter that intercepts requests
  * and validates Bearer tokens.
  * After validation, loads user by account ID (not email).
+ *
+ * Uses an in-memory cache (30s TTL) for token DB lookups
+ * to avoid hitting the database on every authenticated request.
  */
 @Component
 @RequiredArgsConstructor
@@ -29,6 +33,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
     private final TokenRepository tokenRepository;
+
+    /** Cache: token hash → expiry timestamp (epoch ms). Valid tokens cached for 30 seconds. */
+    private static final long TOKEN_CACHE_TTL_MS = 30_000;
+    private final ConcurrentHashMap<String, Long> validTokenCache = new ConcurrentHashMap<>();
 
     /**
      * Filters each request to extract and validate JWT token.
@@ -44,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(token)
                 && jwtTokenProvider.validateToken(token)
-                && tokenRepository.existsByTokenValueAndTokenType(token, "ACCESS")) {
+                && isTokenActiveInDb(token)) {
             String accountId = jwtTokenProvider.getAccountIdFromToken(token);
             UserDetails userDetails = customUserDetailsService.loadUserById(accountId);
 
@@ -60,6 +68,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Checks whether the token exists in the DB as a valid ACCESS token.
+     * Results are cached in-memory for 30 seconds to avoid per-request DB queries.
+     */
+    private boolean isTokenActiveInDb(String token) {
+        Long cachedExpiry = validTokenCache.get(token);
+        if (cachedExpiry != null && cachedExpiry > System.currentTimeMillis()) {
+            return true;
+        }
+        // Cache miss or expired — check DB
+        boolean exists = tokenRepository.existsByTokenValueAndTokenType(token, "ACCESS");
+        if (exists) {
+            validTokenCache.put(token, System.currentTimeMillis() + TOKEN_CACHE_TTL_MS);
+        } else {
+            validTokenCache.remove(token);
+        }
+        return exists;
     }
 
     /**

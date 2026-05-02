@@ -225,8 +225,8 @@ class ReviewServiceTest {
         when(userProfileRepository.findByAccountId(1L)).thenReturn(Optional.of(testUser));
         when(reviewRepository.existsByUserIdAndProductId(1L, 10L)).thenReturn(false);
         when(productRepository.findById(10L)).thenReturn(Optional.of(testProduct));
-        // User không có order nào chứa product này với status COMPLETED
-        when(orderRepository.findByUserIdAndStatus(1L, "COMPLETED")).thenReturn(List.of());
+        // User không có order COMPLETED nào chứa product này
+        when(orderDetailRepository.existsByOrderUserIdAndOrderStatusAndProductId(1L, "COMPLETED", 10L)).thenReturn(false);
 
         assertThatThrownBy(() -> reviewService.createReview(1L, req))
                 .isInstanceOf(BusinessException.class)
@@ -247,10 +247,7 @@ class ReviewServiceTest {
         when(reviewRepository.existsByUserIdAndProductId(1L, 10L)).thenReturn(false);
         when(productRepository.findById(10L)).thenReturn(Optional.of(testProduct));
         // User có order COMPLETED chứa product này
-        when(orderRepository.findByUserIdAndStatus(1L, "COMPLETED")).thenReturn(List.of(testOrder));
-        when(orderDetailRepository.findByOrderId(100L)).thenReturn(List.of(
-                com.pcparts.module.order.entity.OrderDetail.builder().product(testProduct).build()
-        ));
+        when(orderDetailRepository.existsByOrderUserIdAndOrderStatusAndProductId(1L, "COMPLETED", 10L)).thenReturn(true);
         when(reviewRepository.save(any(Review.class))).thenAnswer(inv -> {
             Review r = inv.getArgument(0);
             r.setId(5L);

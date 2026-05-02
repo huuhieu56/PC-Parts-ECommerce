@@ -24,7 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -130,12 +132,20 @@ public class CartService {
         Cart guestCart = guestCartOpt.get();
         Cart customerCart = findOrCreateCart(userId, null);
 
-        for (CartItem guestItem : cartItemRepository.findByCartId(guestCart.getId())) {
+        List<CartItem> guestItems = cartItemRepository.findByCartId(guestCart.getId());
+
+        // Batch-fetch inventory for all guest products (Issue #5 fix)
+        Set<Long> guestProductIds = guestItems.stream()
+                .map(gi -> gi.getProduct().getId())
+                .collect(Collectors.toSet());
+        Map<Long, Integer> inventoryMap = buildInventoryMap(guestProductIds);
+
+        for (CartItem guestItem : guestItems) {
             Optional<CartItem> existing = cartItemRepository.findByCartIdAndProductId(
                     customerCart.getId(), guestItem.getProduct().getId());
 
             // BUG-09 fix: cap merged quantity at available inventory
-            int availableQty = getAvailableQuantity(guestItem.getProduct().getId());
+            int availableQty = inventoryMap.getOrDefault(guestItem.getProduct().getId(), 0);
 
             if (existing.isPresent()) {
                 int mergedQty = existing.get().getQuantity() + guestItem.getQuantity();
@@ -168,6 +178,18 @@ public class CartService {
                 .orElse(0);
     }
 
+    /**
+     * Batch-fetches inventory for multiple products into a productId → quantity map.
+     */
+    private Map<Long, Integer> buildInventoryMap(Set<Long> productIds) {
+        if (productIds.isEmpty()) return Map.of();
+        return inventoryRepository.findByProductIdIn(productIds).stream()
+                .collect(Collectors.toMap(
+                        inv -> inv.getProduct().getId(),
+                        Inventory::getQuantity
+                ));
+    }
+
     private Cart findOrCreateCart(Long userId, String sessionId) {
         if (userId != null) {
             return cartRepository.findByUserId(userId).orElseGet(() -> {
@@ -185,7 +207,19 @@ public class CartService {
 
     private CartDto toDto(Cart cart) {
         List<CartItem> items = cartItemRepository.findByCartId(cart.getId());
-        List<CartItemDto> itemDtos = items.stream().map(this::toItemDto).collect(Collectors.toList());
+
+        // Batch-fetch all product images in one query (Issue #2 fix)
+        Set<Long> productIds = items.stream()
+                .map(i -> i.getProduct().getId())
+                .collect(Collectors.toSet());
+        Map<Long, List<ProductImage>> imagesByProduct = productIds.isEmpty()
+                ? Map.of()
+                : productImageRepository.findByProductIdInOrderBySortOrderAsc(productIds).stream()
+                        .collect(Collectors.groupingBy(img -> img.getProduct().getId()));
+
+        List<CartItemDto> itemDtos = items.stream()
+                .map(item -> toItemDto(item, imagesByProduct.getOrDefault(item.getProduct().getId(), List.of())))
+                .collect(Collectors.toList());
         BigDecimal total = itemDtos.stream().map(CartItemDto::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
         return CartDto.builder()
                 .id(cart.getId())
@@ -195,9 +229,8 @@ public class CartService {
                 .build();
     }
 
-    private CartItemDto toItemDto(CartItem item) {
+    private CartItemDto toItemDto(CartItem item, List<ProductImage> images) {
         Product p = item.getProduct();
-        List<ProductImage> images = productImageRepository.findByProductIdOrderBySortOrderAsc(p.getId());
         String img = images.stream().filter(ProductImage::getIsPrimary).findFirst().map(ProductImage::getImageUrl)
                 .orElse(images.isEmpty() ? null : images.get(0).getImageUrl());
         return CartItemDto.builder()
@@ -211,3 +244,4 @@ public class CartService {
                 .build();
     }
 }
+

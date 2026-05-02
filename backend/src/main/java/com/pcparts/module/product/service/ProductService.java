@@ -103,14 +103,16 @@ public class ProductService {
         // Single batch query — replaces N+1 findAll() calls
         List<ProductAttribute> allPa = productAttributeRepository.findByProductIdIn(productIds);
 
+        // Pre-group by attributeValueId to avoid O(attributes × values × allPa) stream iteration
+        Map<Long, Long> countByAttrValueId = allPa.stream()
+                .collect(Collectors.groupingBy(pa -> pa.getAttributeValue().getId(), Collectors.counting()));
+
         for (Attribute attr : attributes) {
             List<AttributeValue> values = attributeValueRepository.findByAttributeId(attr.getId());
             List<ProductFilterDto.AttributeValueOption> valueOptions = new ArrayList<>();
 
             for (AttributeValue val : values) {
-                long count = allPa.stream()
-                        .filter(pa -> pa.getAttributeValue().getId().equals(val.getId()))
-                        .count();
+                long count = countByAttrValueId.getOrDefault(val.getId(), 0L);
                 if (count > 0) {
                     valueOptions.add(ProductFilterDto.AttributeValueOption.builder()
                             .valueId(val.getId())
@@ -345,7 +347,7 @@ public class ProductService {
                 .trim();
         // Ensure uniqueness
         if (productRepository.existsBySlug(slug)) {
-            slug = slug + "-" + System.currentTimeMillis();
+            slug = slug + "-" + UUID.randomUUID().toString().substring(0, 8);
         }
         return slug;
     }

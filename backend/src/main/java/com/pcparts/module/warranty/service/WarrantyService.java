@@ -52,8 +52,7 @@ public class WarrantyService {
      */
     @Transactional
     public WarrantyDto createRequest(Long accountId, WarrantyRequestDto req) {
-        UserProfile user = userProfileRepository.findByAccountId(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", accountId));
+        UserProfile user = resolveUserProfile(accountId);
         Order order = orderRepository.findById(req.getOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", req.getOrderId()));
         Product product = productRepository.findById(req.getProductId())
@@ -103,8 +102,7 @@ public class WarrantyService {
      */
     @Transactional(readOnly = true)
     public Page<WarrantyDto> getMyRequests(Long accountId, int page, int size) {
-        UserProfile user = userProfileRepository.findByAccountId(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", accountId));
+        UserProfile user = resolveUserProfile(accountId);
         return warrantyRepo.findByUserIdOrderByCreatedAtDesc(user.getId(), PageRequest.of(page, size))
                 .map(this::toDto);
     }
@@ -187,5 +185,10 @@ public class WarrantyService {
         private Long orderId;
         private Long productId;
         private String issueDescription;
+    }
+
+    private UserProfile resolveUserProfile(Long accountId) {
+        return userProfileRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "accountId", accountId));
     }
 }

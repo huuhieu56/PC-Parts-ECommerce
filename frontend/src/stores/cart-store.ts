@@ -44,6 +44,25 @@ function getHeaders(): Record<string, string> {
   return headers;
 }
 
+/** Compute totalPrice and totalItems from a list of cart items. */
+function computeTotals(items: CartItemData[]) {
+  return {
+    totalPrice: items.reduce((sum, i) => sum + (i.sellingPrice || 0) * (i.quantity || 0), 0),
+    totalItems: items.reduce((sum, i) => sum + (i.quantity || 0), 0),
+  };
+}
+
+/** Extracts items array from API response, then sets state with computed totals. */
+function extractCartItems(resData: { items?: CartItemData[]; totalPrice?: number; totalItems?: number }): {
+  items: CartItemData[];
+  totalPrice: number;
+  totalItems: number;
+} {
+  const items = resData.items || [];
+  const totals = computeTotals(items);
+  return { items, ...totals };
+}
+
 export const useCartStore = create<CartState>()(
   persist(
     (set) => ({
@@ -53,14 +72,7 @@ export const useCartStore = create<CartState>()(
       loading: false,
 
       setCartFromResponse: (data) => {
-        const items = data.items || [];
-        const computedTotal = items.reduce((sum: number, i: CartItemData) => sum + (i.sellingPrice || 0) * (i.quantity || 0), 0);
-        const computedCount = items.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
-        set({
-          items,
-          totalPrice: computedTotal || data.totalPrice || 0,
-          totalItems: computedCount,
-        });
+        set(extractCartItems(data));
       },
 
       fetchCart: async () => {
@@ -68,14 +80,7 @@ export const useCartStore = create<CartState>()(
         try {
           const res = await api.get("/cart", { headers: getHeaders() });
           const cart = res.data.data || res.data;
-          const items = cart.items || [];
-          const computedTotal = items.reduce((sum: number, i: CartItemData) => sum + (i.sellingPrice || 0) * (i.quantity || 0), 0);
-          const computedCount = items.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
-          set({
-            items,
-            totalPrice: computedTotal || cart.totalPrice || 0,
-            totalItems: computedCount,
-          });
+          set(extractCartItems(cart));
         } catch {
           // If unauthenticated and no session cart, just keep empty
         } finally {
@@ -87,14 +92,7 @@ export const useCartStore = create<CartState>()(
         try {
           const res = await api.post("/cart/items", { productId, quantity }, { headers: getHeaders() });
           const cart = res.data.data || res.data;
-          const items = cart.items || [];
-          const computedTotal = items.reduce((sum: number, i: CartItemData) => sum + (i.sellingPrice || 0) * (i.quantity || 0), 0);
-          const computedCount = items.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
-          set({
-            items,
-            totalPrice: computedTotal || cart.totalPrice || 0,
-            totalItems: computedCount,
-          });
+          set(extractCartItems(cart));
         } catch (err) {
           console.error("Failed to add item to cart", err);
           throw err;
@@ -107,24 +105,15 @@ export const useCartStore = create<CartState>()(
         const optimisticItems = prevItems.map(i =>
           i.productId === productId ? { ...i, quantity } : i
         );
-        const computedTotalOpt = optimisticItems.reduce((sum: number, i: CartItemData) => sum + (i.sellingPrice || 0) * (i.quantity || 0), 0);
-        const computedCountOpt = optimisticItems.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
-        set({ items: optimisticItems, totalPrice: computedTotalOpt, totalItems: computedCountOpt });
+        set({ items: optimisticItems, ...computeTotals(optimisticItems) });
 
         try {
           const res = await api.put(`/cart/items/${productId}?quantity=${quantity}`, null, { headers: getHeaders() });
           const cart = res.data.data || res.data;
-          const items = cart.items || [];
-          const computedTotal = items.reduce((sum: number, i: CartItemData) => sum + (i.sellingPrice || 0) * (i.quantity || 0), 0);
-          const computedCount = items.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
-          set({
-            items,
-            totalPrice: computedTotal || cart.totalPrice || 0,
-            totalItems: computedCount,
-          });
+          set(extractCartItems(cart));
         } catch (err) {
           // Rollback to previous state and re-fetch from API to sync
-          set({ items: prevItems, totalPrice: prevItems.reduce((s: number, i: CartItemData) => s + (i.sellingPrice || 0) * (i.quantity || 0), 0), totalItems: prevItems.reduce((s: number, i: CartItemData) => s + (i.quantity || 0), 0) });
+          set({ items: prevItems, ...computeTotals(prevItems) });
           // Re-fetch cart from API to get correct state
           try { await useCartStore.getState().fetchCart(); } catch { /* ignore */ }
           console.error("Failed to update cart item", err);
@@ -135,24 +124,15 @@ export const useCartStore = create<CartState>()(
         const prevItems = useCartStore.getState().items;
         // Optimistic removal
         const optimisticItems = prevItems.filter(i => i.productId !== productId);
-        const computedTotalOpt = optimisticItems.reduce((sum: number, i: CartItemData) => sum + (i.sellingPrice || 0) * (i.quantity || 0), 0);
-        const computedCountOpt = optimisticItems.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
-        set({ items: optimisticItems, totalPrice: computedTotalOpt, totalItems: computedCountOpt });
+        set({ items: optimisticItems, ...computeTotals(optimisticItems) });
 
         try {
           const res = await api.delete(`/cart/items/${productId}`, { headers: getHeaders() });
           const cart = res.data.data || res.data;
-          const items = cart.items || [];
-          const computedTotal = items.reduce((sum: number, i: CartItemData) => sum + (i.sellingPrice || 0) * (i.quantity || 0), 0);
-          const computedCount = items.reduce((sum: number, i: CartItemData) => sum + (i.quantity || 0), 0);
-          set({
-            items,
-            totalPrice: computedTotal || cart.totalPrice || 0,
-            totalItems: computedCount,
-          });
+          set(extractCartItems(cart));
         } catch (err) {
           // Rollback and re-fetch
-          set({ items: prevItems, totalPrice: prevItems.reduce((s: number, i: CartItemData) => s + (i.sellingPrice || 0) * (i.quantity || 0), 0), totalItems: prevItems.reduce((s: number, i: CartItemData) => s + (i.quantity || 0), 0) });
+          set({ items: prevItems, ...computeTotals(prevItems) });
           try { await useCartStore.getState().fetchCart(); } catch { /* ignore */ }
           console.error("Failed to remove cart item", err);
         }

@@ -64,7 +64,24 @@ public class CouponService {
         if (!coupon.isActive()) throw new BusinessException("Mã giảm giá không hoạt động", HttpStatus.BAD_REQUEST);
         if (coupon.getMinOrderValue() != null && orderAmount.compareTo(coupon.getMinOrderValue()) < 0)
             throw new BusinessException("Đơn hàng chưa đạt giá trị tối thiểu", HttpStatus.BAD_REQUEST);
-        return toDto(coupon);
+
+        BigDecimal discountAmount;
+        if ("PERCENTAGE".equals(coupon.getDiscountType())) {
+            discountAmount = orderAmount.multiply(coupon.getDiscountValue()).divide(BigDecimal.valueOf(100));
+            if (coupon.getMaxDiscount() != null && discountAmount.compareTo(coupon.getMaxDiscount()) > 0) {
+                discountAmount = coupon.getMaxDiscount();
+            }
+        } else {
+            discountAmount = coupon.getDiscountValue();
+        }
+        // Cap discount to order amount
+        if (discountAmount.compareTo(orderAmount) > 0) {
+            discountAmount = orderAmount;
+        }
+
+        CouponDto dto = toDto(coupon);
+        dto.setComputedDiscount(discountAmount);
+        return dto;
     }
 
     private CouponDto toDto(Coupon c) {
@@ -87,5 +104,6 @@ public class CouponService {
         private LocalDateTime startDate;
         private LocalDateTime endDate;
         private Boolean isActive;
+        private BigDecimal computedDiscount;
     }
 }
