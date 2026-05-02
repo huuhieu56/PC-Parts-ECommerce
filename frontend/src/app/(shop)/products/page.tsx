@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Cpu, Filter, X, ChevronRight, SlidersHorizontal, Loader2, ChevronDown } from "lucide-react";
+import { Cpu, Filter, X, ChevronRight } from "lucide-react";
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useCartStore } from "@/stores/cart-store";
 import { formatPrice } from "@/lib/utils";
@@ -10,6 +10,8 @@ import api from "@/lib/api";
 import Pagination from "@/components/Pagination";
 import ProductCard from "@/components/ProductCard";
 import type { DisplayProduct } from "@/components/ProductCard";
+import ProductFilterSidebar from "@/components/ProductFilterSidebar";
+import { useProductFilters, priceRanges } from "@/hooks/useProductFilters";
 import { mapToDisplayProduct } from "@/lib/mappers";
 import type { Product } from "@/types";
 
@@ -19,40 +21,6 @@ interface CategoryDto {
   slug: string;
   children?: CategoryDto[];
 }
-
-interface AttributeValueOption {
-  valueId: number;
-  value: string;
-  count: number;
-}
-
-interface AttributeFilterGroup {
-  attributeId: number;
-  attributeName: string;
-  values: AttributeValueOption[];
-}
-
-interface BrandFilterOption {
-  brandId: number;
-  brandName: string;
-  count: number;
-}
-
-interface ProductFilterData {
-  attributes: AttributeFilterGroup[];
-  brands: BrandFilterOption[];
-  priceRange: { minPrice: number; maxPrice: number };
-}
-
-
-
-const priceRanges = [
-  { label: "Dưới 2 triệu", min: 0, max: 2000000 },
-  { label: "2 - 5 triệu", min: 2000000, max: 5000000 },
-  { label: "5 - 10 triệu", min: 5000000, max: 10000000 },
-  { label: "10 - 20 triệu", min: 10000000, max: 20000000 },
-  { label: "Trên 20 triệu", min: 20000000, max: Infinity },
-];
 
 
 
@@ -75,15 +43,6 @@ function ProductsContent() {
   const [hasPrevious, setHasPrevious] = useState(false);
   const PAGE_SIZE = 20;
 
-  // Dynamic filter data from API
-  const [filterData, setFilterData] = useState<ProductFilterData | null>(null);
-  const [loadingFilters, setLoadingFilters] = useState(false);
-
-  // Selected attribute value IDs (across all attribute groups)
-  const [selectedAttrValues, setSelectedAttrValues] = useState<Set<number>>(new Set());
-  // Expanded accordion state for attribute groups
-  const [expandedAttrs, setExpandedAttrs] = useState<Set<number>>(new Set());
-
   // Filter values from URL
   const selectedCategoryId = searchParams.get("categoryId") ? Number(searchParams.get("categoryId")) : null;
   const selectedBrandId = searchParams.get("brandId") ? Number(searchParams.get("brandId")) : null;
@@ -91,9 +50,23 @@ function ProductsContent() {
   const categorySlug = searchParams.get("category") || "";
   const isSale = searchParams.get("sale") === "true";
 
-  // Client-side price filter
-  const [selectedPriceRanges, setSelectedPriceRanges] = useState<number[]>([]);
   const [sortBy, setSortBy] = useState(isSale ? "discount" : "default");
+
+  // Reusable filter hook
+  const {
+    filterData,
+    loadingFilters,
+    selectedAttrValues,
+    expandedAttrs,
+    selectedPriceRanges,
+    toggleAttrValue,
+    toggleExpandAttr,
+    togglePriceRange,
+    clearFilters: clearHookFilters,
+    getAttrValueLabel,
+    buildFilterParams,
+    hasActiveFilters: hasFilterChanges,
+  } = useProductFilters(selectedCategoryId);
 
   const handleAddToCart = useCallback(async (productId: number) => {
     await addItem(productId, 1);
@@ -112,31 +85,6 @@ function ProductsContent() {
     }
     fetchCategories();
   }, []);
-
-  // Fetch dynamic filters when category changes
-  useEffect(() => {
-    const effectiveCategoryId = selectedCategoryId || (categorySlug ? findCategoryBySlug(categories, categorySlug)?.id : null);
-    if (!effectiveCategoryId) {
-      setFilterData(null);
-      return;
-    }
-    async function fetchFilters() {
-      setLoadingFilters(true);
-      try {
-        const res = await api.get("/products/filters", { params: { categoryId: effectiveCategoryId } });
-        const data: ProductFilterData = res.data.data || res.data;
-        setFilterData(data);
-        // Auto-expand all attribute groups
-        setExpandedAttrs(new Set(data.attributes.map((a: AttributeFilterGroup) => a.attributeId)));
-      } catch (err) {
-        console.error("Failed to fetch filters", err);
-      }
-      setLoadingFilters(false);
-    }
-    fetchFilters();
-    // Reset selected attribute values when category changes
-    setSelectedAttrValues(new Set());
-  }, [selectedCategoryId, categorySlug, categories]);
 
   // Fetch products with server-side filters
   useEffect(() => {
@@ -167,20 +115,8 @@ function ProductsContent() {
           }
         }
 
-        // Dynamic attribute value IDs (server-side filter)
-        if (selectedAttrValues.size > 0) {
-          const ids = Array.from(selectedAttrValues);
-          ids.forEach(id => params.append("attributeValueIds", String(id)));
-        }
-
-        // Price range (server-side filter)
-        if (selectedPriceRanges.length > 0) {
-          const selectedRanges = selectedPriceRanges.map(idx => priceRanges[idx]);
-          const minPrice = Math.min(...selectedRanges.map(r => r.min));
-          const maxPrice = Math.max(...selectedRanges.map(r => r.max));
-          params.set("minPrice", String(minPrice));
-          if (maxPrice !== Infinity) params.set("maxPrice", String(maxPrice));
-        }
+        // Dynamic attribute and price filters from hook
+        buildFilterParams(params);
 
         const res = await api.get("/products", { params: Object.fromEntries(params) });
         const pageData = res.data.data || res.data;
@@ -211,32 +147,6 @@ function ProductsContent() {
     return null;
   }
 
-  function toggleAttrValue(valueId: number) {
-    setSelectedAttrValues(prev => {
-      const next = new Set(prev);
-      if (next.has(valueId)) next.delete(valueId);
-      else next.add(valueId);
-      return next;
-    });
-    setCurrentPage(0);
-  }
-
-  function toggleExpandAttr(attrId: number) {
-    setExpandedAttrs(prev => {
-      const next = new Set(prev);
-      if (next.has(attrId)) next.delete(attrId);
-      else next.add(attrId);
-      return next;
-    });
-  }
-
-  function togglePriceRange(idx: number) {
-    setSelectedPriceRanges(prev =>
-      prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]
-    );
-    setCurrentPage(0);
-  }
-
   function navigateFilter(params: Record<string, string | null>) {
     const current = new URLSearchParams(searchParams.toString());
     Object.entries(params).forEach(([key, val]) => {
@@ -248,13 +158,12 @@ function ProductsContent() {
   }
 
   function clearAllFilters() {
-    setSelectedPriceRanges([]);
-    setSelectedAttrValues(new Set());
+    clearHookFilters();
     setSortBy("default");
     router.push("/products");
   }
 
-  const hasActiveFilters = selectedCategoryId || selectedBrandId || keyword || categorySlug || selectedPriceRanges.length > 0 || selectedAttrValues.size > 0;
+  const hasActiveFilters = !!(selectedCategoryId || selectedBrandId || keyword || categorySlug) || hasFilterChanges;
 
   // Flatten categories for sidebar display
   function flattenCategories(cats: CategoryDto[]): CategoryDto[] {
@@ -266,16 +175,6 @@ function ProductsContent() {
     return result;
   }
   const flatCats = flattenCategories(categories);
-
-  // Get selected attribute value labels for active filter tags
-  function getAttrValueLabel(valueId: number): string {
-    if (!filterData) return String(valueId);
-    for (const group of filterData.attributes) {
-      const val = group.values.find(v => v.valueId === valueId);
-      if (val) return `${group.attributeName}: ${val.value}`;
-    }
-    return String(valueId);
-  }
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -297,23 +196,7 @@ function ProductsContent() {
           {/* Sidebar Filters */}
           <aside className={`${showFilters ? 'block fixed inset-0 z-50 bg-white p-6 overflow-y-auto' : 'hidden'} lg:block lg:relative lg:w-60 lg:shrink-0`}>
             <div className="lg:bg-white lg:rounded-xl lg:shadow-sm lg:p-4 lg:sticky lg:top-32">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                  <SlidersHorizontal className="w-4 h-4" /> Bộ lọc
-                </h3>
-                <div className="flex items-center gap-2">
-                  {hasActiveFilters && (
-                    <button onClick={clearAllFilters} className="text-xs text-red-500 hover:text-red-600 cursor-pointer">
-                      Xóa lọc
-                    </button>
-                  )}
-                  <button className="lg:hidden cursor-pointer" onClick={() => setShowFilters(false)}>
-                    <X className="w-5 h-5 text-gray-500" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Category filter */}
+              {/* Category filter (products page specific) */}
               <div className="mb-5">
                 <h4 className="text-sm font-medium text-gray-700 mb-2">Danh mục</h4>
                 <div className="space-y-0.5">
@@ -338,79 +221,24 @@ function ProductsContent() {
                 </div>
               </div>
 
-              {/* Brand filter (from filter API or all brands) */}
-              {(filterData?.brands || []).length > 0 && (
-                <div className="mb-5">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Thương hiệu</h4>
-                  <div className="space-y-1">
-                    {filterData!.brands.map((brand) => (
-                      <label key={brand.brandId} className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-gray-900 transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={selectedBrandId === brand.brandId}
-                          onChange={() => navigateFilter({ brandId: selectedBrandId === brand.brandId ? null : String(brand.brandId) })}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                        />
-                        {brand.brandName}
-                        <span className="text-xs text-gray-400 ml-auto">({brand.count})</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <ProductFilterSidebar
+                filterData={filterData}
+                loadingFilters={loadingFilters}
+                selectedAttrValues={selectedAttrValues}
+                expandedAttrs={expandedAttrs}
+                selectedPriceRanges={selectedPriceRanges}
+                selectedBrandId={selectedBrandId}
+                toggleAttrValue={toggleAttrValue}
+                toggleExpandAttr={toggleExpandAttr}
+                togglePriceRange={togglePriceRange}
+                onBrandChange={(brandId) => navigateFilter({ brandId: brandId === null ? null : String(brandId) })}
+                onClearAll={clearAllFilters}
+                hasActiveFilters={hasActiveFilters}
+              />
 
-              {/* Dynamic Attribute Filters */}
-              {loadingFilters && selectedCategoryId && (
-                <div className="mb-5 text-center py-3">
-                  <Loader2 className="w-5 h-5 animate-spin text-blue-500 mx-auto" />
-                  <p className="text-xs text-gray-400 mt-1">Đang tải bộ lọc...</p>
-                </div>
-              )}
-              {filterData && filterData.attributes.map((attrGroup) => (
-                <div key={attrGroup.attributeId} className="mb-4">
-                  <button
-                    onClick={() => toggleExpandAttr(attrGroup.attributeId)}
-                    className="flex items-center justify-between w-full text-sm font-medium text-gray-700 mb-1.5 cursor-pointer hover:text-gray-900 transition-colors"
-                  >
-                    <span>{attrGroup.attributeName}</span>
-                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${expandedAttrs.has(attrGroup.attributeId) ? "rotate-180" : ""}`} />
-                  </button>
-                  {expandedAttrs.has(attrGroup.attributeId) && (
-                    <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
-                      {attrGroup.values.map((val) => (
-                        <label key={val.valueId} className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-gray-900 transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={selectedAttrValues.has(val.valueId)}
-                            onChange={() => toggleAttrValue(val.valueId)}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                          />
-                          <span className="truncate">{val.value}</span>
-                          <span className="text-xs text-gray-400 ml-auto shrink-0">({val.count})</span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              {/* Price filter */}
-              <div className="mb-5">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Khoảng giá</h4>
-                <div className="space-y-1.5">
-                  {priceRanges.map((range, idx) => (
-                    <label key={idx} className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-gray-900 transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={selectedPriceRanges.includes(idx)}
-                        onChange={() => togglePriceRange(idx)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                      />
-                      {range.label}
-                    </label>
-                  ))}
-                </div>
-              </div>
+              <button className="lg:hidden cursor-pointer mt-2" onClick={() => setShowFilters(false)}>
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
             </div>
           </aside>
 
