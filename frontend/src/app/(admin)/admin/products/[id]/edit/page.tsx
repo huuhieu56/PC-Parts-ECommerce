@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Save } from "lucide-react";
 import api, { uploadProductImages } from "@/lib/api";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import type { ProductImage } from "@/types";
+import { useAuthStore } from "@/stores/auth-store";
+import { Permission } from "@/lib/permissions";
 
 interface Category { id: number; name: string; }
 interface Brand { id: number; name: string; }
@@ -16,6 +19,19 @@ const empty: ProductForm = { name: "", sku: "", originalPrice: "", sellingPrice:
 export default function AdminProductEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const isNew = id === "new";
+  const router = useRouter();
+  const hasPermission = useAuthStore((s) => s.hasPermission);
+
+  const requiredPermission = isNew ? Permission.PRODUCT_CREATE : Permission.PRODUCT_UPDATE;
+  const canAccess = hasPermission(requiredPermission);
+
+  useEffect(() => {
+    if (!canAccess) {
+      router.replace("/admin/products");
+    }
+  }, [canAccess, router]);
+
+  if (!canAccess) return null;
 
   const [form, setForm] = useState<ProductForm>(empty);
   const [categories, setCategories] = useState<Category[]>([]);

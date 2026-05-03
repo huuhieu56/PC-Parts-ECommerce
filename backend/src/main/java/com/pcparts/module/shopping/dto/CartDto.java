@@ -17,4 +17,6 @@ public class CartDto {
     private List<CartItemDto> items;
     private BigDecimal totalAmount;
     private Integer totalItems;
+    /** Optional message when quantity was adjusted due to stock limits. */
+    private String message;
 }

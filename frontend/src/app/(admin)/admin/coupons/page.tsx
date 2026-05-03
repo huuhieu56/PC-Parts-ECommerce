@@ -5,6 +5,8 @@ import { formatPrice } from "@/lib/utils";
 import { Plus, Search, Tag, Edit2, Trash2, X } from "lucide-react";
 import api from "@/lib/api";
 import Pagination from "@/components/Pagination";
+import { PermissionGate } from "@/components/admin/PermissionGate";
+import { Permission } from "@/lib/permissions";
 
 
 interface Coupon { id: number; code: string; discountType: string; discountValue: number; minOrderValue: number; maxDiscount: number; maxUses: number; usedCount: number; isActive: boolean; startDate: string; endDate: string; }
@@ -74,7 +76,9 @@ export default function AdminCouponsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-gray-900">Mã giảm giá</h1>
-        <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-1"><Plus className="w-4 h-4" /> Tạo mã</button>
+        <PermissionGate permission={Permission.COUPON_CREATE}>
+          <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-1"><Plus className="w-4 h-4" /> Tạo mã</button>
+        </PermissionGate>
       </div>
       {msg && <div className={`mb-4 rounded-lg px-4 py-3 text-sm font-medium ${msg.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>{msg.text}</div>}
 
@@ -132,10 +136,10 @@ export default function AdminCouponsPage() {
                   <td className="px-4 py-3 text-gray-500">{c.usedCount}/{c.maxUses}</td>
                   <td className="px-4 py-3 text-gray-500">{c.endDate ? new Date(c.endDate).toLocaleDateString("vi-VN") : "—"}</td>
                   <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{c.isActive ? "Hoạt động" : "Vô hiệu"}</span></td>
-                  <td className="px-4 py-3"><div className="flex gap-1">
+                  <td className="px-4 py-3"><PermissionGate permission={Permission.COUPON_UPDATE}><div className="flex gap-1">
                     <button onClick={() => openEdit(c)} className="text-blue-600 hover:text-blue-700 p-1"><Edit2 className="w-4 h-4" /></button>
                     <button onClick={() => remove(c.id)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
-                  </div></td>
+                  </div></PermissionGate></td>
                 </tr>
               ))}
             </tbody>

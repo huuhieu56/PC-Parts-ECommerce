@@ -56,11 +56,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/banners/**").permitAll()
 
                 // Cart — guests use session-based cart (X-Session-Id header)
-                .requestMatchers(HttpMethod.GET, "/api/v1/cart/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/v1/cart/items").permitAll()
-                .requestMatchers(HttpMethod.PUT, "/api/v1/cart/**").permitAll()
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/cart/items/**").permitAll()
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/cart").authenticated()
+                // Fine-grained role checks via @PreAuthorize on CartController
+                .requestMatchers("/api/v1/cart/**").permitAll()
                 // Admin endpoints — require at least one admin-level permission
                 // Fine-grained permission checks via @PreAuthorize on individual controllers
                 .requestMatchers("/api/v1/admin/**").authenticated()

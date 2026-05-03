@@ -5,6 +5,8 @@ import { formatPrice } from "@/lib/utils";
 import { Search, RotateCcw } from "lucide-react";
 import api from "@/lib/api";
 import Pagination from "@/components/Pagination";
+import { PermissionGate } from "@/components/admin/PermissionGate";
+import { Permission } from "@/lib/permissions";
 
 interface ReturnItem { id: number; orderNumber: string; customerName: string; productName: string; reason: string; type: string; status: string; refundAmount?: number; createdAt: string; }
 interface PageData { content: ReturnItem[]; page: number; totalPages: number; totalElements: number; hasNext: boolean; hasPrevious: boolean; size: number; }
@@ -108,9 +110,11 @@ export default function AdminReturnsPage() {
                 <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[r.status] || "bg-gray-100 text-gray-600"}`}>{statusLabels[r.status] || r.status}</span></td>
                 <td className="px-4 py-3 text-gray-700">{r.refundAmount ? formatPrice(r.refundAmount) : "—"}</td>
                 <td className="px-4 py-3">
-                  <select value={r.status} onChange={e => updateStatus(r.id, e.target.value)} className="text-xs border border-gray-300 rounded-lg px-2 py-1 bg-white">
-                    {Object.entries(statusLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                  </select>
+                  <PermissionGate permission={Permission.RETURN_MANAGE} fallback={<span className="text-xs text-gray-400">{statusLabels[r.status]}</span>}>
+                    <select value={r.status} onChange={e => updateStatus(r.id, e.target.value)} className="text-xs border border-gray-300 rounded-lg px-2 py-1 bg-white">
+                      {Object.entries(statusLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                    </select>
+                  </PermissionGate>
                 </td>
               </tr>
             ))}</tbody>

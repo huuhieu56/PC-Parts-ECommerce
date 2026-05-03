@@ -89,8 +89,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
     if (!product) return;
     setAddingToCart(true);
     try {
-      await addItem(product.id, qty);
-      setCartMsg("Đã thêm vào giỏ hàng!");
+      const msg = await addItem(product.id, qty);
+      setCartMsg(msg || "Đã thêm vào giỏ hàng!");
       setTimeout(() => setCartMsg(""), 3000);
     } catch {
       setCartMsg("Lỗi khi thêm vào giỏ hàng");

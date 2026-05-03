@@ -30,6 +30,7 @@ public class OrderController {
      * Create an order from cart.
      */
     @PostMapping
+    @PreAuthorize("hasAuthority('order.place')")
     public ResponseEntity<ApiResponse<OrderDto>> createOrder(
             Authentication auth,
             @RequestBody @Valid CreateOrderRequest request) {
@@ -43,6 +44,7 @@ public class OrderController {
      * Get order detail.
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('order.view_own')")
     public ResponseEntity<ApiResponse<OrderDto>> getOrder(
             Authentication auth, @PathVariable Long id) {
         Long accountId = Long.parseLong(auth.getName());
@@ -54,6 +56,7 @@ public class OrderController {
      * List my orders.
      */
     @GetMapping
+    @PreAuthorize("hasAuthority('order.view_own')")
     public ResponseEntity<ApiResponse<PageResponse<OrderDto>>> getMyOrders(
             Authentication auth,
             @RequestParam(defaultValue = "0") @Min(0) int page,
@@ -67,6 +70,7 @@ public class OrderController {
      * Cancel order (customer). Only PENDING orders can be cancelled.
      */
     @PutMapping("/{id}/cancel")
+    @PreAuthorize("hasAuthority('order.cancel')")
     public ResponseEntity<ApiResponse<OrderDto>> cancelOrder(
             Authentication auth, @PathVariable Long id) {
         Long accountId = Long.parseLong(auth.getName());

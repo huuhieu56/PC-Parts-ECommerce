@@ -23,7 +23,7 @@ public class CouponController {
     private final CouponService couponService;
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('coupon.create', 'coupon.update', 'coupon.delete')")
+    @PreAuthorize("hasAnyAuthority('coupon.view', 'coupon.create', 'coupon.update', 'coupon.delete')")
     public ResponseEntity<ApiResponse<List<CouponDto>>> getAll() {
         return ResponseEntity.ok(ApiResponse.success("Danh sách mã giảm giá", couponService.getAllCoupons()));
     }

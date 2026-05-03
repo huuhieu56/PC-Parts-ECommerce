@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Search, Shield } from "lucide-react";
 import api from "@/lib/api";
 import Pagination from "@/components/Pagination";
+import { PermissionGate } from "@/components/admin/PermissionGate";
+import { Permission } from "@/lib/permissions";
 
 const statusColors: Record<string, string> = { PENDING: "bg-amber-100 text-amber-700", IN_PROGRESS: "bg-blue-100 text-blue-700", RESOLVED: "bg-green-100 text-green-700", REJECTED: "bg-red-100 text-red-700" };
 const statusLabels: Record<string, string> = { PENDING: "Chờ xử lý", IN_PROGRESS: "Đang xử lý", RESOLVED: "Đã giải quyết", REJECTED: "Từ chối" };
@@ -65,13 +67,15 @@ export default function AdminWarrantyPage() {
                   <td className="px-4 py-3 text-gray-500">{new Date(r.createdAt).toLocaleDateString("vi-VN")}</td>
                   <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[r.status] || "bg-gray-100 text-gray-600"}`}>{statusLabels[r.status] || r.status}</span></td>
                   <td className="px-4 py-3">
-                    <select value={r.status} onChange={e => updateStatus(r.id, e.target.value)}
-                      className="text-xs px-2 py-1 border border-gray-200 rounded-lg bg-white cursor-pointer focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                      <option value="PENDING">Chờ xử lý</option>
-                      <option value="IN_PROGRESS">Đang xử lý</option>
-                      <option value="RESOLVED">Đã giải quyết</option>
-                      <option value="REJECTED">Từ chối</option>
-                    </select>
+                    <PermissionGate permission={Permission.WARRANTY_MANAGE} fallback={<span className="text-xs text-gray-400">{statusLabels[r.status]}</span>}>
+                      <select value={r.status} onChange={e => updateStatus(r.id, e.target.value)}
+                        className="text-xs px-2 py-1 border border-gray-200 rounded-lg bg-white cursor-pointer focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="PENDING">Chờ xử lý</option>
+                        <option value="IN_PROGRESS">Đang xử lý</option>
+                        <option value="RESOLVED">Đã giải quyết</option>
+                        <option value="REJECTED">Từ chối</option>
+                      </select>
+                    </PermissionGate>
                   </td>
                 </tr>
               ))}

@@ -6,9 +6,12 @@ import { useEffect, useState, useCallback } from "react";
 import { Plus, Search, Cpu } from "lucide-react";
 import api from "@/lib/api";
 import Pagination from "@/components/Pagination";
+import { PermissionGate } from "@/components/admin/PermissionGate";
+import { Permission } from "@/lib/permissions";
 
 
-interface Product { id: number; name: string; slug: string; sku: string; sellingPrice: number; categoryName: string; brandName: string; status: string; }
+interface ProductImage { id: number; imageUrl: string; isPrimary: boolean; sortOrder: number; }
+interface Product { id: number; name: string; slug: string; sku: string; sellingPrice: number; categoryName: string; brandName: string; status: string; images?: ProductImage[]; }
 interface PageData { content: Product[]; page: number; totalPages: number; totalElements: number; hasNext: boolean; hasPrevious: boolean; size: number; }
 
 export default function AdminProductsPage() {
@@ -37,7 +40,9 @@ export default function AdminProductsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-gray-900">Quản lý sản phẩm</h1>
-        <Link href="/admin/products/new/edit" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-1"><Plus className="w-4 h-4" /> Thêm sản phẩm</Link>
+        <PermissionGate permission={Permission.PRODUCT_CREATE}>
+          <Link href="/admin/products/new/edit" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-1"><Plus className="w-4 h-4" /> Thêm sản phẩm</Link>
+        </PermissionGate>
       </div>
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-4 border-b border-gray-200">
@@ -61,12 +66,12 @@ export default function AdminProductsPage() {
             <tbody>
               {products.map(p => (
                 <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="px-4 py-3"><div className="flex items-center gap-3"><div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center"><Cpu className="w-5 h-5 text-gray-400" /></div><span className="text-gray-900 font-medium truncate max-w-xs">{p.name}</span></div></td>
+                  <td className="px-4 py-3"><div className="flex items-center gap-3"><div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center overflow-hidden shrink-0">{p.images && p.images.length > 0 ? <img src={(p.images.find(img => img.isPrimary) || p.images[0]).imageUrl} alt={p.name} className="w-full h-full object-cover" /> : <Cpu className="w-5 h-5 text-gray-400" />}</div><span className="text-gray-900 font-medium truncate max-w-xs">{p.name}</span></div></td>
                   <td className="px-4 py-3 text-gray-500">{p.sku}</td>
                   <td className="px-4 py-3 text-gray-500">{p.categoryName}</td>
                   <td className="px-4 py-3 text-[#E31837] font-medium">{formatPrice(p.sellingPrice)}</td>
                   <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${p.status === "ACTIVE" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{p.status === "ACTIVE" ? "Đang bán" : p.status}</span></td>
-                  <td className="px-4 py-3"><Link href={`/admin/products/${p.id}/edit`} className="text-blue-600 hover:text-blue-700 text-xs font-medium">Sửa</Link></td>
+                  <td className="px-4 py-3"><PermissionGate permission={Permission.PRODUCT_UPDATE}><Link href={`/admin/products/${p.id}/edit`} className="text-blue-600 hover:text-blue-700 text-xs font-medium">Sửa</Link></PermissionGate></td>
                 </tr>
               ))}
             </tbody>

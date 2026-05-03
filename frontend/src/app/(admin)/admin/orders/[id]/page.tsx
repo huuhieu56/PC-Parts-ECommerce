@@ -5,6 +5,8 @@ import { formatPrice } from "@/lib/utils";
 import { use, useEffect, useState } from "react";
 import { ChevronRight, Package, Truck, CheckCircle, ArrowLeft } from "lucide-react";
 import api from "@/lib/api";
+import { PermissionGate } from "@/components/admin/PermissionGate";
+import { Permission } from "@/lib/permissions";
 
 
 const statusLabels: Record<string, string> = { PENDING: "Chờ xác nhận", CONFIRMED: "Đã xác nhận", SHIPPING: "Đang giao", COMPLETED: "Hoàn thành", CANCELLED: "Đã hủy" };
@@ -95,21 +97,23 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
       )}
 
       {/* Status Update */}
-      {available.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="font-semibold text-gray-900 mb-3">Cập nhật trạng thái</h2>
-          <div className="flex gap-2">
-            {available.map(s => (
-              <button key={s} onClick={() => updateStatus(s)} disabled={updating}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
-                  s === "CANCELLED" ? "bg-red-50 text-red-700 hover:bg-red-100 border border-red-200" : "bg-blue-600 text-white hover:bg-blue-700"
-                }`}>
-                {updating ? "Đang xử lý..." : `→ ${statusLabels[s]}`}
-              </button>
-            ))}
+      <PermissionGate permission={Permission.ORDER_UPDATE}>
+        {available.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="font-semibold text-gray-900 mb-3">Cập nhật trạng thái</h2>
+            <div className="flex gap-2">
+              {available.map(s => (
+                <button key={s} onClick={() => updateStatus(s)} disabled={updating}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
+                    s === "CANCELLED" ? "bg-red-50 text-red-700 hover:bg-red-100 border border-red-200" : "bg-blue-600 text-white hover:bg-blue-700"
+                  }`}>
+                  {updating ? "Đang xử lý..." : `→ ${statusLabels[s]}`}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </PermissionGate>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Items */}

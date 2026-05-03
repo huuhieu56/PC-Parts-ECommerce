@@ -27,6 +27,7 @@ export const Permission = {
   INVENTORY_VIEW: "inventory.view",
   INVENTORY_IMPORT: "inventory.import",
   INVENTORY_ADJUST: "inventory.adjust",
+  INVENTORY_MANAGE: "inventory.manage",
 
   // Supplier
   SUPPLIER_CREATE: "supplier.create",
@@ -34,6 +35,7 @@ export const Permission = {
   SUPPLIER_DELETE: "supplier.delete",
 
   // Coupon
+  COUPON_VIEW: "coupon.view",
   COUPON_CREATE: "coupon.create",
   COUPON_UPDATE: "coupon.update",
   COUPON_DELETE: "coupon.delete",
@@ -63,6 +65,12 @@ export const Permission = {
   BANNER_UPDATE: "banner.update",
   BANNER_DELETE: "banner.delete",
 
+  // Shopping (CUSTOMER only)
+  CART_MANAGE: "cart.manage",
+  ORDER_PLACE: "order.place",
+  ORDER_VIEW_OWN: "order.view_own",
+  ORDER_CANCEL: "order.cancel",
+
   // System
   SYSTEM_ADMIN: "system.admin",
 } as const;
@@ -80,8 +88,8 @@ export const ADMIN_ROUTES: Record<string, PermissionCode | null> = {
   "/admin/brands": Permission.BRAND_CREATE,
   "/admin/orders": Permission.ORDER_VIEW,
   "/admin/inventory": Permission.INVENTORY_VIEW,
-  "/admin/suppliers": Permission.SUPPLIER_CREATE,
-  "/admin/coupons": Permission.COUPON_CREATE,
+  "/admin/suppliers": Permission.INVENTORY_MANAGE,
+  "/admin/coupons": Permission.COUPON_VIEW,
   "/admin/warranty": Permission.WARRANTY_VIEW,
   "/admin/returns": Permission.RETURN_VIEW,
   "/admin/accounts": Permission.ACCOUNT_VIEW,
