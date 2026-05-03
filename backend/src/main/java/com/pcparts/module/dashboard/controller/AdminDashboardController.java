@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/admin/dashboard")
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('report.revenue')")
+@PreAuthorize("hasAnyAuthority('report.revenue', 'inventory.view')")
 public class AdminDashboardController {
 
     private final AdminDashboardService dashboardService;

@@ -16,6 +16,7 @@ export default function CartPage() {
   const [couponMsg, setCouponMsg] = useState("");
   const [couponError, setCouponError] = useState(false);
   const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [stockMsg, setStockMsg] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -82,6 +83,7 @@ export default function CartPage() {
         ) : (
           <>
             {/* Product List */}
+            {stockMsg && <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">{stockMsg}</div>}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-4">
               {items.map((item, idx) => (
                 <div key={item.productId} className={`p-4 ${idx > 0 ? "border-t border-gray-200" : ""}`}>
@@ -102,9 +104,9 @@ export default function CartPage() {
                     </div>
                     <div className="shrink-0 text-right">
                       <div className="flex items-center border border-gray-300 rounded mt-2 w-fit ml-auto">
-                        <button onClick={() => updateItem(item.productId, Math.max(1, item.quantity - 1))} className="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-50"><Minus className="w-3 h-3" /></button>
+                        <button onClick={async () => { const msg = await updateItem(item.productId, Math.max(1, item.quantity - 1)); if (msg) { setStockMsg(msg); setTimeout(() => setStockMsg(""), 3000); } }} className="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-50"><Minus className="w-3 h-3" /></button>
                         <span className="w-8 text-center text-sm font-medium border-x border-gray-300">{item.quantity}</span>
-                        <button onClick={() => updateItem(item.productId, item.quantity + 1)} className="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-50"><Plus className="w-3 h-3" /></button>
+                        <button onClick={async () => { const msg = await updateItem(item.productId, item.quantity + 1); if (msg) { setStockMsg(msg); setTimeout(() => setStockMsg(""), 3000); } }} className="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-50"><Plus className="w-3 h-3" /></button>
                       </div>
                       <p className="text-[#E31837] font-bold mt-2">{formatPrice(item.sellingPrice * item.quantity)}</p>
                     </div>

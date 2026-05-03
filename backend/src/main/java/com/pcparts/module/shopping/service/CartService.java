@@ -53,6 +53,7 @@ public class CartService {
 
     /**
      * Adds an item to cart with inventory check (BUG-08 fix).
+     * Returns a message if quantity was capped due to stock limits.
      */
     @Transactional
     public CartDto addItem(Long userId, String sessionId, CartItemRequest request) {
@@ -67,6 +68,7 @@ public class CartService {
         int currentQtyInCart = existing.map(CartItem::getQuantity).orElse(0);
         int requestedTotal = currentQtyInCart + request.getQuantity();
 
+        String message = null;
         if (requestedTotal > availableQty) {
             if (availableQty <= currentQtyInCart) {
                 throw new BusinessException("Sản phẩm " + product.getName() + " đã hết hàng hoặc đã đạt giới hạn tồn kho",
@@ -74,6 +76,7 @@ public class CartService {
             }
             // Cap at max available
             requestedTotal = availableQty;
+            message = "Chỉ còn " + availableQty + " sản phẩm trong kho, đã điều chỉnh số lượng";
         }
 
         if (existing.isPresent()) {
@@ -84,7 +87,9 @@ public class CartService {
             cartItemRepository.save(CartItem.builder()
                     .cart(cart).product(product).quantity(requestedTotal).build());
         }
-        return toDto(cart);
+        CartDto dto = toDto(cart);
+        dto.setMessage(message);
+        return dto;
     }
 
     @Transactional
@@ -92,6 +97,7 @@ public class CartService {
         Cart cart = findOrCreateCart(userId, sessionId);
         CartItem item = cartItemRepository.findByCartIdAndProductId(cart.getId(), productId)
                 .orElseThrow(() -> new ResourceNotFoundException("CartItem", "productId", productId));
+        String message = null;
         if (quantity <= 0) {
             cartItemRepository.delete(item);
         } else {
@@ -99,11 +105,14 @@ public class CartService {
             int availableQty = getAvailableQuantity(productId);
             if (quantity > availableQty) {
                 quantity = availableQty;
+                message = "Chỉ còn " + availableQty + " sản phẩm trong kho, đã điều chỉnh số lượng";
             }
             item.setQuantity(quantity);
             cartItemRepository.save(item);
         }
-        return toDto(cart);
+        CartDto dto = toDto(cart);
+        dto.setMessage(message);
+        return dto;
     }
 
     @Transactional

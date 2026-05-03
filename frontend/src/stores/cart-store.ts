@@ -18,8 +18,8 @@ interface CartState {
   loading: boolean;
 
   fetchCart: () => Promise<void>;
-  addItem: (productId: number, quantity: number) => Promise<void>;
-  updateItem: (productId: number, quantity: number) => Promise<void>;
+  addItem: (productId: number, quantity: number) => Promise<string | null>;
+  updateItem: (productId: number, quantity: number) => Promise<string | null>;
   removeItem: (productId: number) => Promise<void>;
   clearCart: () => Promise<void>;
   setCartFromResponse: (data: { items: CartItemData[]; totalPrice: number; totalItems: number }) => void;
@@ -93,6 +93,7 @@ export const useCartStore = create<CartState>()(
           const res = await api.post("/cart/items", { productId, quantity }, { headers: getHeaders() });
           const cart = res.data.data || res.data;
           set(extractCartItems(cart));
+          return cart.message || null;
         } catch (err) {
           console.error("Failed to add item to cart", err);
           throw err;
@@ -111,12 +112,14 @@ export const useCartStore = create<CartState>()(
           const res = await api.put(`/cart/items/${productId}?quantity=${quantity}`, null, { headers: getHeaders() });
           const cart = res.data.data || res.data;
           set(extractCartItems(cart));
+          return cart.message || null;
         } catch (err) {
           // Rollback to previous state and re-fetch from API to sync
           set({ items: prevItems, ...computeTotals(prevItems) });
           // Re-fetch cart from API to get correct state
           try { await useCartStore.getState().fetchCart(); } catch { /* ignore */ }
           console.error("Failed to update cart item", err);
+          return null;
         }
       },
 

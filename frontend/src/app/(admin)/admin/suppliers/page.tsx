@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Plus, Search, Edit2, Trash2, Factory } from "lucide-react";
 import api from "@/lib/api";
 import Pagination from "@/components/Pagination";
+import { PermissionGate } from "@/components/admin/PermissionGate";
+import { Permission } from "@/lib/permissions";
 
 interface Supplier { id: number; name: string; contactPerson: string; phone: string; email: string; address: string; }
 
@@ -48,7 +50,9 @@ export default function AdminSuppliersPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-gray-900">Quản lý nhà cung cấp</h1>
-        <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-1"><Plus className="w-4 h-4" /> Thêm NCC</button>
+        <PermissionGate permission={Permission.INVENTORY_MANAGE}>
+          <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-1"><Plus className="w-4 h-4" /> Thêm NCC</button>
+        </PermissionGate>
       </div>
       {msg && <div className={`mb-4 rounded-lg px-4 py-3 text-sm font-medium ${msg.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>{msg.text}</div>}
       {showForm && (
@@ -86,10 +90,10 @@ export default function AdminSuppliersPage() {
                 <td className="px-4 py-3 text-gray-500">{s.contactPerson || "—"}</td>
                 <td className="px-4 py-3 text-gray-500">{s.phone || "—"}</td>
                 <td className="px-4 py-3 text-gray-500">{s.email || "—"}</td>
-                <td className="px-4 py-3"><div className="flex gap-1">
+                <td className="px-4 py-3"><PermissionGate permission={Permission.INVENTORY_MANAGE}><div className="flex gap-1">
                   <button onClick={() => openEdit(s)} className="text-blue-600 hover:text-blue-700 p-1"><Edit2 className="w-4 h-4" /></button>
                   <button onClick={() => remove(s.id)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
-                </div></td>
+                </div></PermissionGate></td>
               </tr>
             ))}</tbody>
           </table>

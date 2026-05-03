@@ -5,6 +5,8 @@ import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
 import { DollarSign, Package, ShoppingCart, Users, BarChart3, ArrowUpRight, TrendingUp } from "lucide-react";
 import api from "@/lib/api";
+import { Permission } from "@/lib/permissions";
+import { useAuthStore } from "@/stores/auth-store";
 
 
 interface DashboardStats {
@@ -58,6 +60,8 @@ function RevenueChart({ data }: { data: Array<{ date: string; revenue: number }>
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats>({ totalRevenue: 0, totalOrders: 0, totalProducts: 0, totalUsers: 0, recentOrders: [], revenueByDay: [] });
   const [loading, setLoading] = useState(true);
+  const hasPermission = useAuthStore((s) => s.hasPermission);
+  const canViewRevenue = hasPermission(Permission.REPORT_REVENUE);
 
   useEffect(() => {
     async function fetchStats() {
@@ -136,8 +140,8 @@ export default function AdminDashboardPage() {
       ) : (
         <>
           {/* Stat Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {cards.map(c => (
+          <div className={`grid grid-cols-1 sm:grid-cols-2 ${canViewRevenue ? "lg:grid-cols-4" : "lg:grid-cols-3"} gap-4 mb-6`}>
+            {cards.filter(c => canViewRevenue || c.label !== "Tổng doanh thu").map(c => (
               <div key={c.label} className={`bg-white rounded-xl shadow-sm p-5 border ${c.color.split(" ").pop()}`}>
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm text-gray-500">{c.label}</span>
@@ -155,17 +159,19 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Revenue Chart + Recent Orders */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <div className={`grid grid-cols-1 ${canViewRevenue ? "lg:grid-cols-5" : ""} gap-6`}>
             {/* Revenue Chart */}
-            <div className="lg:col-span-3 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="font-semibold text-gray-900 flex items-center gap-2"><BarChart3 className="w-5 h-5 text-blue-600" /> Doanh thu 7 ngày gần nhất</h2>
+            {canViewRevenue && (
+              <div className="lg:col-span-3 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-semibold text-gray-900 flex items-center gap-2"><BarChart3 className="w-5 h-5 text-blue-600" /> Doanh thu 7 ngày gần nhất</h2>
+                </div>
+                <RevenueChart data={stats.revenueByDay || []} />
               </div>
-              <RevenueChart data={stats.revenueByDay || []} />
-            </div>
+            )}
 
             {/* Recent Orders */}
-            <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className={`${canViewRevenue ? "lg:col-span-2" : ""} bg-white rounded-xl shadow-sm p-6 border border-gray-100`}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-gray-900">Đơn hàng gần đây</h2>
                 <Link href="/admin/orders" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5">
