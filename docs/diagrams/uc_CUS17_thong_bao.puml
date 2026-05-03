@@ -1,4 +1,4 @@
-@startuml UC-CUS-17 Nhận thông báo trạng thái đơn hàng
+@startuml uc_CUS17_thong_bao
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

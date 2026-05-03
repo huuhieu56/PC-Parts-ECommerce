@@ -1,4 +1,4 @@
-@startuml UC-CUS-13 Xem lịch sử đơn hàng
+@startuml uc_CUS13_lich_su_don_hang
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

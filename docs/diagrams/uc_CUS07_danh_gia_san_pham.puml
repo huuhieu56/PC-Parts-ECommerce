@@ -1,4 +1,4 @@
-@startuml UC-CUS-07 Đánh giá sản phẩm
+@startuml uc_CUS07_danh_gia_san_pham
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

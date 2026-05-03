@@ -1,4 +1,4 @@
-@startuml UC-AD-06 Quản lý tài khoản
+@startuml uc_AD06_quan_ly_tai_khoan
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

@@ -1,4 +1,4 @@
-@startuml UC-AD-01 Quản lý danh mục và thuộc tính
+@startuml uc_AD01_quan_ly_danh_muc
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

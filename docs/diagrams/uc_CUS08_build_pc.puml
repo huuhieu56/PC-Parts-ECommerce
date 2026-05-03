@@ -1,4 +1,4 @@
-@startuml UC-CUS-08 Build PC
+@startuml uc_CUS08_build_pc
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

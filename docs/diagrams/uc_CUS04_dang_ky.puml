@@ -1,4 +1,4 @@
-@startuml UC-CUS-04 Đăng ký
+@startuml uc_CUS04_dang_ky
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

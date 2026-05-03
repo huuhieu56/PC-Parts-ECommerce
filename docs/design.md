@@ -1123,7 +1123,7 @@ Notification --> NotificationType
 
 > **Hình 3.15a** — Source: [`diagrams/seq_manage_address.puml`](diagrams/seq_manage_address.puml)
 >
-> PNG cần generate sau khi cập nhật diagram: `diagrams/images/seq_manage_address.png`.
+> ![diagrams/images/seq_manage_address.png](diagrams/images/seq_manage_address.png)
 
 **Phạm vi UC-CUS-12:** Customer quản lý sổ địa chỉ giao hàng gồm xem danh sách, thêm, sửa, xóa và đặt địa chỉ mặc định. Luồng này có thể được mở từ "Tài khoản của tôi" → "Sổ địa chỉ" hoặc từ Checkout khi Customer cần thêm địa chỉ mới.
 

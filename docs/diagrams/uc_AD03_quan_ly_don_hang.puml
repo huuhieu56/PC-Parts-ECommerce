@@ -1,4 +1,4 @@
-@startuml UC-AD-03 Quản lý đơn hàng
+@startuml uc_AD03_quan_ly_don_hang
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

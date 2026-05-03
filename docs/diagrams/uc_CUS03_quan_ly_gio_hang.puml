@@ -1,4 +1,4 @@
-@startuml UC-CUS-03 Quản lý giỏ hàng
+@startuml uc_CUS03_quan_ly_gio_hang
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

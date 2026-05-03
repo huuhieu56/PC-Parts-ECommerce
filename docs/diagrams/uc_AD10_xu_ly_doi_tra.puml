@@ -1,4 +1,4 @@
-@startuml UC-AD-10 Xử lý đổi trả
+@startuml uc_AD10_xu_ly_doi_tra
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

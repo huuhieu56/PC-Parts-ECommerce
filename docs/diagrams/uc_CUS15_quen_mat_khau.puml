@@ -1,4 +1,4 @@
-@startuml UC-CUS-15 Quên / Thiết lập lại mật khẩu
+@startuml uc_CUS15_quen_mat_khau
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

@@ -1,4 +1,4 @@
-@startuml UC-AD-11 Quản lý banner slider
+@startuml uc_AD11_quan_ly_banner
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

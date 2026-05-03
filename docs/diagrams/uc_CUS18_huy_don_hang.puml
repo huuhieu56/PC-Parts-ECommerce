@@ -1,4 +1,4 @@
-@startuml UC-CUS-18 Huy don hang
+@startuml uc_CUS18_huy_don_hang
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

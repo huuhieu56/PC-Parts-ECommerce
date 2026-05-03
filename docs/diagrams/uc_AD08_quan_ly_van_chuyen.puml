@@ -1,4 +1,4 @@
-@startuml UC-AD-08 Quản lý vận chuyển
+@startuml uc_AD08_quan_ly_van_chuyen
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

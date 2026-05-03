@@ -1,4 +1,4 @@
-@startuml UC-CUS-14 Quản lý thông tin cá nhân
+@startuml uc_CUS14_quan_ly_thong_tin
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

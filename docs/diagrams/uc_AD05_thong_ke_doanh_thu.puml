@@ -1,4 +1,4 @@
-@startuml UC-AD-05 Thống kê doanh thu
+@startuml uc_AD05_thong_ke_doanh_thu
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

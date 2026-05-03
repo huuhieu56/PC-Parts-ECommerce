@@ -1,4 +1,4 @@
-@startuml UC-AD-04 Quản lý kho hàng
+@startuml uc_AD04_quan_ly_kho
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

@@ -1,4 +1,4 @@
-@startuml UC-AD-09 Xử lý bảo hành
+@startuml uc_AD09_xu_ly_bao_hanh
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

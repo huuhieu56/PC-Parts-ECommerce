@@ -1,4 +1,4 @@
-@startuml UC-AD-07 Quản lý mã giảm giá
+@startuml uc_AD07_quan_ly_coupon
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

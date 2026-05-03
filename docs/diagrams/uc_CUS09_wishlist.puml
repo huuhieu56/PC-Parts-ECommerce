@@ -1,4 +1,4 @@
-@startuml UC-CUS-09 Quản lý danh sách yêu thích
+@startuml uc_CUS09_wishlist
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

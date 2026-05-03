@@ -1,4 +1,4 @@
-@startuml UC-CUS-11 Yêu cầu đổi trả
+@startuml uc_CUS11_yeu_cau_doi_tra
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

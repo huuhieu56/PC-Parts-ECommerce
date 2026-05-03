@@ -1,4 +1,4 @@
-@startuml UC-CUS-12 Quản lý địa chỉ giao hàng
+@startuml uc_CUS12_quan_ly_dia_chi
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle

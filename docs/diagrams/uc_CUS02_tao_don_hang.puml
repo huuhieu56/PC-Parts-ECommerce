@@ -1,4 +1,4 @@
-@startuml UC-CUS-02 Tạo đơn hàng và thanh toán
+@startuml uc_CUS02_tao_don_hang
 left to right direction
 skinparam actorStyle awesome
 skinparam packageStyle rectangle
